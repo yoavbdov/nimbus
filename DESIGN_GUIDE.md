@@ -68,47 +68,61 @@ If you add a new component type not listed above, check [ui.shadcn.com/docs](htt
 
 ## 1. Color System
 
-Linear's palette is almost entirely neutral — no bright accent splashes. One muted violet/indigo signal color, everything else is gray.
+The palette is indigo-anchored with real color accents — not all-gray. The sidebar always contrasts the main background (dark sidebar on a light body, indigo-tinted sidebar in dark mode). Charts and stat icons use distinct hues.
 
-### Primary accent: Violet-indigo (muted)
+### Primary accent: Rich indigo-violet
 
 ```css
 :root {
-  --primary: oklch(0.511 0.193 277.015); /* indigo-600 */
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.511 0.193 277.015);
+  --primary: oklch(0.48 0.22 277);   /* indigo-600, richer saturation */
+  --primary-foreground: oklch(0.98 0 0);
 }
 .dark {
-  --primary: oklch(0.623 0.182 277.015); /* indigo-400 */
-  --primary-foreground: oklch(0.145 0 0);
-  --ring: oklch(0.623 0.182 277.015);
+  --primary: oklch(0.65 0.20 277);   /* indigo-400 */
+  --primary-foreground: oklch(0.10 0 0);
 }
 ```
 
-### Background layers (dark-first, three depths)
+### Sidebar — contrasting surface
 
-Linear uses three near-black surfaces to create depth without shadows:
+The sidebar **must** use a different background from the page body. Use the `bg-sidebar` semantic token:
 
-| Role                 | Dark token                        | Light token    |
-| -------------------- | --------------------------------- | -------------- |
-| App shell / sidebar  | `bg-[#0f0f0f]` or `bg-background` | `bg-[#fafafa]` |
-| Page body            | `bg-[#141414]` or `bg-muted/30`   | `bg-white`     |
-| Card / panel surface | `bg-[#1a1a1a]` or `bg-card`       | `bg-card`      |
+| Mode  | Sidebar (`--sidebar`)             | Body (`--background`)  |
+| ----- | --------------------------------- | ---------------------- |
+| Light | `oklch(0.19 0.06 277)` — deep indigo | `oklch(0.97 0 0)` — off-white |
+| Dark  | `oklch(0.19 0.06 277)` — indigo-tinted dark | `oklch(0.10 0 0)` — near-black |
 
-Use semantic tokens (`bg-background`, `bg-card`, `bg-muted`) in components. Only set raw hex values in `globals.css` theme definitions.
+Always use `bg-sidebar`, `text-sidebar-foreground`, `bg-sidebar-accent`, and `border-sidebar-border` inside the sidebar — never `bg-background` or card tokens there.
+
+### Background layers (three depths)
+
+| Role                 | Dark token    | Light token    |
+| -------------------- | ------------- | -------------- |
+| Page body            | `bg-background` (`oklch(0.10)`) | `bg-background` (`oklch(0.97)`) |
+| Card / panel surface | `bg-card`     | `bg-card` (`oklch(1.0)`) |
+| Muted / recessed     | `bg-muted`    | `bg-muted`     |
+
+### Chart colors — distinct hues
+
+Charts and visualizations must use real colors, not gray scales:
+
+| Slot      | Token       | Hue          |
+| --------- | ----------- | ------------ |
+| chart-1   | `--chart-1` | Indigo       |
+| chart-2   | `--chart-2` | Cyan/teal    |
+| chart-3   | `--chart-3` | Emerald      |
+| chart-4   | `--chart-4` | Amber        |
+| chart-5   | `--chart-5` | Rose         |
 
 ### Status accent colors
 
-Linear uses muted, low-saturation tints — not vivid greens and reds:
-
-| Role           | Background          | Text               | Border                  |
-| -------------- | ------------------- | ------------------ | ----------------------- |
-| Success        | `bg-emerald-500/10` | `text-emerald-400` | `border-emerald-500/20` |
-| Warning        | `bg-amber-500/10`   | `text-amber-400`   | `border-amber-500/20`   |
-| Error          | `bg-red-500/10`     | `text-red-400`     | `border-red-500/20`     |
-| Info / primary | `bg-indigo-500/10`  | `text-indigo-400`  | `border-indigo-500/20`  |
-
-In light mode, use the `50` background and `700` text variants instead.
+| Role    | Background          | Text               | Border                  | StatCard color prop |
+| ------- | ------------------- | ------------------ | ----------------------- | ------------------- |
+| Success | `bg-emerald-500/10` | `text-emerald-500` | `border-emerald-500/20` | `color="emerald"`   |
+| Warning | `bg-amber-500/10`   | `text-amber-500`   | `border-amber-500/20`   | `color="amber"`     |
+| Error   | `bg-rose-500/10`    | `text-rose-500`    | `border-rose-500/20`    | `color="rose"`      |
+| Info    | `bg-indigo-500/10`  | `text-indigo-500`  | `border-indigo-500/20`  | `color="indigo"`    |
+| Data    | `bg-sky-500/10`     | `text-sky-500`     | `border-sky-500/20`     | `color="sky"`       |
 
 ---
 
@@ -179,37 +193,39 @@ Icons that are not directional (Trophy, Users, Calendar) need nothing.
 
 ### Sidebar
 
-Linear's sidebar is ultra-minimal — no background colors on nav items unless active, tight spacing, icons + labels.
+The sidebar is always a **contrasting** surface — dark indigo in both light and dark modes. Use `bg-sidebar` and sidebar-prefixed tokens throughout.
 
 ```
-Background:     bg-background (matches the darkest layer)
-Border:         border-e border-border/40
+Background:     bg-sidebar                            ← NOT bg-background
+Border:         border-e border-sidebar-border
 Width:          w-52
-Active item:    bg-muted text-foreground rounded-md font-medium
-Inactive:       text-muted-foreground hover:bg-muted/60 hover:text-foreground rounded-md transition-colors duration-100
+Active item:    bg-sidebar-primary/20 text-sidebar-primary border-s-2 border-sidebar-primary font-medium rounded-md
+Inactive:       text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground rounded-md transition-all duration-150
 Item:           px-2 py-1.5 flex items-center gap-2 text-sm
-Icon:           w-4 h-4 (small — Linear uses 16px icons)
-Section label:  text-xs text-muted-foreground/60 uppercase tracking-widest px-2 mb-1 mt-4
-Logo area:      px-3 py-4 border-b border-border/40
+Icon active:    text-sidebar-primary
+Section label:  text-xs text-sidebar-foreground/40 uppercase tracking-widest px-2 mb-1 mt-4
+Logo area:      px-3 py-4 border-b border-sidebar-border
+Logo icon bg:   bg-sidebar-primary (colored, not neutral)
 ```
-
-No colored sidebar. No `bg-slate-900`. The sidebar blends into the shell.
 
 ### StatCard
 
-Linear stat blocks are borderless or barely bordered — they rely on surface color, not stroke decoration.
+Stat cards have a colored icon area and a subtle lift on hover.
 
 ```
-Background:     bg-card border border-border/40 rounded-lg p-4
-No accent stripe (no border-s-4)
-Icon:           text-muted-foreground (not colored backgrounds — just the icon itself)
+Background:     bg-card border border-border/50 rounded-xl shadow-sm p-4
+Icon area:      size-8 rounded-lg bg-{color}-500/10 border border-{color}-500/20
+Icon:           size-4 text-{color}-500  — always colored, not gray
 Value:          text-2xl font-semibold font-mono tabular-nums
 Label:          text-xs text-muted-foreground
-Delta / trend:  text-xs font-mono — green/red text only, no badge
-Clickable:      hover:bg-muted/40 cursor-pointer transition-colors duration-100
+Trend up:       text-xs font-mono text-emerald-500
+Trend down:     text-xs font-mono text-rose-500
+Clickable:      hover:-translate-y-0.5 hover:shadow-md transition-all duration-200
+Entrance:       animate-in fade-in-0 slide-in-from-bottom-2 duration-300
 ```
 
-No shadow on cards ever. A `border-border/40` is enough.
+Use the `color` prop to pick the icon accent: `indigo` (default), `emerald`, `amber`, `rose`, `sky`.
+Stagger entrance animations with `[animation-delay:Xms]` when rendering a grid of stat cards.
 
 ### Table
 
@@ -288,53 +304,63 @@ For any global search or quick-action surface, use the `Command` shadcn componen
 
 ## 6. Animation System
 
-**Rule:** Linear barely animates. If you feel the urge to add an animation, don't. The only motion is micro-transitions on interactive state — hover, focus, active.
+Animate purposefully — entrances and interactive state only. No looping, no bouncing, no layout shifts.
 
 ### Page / section entrance
 
-A single, subtle entrance on the page content block only:
-
 ```tsx
-<div className="animate-in fade-in-0 duration-200">{/* page content */}</div>
+<div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+  {/* page content */}
+</div>
 ```
 
-No `slide-in-from-bottom`. No bouncing. Just a fade.
+### Card grid — staggered entrance
+
+When rendering a grid of `StatCard` or similar cards, stagger them:
+
+```tsx
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+  {stats.map((s, i) => (
+    <StatCard key={s.label} {...s} style={{ animationDelay: `${i * 60}ms` }} />
+  ))}
+</div>
+```
 
 ### Micro-interactions (hover / active)
 
 ```
-Clickable card:    hover:bg-muted/40 transition-colors duration-100
+Clickable card:    hover:-translate-y-0.5 hover:shadow-md transition-all duration-200
 Table row:         hover:bg-muted/30 transition-colors duration-75
 Button press:      active:opacity-80 transition-opacity duration-75
-Nav item:          transition-colors duration-100
+Nav item:          transition-all duration-150
 Icon button:       hover:text-foreground transition-colors duration-100
 ```
 
 ### What never animates
 
-- Layout / size changes
+- The sidebar chrome itself (bg, border)
 - Static text or labels
-- The sidebar
-- Anything that slides, bounces, or pulses
+- Anything that bounces, pulses, or scales on load
 
 ---
 
 ## 7. DO / DON'T
 
-| DO                                                   | DON'T                                                |
-| ---------------------------------------------------- | ---------------------------------------------------- |
-| `ms-` / `ps-` / `start-` utilities                   | `ml-` / `pl-` / `left-` utilities                    |
-| `rtl:rotate-180` for directional icons               | Manually swapping icon components per locale         |
-| `font-mono tabular-nums` for every number            | Bold + colored numbers without mono                  |
-| Semantic tokens (`bg-card`, `text-muted-foreground`) | Hardcoded colors (`bg-white`, `text-gray-600`)       |
-| `shadow-md` max on modals, `shadow-none` on cards    | `shadow-xl`, `shadow-2xl` anywhere                   |
-| `hover:bg-muted/30` on rows                          | `hover:scale-105` on rows or cards                   |
-| `size="sm"` buttons                                  | Large buttons outside of CTAs                        |
-| `border-border/40` faint borders                     | Thick or colored card borders                        |
-| `text-xs` for labels and metadata                    | `text-sm` or larger for secondary info               |
-| Fade-in only for page entrance                       | Slide-in animations, bounces, or per-card animations |
-| One `default` button per action group                | Two filled buttons side by side                      |
-| Ghost buttons for most in-table actions              | Outline buttons inside dense lists                   |
+| DO                                                          | DON'T                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------ |
+| `ms-` / `ps-` / `start-` utilities                          | `ml-` / `pl-` / `left-` utilities                      |
+| `rtl:rotate-180` for directional icons                      | Manually swapping icon components per locale           |
+| `font-mono tabular-nums` for every number                   | Bold + colored numbers without mono                    |
+| Semantic tokens (`bg-card`, `bg-sidebar`, `text-muted-foreground`) | Hardcoded colors (`bg-white`, `text-gray-600`)  |
+| `bg-sidebar` in the sidebar, never `bg-background`          | Making sidebar blend into the page body                |
+| Colored icon area on StatCard (`color` prop)                | Gray/muted icons on every stat card                    |
+| Real hues on charts (`--chart-1` through `--chart-5`)       | All-gray charts                                        |
+| `hover:-translate-y-0.5 transition-all duration-200` on cards | `hover:scale-105` on rows or cards                  |
+| Staggered `animation-delay` on card grids                   | All cards entering at the same time                    |
+| `shadow-sm` on cards, `shadow-md` on modals                 | `shadow-xl`, `shadow-2xl` anywhere                     |
+| `size="sm"` buttons                                         | Large buttons outside of CTAs                          |
+| One `default` button per action group                       | Two filled buttons side by side                        |
+| Ghost buttons for most in-table actions                     | Outline buttons inside dense lists                     |
 
 ---
 

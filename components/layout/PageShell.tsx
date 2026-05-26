@@ -8,17 +8,15 @@ interface PageShellProps {
 
 export function PageShell({ title, children }: PageShellProps) {
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       <div className="hidden lg:block">
         <Sidebar />
       </div>
 
-      <div className="flex-1 flex flex-col lg:ms-56 min-w-0">
+      <div className="flex-1 flex flex-col lg:ms-52 min-w-0">
         <TopBar title={title} />
-        <main className="flex-1 px-4 sm:px-6 py-6">
-          <div className="max-w-screen-xl mx-auto">
-            {children}
-          </div>
+        <main className="flex-1 px-5 py-4">
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

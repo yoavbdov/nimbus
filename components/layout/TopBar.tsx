@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { MobileSidebar } from "@/components/layout/MobileSidebar";
-import { useState } from "react";
 
 interface TopBarProps {
   title: string;
@@ -15,20 +16,20 @@ export function TopBar({ title }: TopBarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-14 flex items-center px-4 sm:px-6 gap-3 bg-background border-b border-border">
+      <header className="sticky top-0 z-30 h-11 flex items-center px-4 sm:px-5 gap-3 bg-background border-b border-border/40">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="lg:hidden size-7"
           onClick={() => setMobileOpen(true)}
           aria-label="פתח תפריט"
         >
-          <Menu className="size-5" />
+          <Menu className="size-4" />
         </Button>
 
-        <h1 className="text-lg sm:text-xl font-semibold text-foreground flex-1">
-          {title}
-        </h1>
+        <h1 className="text-sm font-medium text-foreground flex-1">{title}</h1>
+
+        <Separator orientation="vertical" className="h-4 opacity-40 hidden sm:block" />
 
         <ThemeToggle />
       </header>
