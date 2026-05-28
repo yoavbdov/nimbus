@@ -16,7 +16,7 @@ export function TopBar({ title }: TopBarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-11 flex items-center px-4 sm:px-5 gap-3 bg-background border-b border-border/40">
+      <header className="sticky top-0 z-30 h-12 flex items-center px-4 sm:px-5 gap-3 glass-sm border-0 ring-0 rounded-none shadow-none">
         <Button
           variant="ghost"
           size="icon"

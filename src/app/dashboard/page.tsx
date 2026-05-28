@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { PageShell } from "@/components/layout/PageShell";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RatingDistribution } from "@/components/dashboard/RatingDistribution";
@@ -7,36 +8,68 @@ import { TodaySessions } from "@/components/dashboard/TodaySessions";
 import { RegistrationStatus } from "@/components/dashboard/RegistrationStatus";
 import { useDashboard } from "@/hooks/useDashboard";
 
+const panelVariants = {
+  initial: { opacity: 0, y: 14, filter: "blur(6px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+  exit: { opacity: 0, y: -8, filter: "blur(4px)" },
+};
+
 export default function DashboardPage() {
   const { tiers, activePanel, handleTierChange, handlePanelSelect } =
     useDashboard();
 
   return (
     <PageShell title="לוח בקרה">
-      <div className="animate-in fade-in-0 duration-200 space-y-4">
-        <DashboardStats onSelect={handlePanelSelect} />
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="space-y-6"
+      >
+        <DashboardStats onSelect={handlePanelSelect} activePanel={activePanel} />
 
-        {activePanel && (
-          <div
-            key={activePanel}
-            className="animate-in fade-in-0 slide-in-from-bottom-2 duration-500"
-          >
-            {activePanel === "players" && (
-              <RatingDistribution
-                tiers={tiers}
-                onTierChange={handleTierChange}
-              />
-            )}
-            {activePanel === "clubs" && <RegistrationStatus />}
-            {activePanel === "sessions" && <TodaySessions />}
-            {activePanel === "tournaments" && (
-              <p className="text-center text-rose-500 font-medium py-6">
-                פה צריך להופיע רק תחרויות היום - להוסיף
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+        <AnimatePresence mode="wait">
+          {activePanel && (
+            <motion.div
+              key={activePanel}
+              variants={panelVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {activePanel === "players" && (
+                <div className="bloom bloom-indigo rounded-3xl">
+                  <RatingDistribution
+                    tiers={tiers}
+                    onTierChange={handleTierChange}
+                  />
+                </div>
+              )}
+              {activePanel === "clubs" && (
+                <div className="bloom bloom-indigo rounded-3xl">
+                  <RegistrationStatus />
+                </div>
+              )}
+              {activePanel === "sessions" && (
+                <div className="bloom bloom-indigo rounded-3xl">
+                  <TodaySessions />
+                </div>
+              )}
+              {activePanel === "tournaments" && (
+                <div className="bloom bloom-indigo rounded-3xl tint-indigo">
+                  <div className="glass shadow-depth-xl rounded-3xl overflow-hidden">
+                    <div className="h-1 tint-bar" />
+                    <p className="text-center text-muted-foreground font-medium py-12">
+                      אין תחרויות מתוכננות להיום
+                    </p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </PageShell>
   );
 }

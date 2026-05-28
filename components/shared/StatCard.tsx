@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -9,41 +12,25 @@ interface StatCardProps {
   trend?: string;
   trendUp?: boolean;
   icon: string;
-  color?: "indigo" | "emerald" | "amber" | "rose" | "sky";
+  color?: "indigo" | "sky";
   onClick?: () => void;
+  active?: boolean;
+  tinted?: boolean;
 }
 
-const colorMap = {
-  indigo: {
-    border: "border-blue-400",
-    iconBg: "bg-blue-100",
-    bg: "bg-blue-50",
-    hoverBg: "hover:bg-blue-100",
-  },
-  emerald: {
-    border: "border-teal-400",
-    iconBg: "bg-teal-100",
-    bg: "bg-teal-50",
-    hoverBg: "hover:bg-teal-100",
-  },
-  amber: {
-    border: "border-amber-400",
-    iconBg: "bg-amber-100",
-    bg: "bg-amber-50",
-    hoverBg: "hover:bg-amber-100",
-  },
-  rose: {
-    border: "border-pink-400",
-    iconBg: "bg-pink-100",
-    bg: "bg-pink-50",
-    hoverBg: "hover:bg-pink-100",
-  },
-  sky: {
-    border: "border-violet-400",
-    iconBg: "bg-violet-100",
-    bg: "bg-violet-50",
-    hoverBg: "hover:bg-violet-100",
-  },
+const accentMap: Record<NonNullable<StatCardProps["color"]>, string> = {
+  indigo: "text-indigo-500",
+  sky: "text-sky-500",
+};
+
+const bloomMap: Record<NonNullable<StatCardProps["color"]>, string> = {
+  indigo: "bloom bloom-indigo bloom-hover",
+  sky: "bloom bloom-sky bloom-hover",
+};
+
+const tintMap: Record<NonNullable<StatCardProps["color"]>, string> = {
+  indigo: "tint-indigo",
+  sky: "tint-sky",
 };
 
 export function StatCard({
@@ -55,56 +42,69 @@ export function StatCard({
   icon,
   color = "indigo",
   onClick,
+  active = false,
+  tinted = false,
 }: StatCardProps) {
-  const c = colorMap[color];
   return (
-    <Card
+    <motion.div
+      whileHover={onClick ? { y: -3 } : undefined}
+      whileTap={onClick ? { scale: 0.97 } : undefined}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
       onClick={onClick}
       className={cn(
-        "border-[3px] shadow-md rounded-xl animate-in fade-in-0 slide-in-from-bottom-2 duration-300 transition-all hover:-translate-y-1 hover:shadow-xl",
-        c.border,
-        c.bg,
-        c.hoverBg,
+        "rounded-2xl h-full",
+        tintMap[color],
+        bloomMap[color],
         onClick && "cursor-pointer",
       )}
     >
-      <CardContent className="p-2.5">
-        <div className="flex flex-col items-center text-center">
-          <div
-            className={cn(
-              "size-12 rounded-full flex items-center justify-center shrink-0 mb-2",
-              c.iconBg,
-            )}
-          >
-            <Image
-              src={icon}
-              alt=""
-              width={32}
-              height={32}
-              className="object-contain"
-            />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground mb-1">
-            {label}
-          </p>
-          <p className="text-2xl font-semibold font-mono tabular-nums text-foreground leading-none">
-            {value}
-          </p>
-          {subtext && (
-            <p className="text-xs text-muted-foreground/60 mt-1.5">{subtext}</p>
+      <Card
+        className={cn(
+          "group/stat relative overflow-hidden glass shadow-depth-xl neu-interactive border-0 ring-0 rounded-2xl gap-0 py-0 h-full transition-colors duration-100",
+          active && "tint-ring",
+        )}
+        style={active ? { backgroundColor: "var(--tint-soft)" } : undefined}
+      >
+        <div
+          className={cn(
+            "absolute inset-x-0 top-0 h-1 tint-bar origin-center transition-transform duration-700 ease-out",
+            active ? "scale-x-100" : "scale-x-0 group-hover/stat:scale-x-100",
           )}
-          {trend && (
-            <p
-              className={cn(
-                "text-xs font-mono mt-1.5",
-                trendUp ? "text-emerald-500" : "text-rose-500",
-              )}
-            >
-              {trend}
+        />
+        <CardContent className="p-5">
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="tint-well rounded-full size-14 flex items-center justify-center shrink-0">
+              <Image
+                src={icon}
+                alt=""
+                width={30}
+                height={30}
+                className="object-contain opacity-90"
+              />
+            </div>
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground">
+              {label}
             </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            <p className="text-3xl font-semibold font-mono tabular-nums tint-text leading-none">
+              {value}
+            </p>
+            {subtext && (
+              <p className="text-xs text-muted-foreground/70">{subtext}</p>
+            )}
+            {trend && (
+              <p
+                className={cn(
+                  "text-xs font-mono",
+                  trendUp ? "text-emerald-500" : "text-rose-500",
+                  accentMap[color],
+                )}
+              >
+                {trend}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

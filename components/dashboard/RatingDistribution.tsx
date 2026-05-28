@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -123,13 +124,21 @@ function PlayersTable() {
     return sortDir === "asc" ? cmp : -cmp;
   });
 
-  function ColHead({ col, label }: { col: SortKey; label: string }) {
+  function ColHead({ col, label, align }: { col: SortKey; label: string; align?: "start" | "end" }) {
     return (
-      <TableHead>
+      <TableHead
+        className={cn(
+          "px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/80",
+          align === "end" ? "text-end" : "text-start",
+        )}
+      >
         <Button
           variant="ghost"
           size="sm"
-          className="h-auto px-0 py-0 font-medium text-foreground gap-1 hover:bg-transparent"
+          className={cn(
+            "h-auto px-0 py-0 font-medium text-foreground/80 gap-1.5 hover:bg-transparent hover:text-foreground",
+            align === "end" && "ms-auto",
+          )}
           onClick={() => handleSort(col)}
         >
           {label}
@@ -140,23 +149,31 @@ function PlayersTable() {
   }
 
   return (
-    <ScrollArea className="h-90">
+    <ScrollArea className="h-90" dir="rtl">
       <Table>
-        <TableHeader>
-          <TableRow>
+        <TableHeader className="sticky top-0 z-10 [&_tr]:border-b-0">
+          <TableRow className="hover:bg-transparent">
             <ColHead col="name" label="שם" />
             <ColHead col="rating" label="מד כושר" />
-            <ColHead col="birthYear" label="שנתון" />
+            <ColHead col="birthYear" label="שנתון" align="end" />
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sorted.map((p) => (
-            <TableRow key={p.name}>
-              <TableCell className="font-medium">{p.name}</TableCell>
-              <TableCell className="font-mono tabular-nums">
+          {sorted.map((p, i) => (
+            <TableRow
+              key={p.name}
+              className={cn(
+                "border-0 transition-colors duration-150 hover:bg-foreground/4",
+                i % 2 === 1 && "bg-foreground/2",
+              )}
+            >
+              <TableCell className="px-4 py-2.5 text-sm font-medium text-foreground">
+                {p.name}
+              </TableCell>
+              <TableCell className="px-4 py-2.5 text-sm font-mono tabular-nums text-foreground">
                 {p.rating}
               </TableCell>
-              <TableCell className="font-mono tabular-nums text-muted-foreground">
+              <TableCell className="px-4 py-2.5 text-sm font-mono tabular-nums text-foreground text-end">
                 {p.birthYear}
               </TableCell>
             </TableRow>
@@ -198,7 +215,7 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
             if (e.key === "Escape") cancel();
           }}
           autoFocus
-          className="h-6 text-xs px-1.5 border-border/60 bg-background flex-1"
+          className="h-7 text-xs px-2 neu-inset border-0 rounded-md flex-1"
         />
         <Button
           variant="ghost"
@@ -249,25 +266,32 @@ function TierBox({
   onChange: (updated: Partial<RatingTier>) => void;
 }) {
   return (
-    <Card className="border-[3px] border-blue-400 bg-blue-100 shadow-none rounded-lg h-full">
-      <CardContent className="p-2.5 h-full">
-        <div className="flex flex-col items-center text-center justify-center h-full gap-1">
-          <EditableField
-            value={tier.label}
-            onCommit={(label) => onChange({ label })}
-            className="text-xl font-medium text-muted-foreground justify-center"
-          />
-          <span className="text-5xl font-semibold font-mono tabular-nums text-foreground leading-none">
-            {tier.count}
-          </span>
-          <EditableField
-            value={tier.filter}
-            onCommit={(filter) => onChange({ filter })}
-            className="text-base text-muted-foreground/60 justify-center"
-          />
-        </div>
-      </CardContent>
-    </Card>
+    <motion.div
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      className="tint-indigo bloom bloom-indigo bloom-hover rounded-2xl h-full"
+    >
+      <Card className="group/tier relative overflow-hidden glass-sm shadow-depth neu-interactive border-0 ring-0 rounded-2xl h-full gap-0 py-0">
+        <div className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/tier:scale-x-100 transition-transform duration-700 ease-out" />
+        <CardContent className="p-4 h-full">
+          <div className="flex flex-col items-center text-center justify-center h-full gap-2">
+            <EditableField
+              value={tier.label}
+              onCommit={(label) => onChange({ label })}
+              className="text-sm font-medium uppercase tracking-[0.12em] text-foreground justify-center"
+            />
+            <span className="text-5xl font-semibold font-mono tabular-nums tint-text leading-none">
+              {tier.count}
+            </span>
+            <EditableField
+              value={tier.filter}
+              onCommit={(filter) => onChange({ filter })}
+              className="text-xs text-foreground justify-center"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -278,31 +302,31 @@ export function RatingDistribution({
   const total = tiers.reduce((sum, t) => sum + t.count, 0);
 
   return (
-    <Card className="border-blue-400 border-[3px] bg-blue-50 shadow-md rounded-xl">
-      <CardContent className="p-4">
-        <div className="flex flex-col items-center mb-4 gap-0.5">
-          <CardTitle className="text-base font-semibold text-foreground">
+    <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
+      <div className="h-1 tint-bar" />
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center mb-6 gap-1">
+          <CardTitle className="text-base font-semibold tracking-wide tint-text">
             התפלגות דירוגים
           </CardTitle>
-          <CardDescription className="text-sm text-muted-foreground/80">
+          <CardDescription className="text-xs text-muted-foreground/80 font-mono tabular-nums">
             {total} שחקנים
           </CardDescription>
         </div>
 
-        <div className="flex gap-4 items-stretch">
+        <div className="flex gap-6 items-stretch">
           <div className="w-1/2 h-90">
-            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-full p-2">
+            <div className="grid grid-cols-2 grid-rows-2 gap-5 h-full">
               {tiers.map((tier, i) => (
                 <TierBox
                   key={i}
                   tier={tier}
-
                   onChange={(updated) => onTierChange(i, updated)}
                 />
               ))}
             </div>
           </div>
-          <div className="w-1/2">
+          <div className="w-1/2 neu-inset rounded-2xl p-3">
             <PlayersTable />
           </div>
         </div>

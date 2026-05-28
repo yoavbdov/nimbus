@@ -14,8 +14,8 @@ import {
   Swords,
   LogOut,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const navSections = [
@@ -57,13 +57,20 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all duration-150",
+        "relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200",
         active
-          ? "bg-sidebar-primary/20 text-sidebar-primary font-medium border-s-2 border-sidebar-primary"
-          : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          ? "neu-pressed text-foreground font-medium"
+          : "text-foreground/70 hover:text-foreground hover:neu-raised-xs"
       )}
     >
-      <Icon className={cn("size-4 shrink-0 transition-colors duration-150", active ? "text-sidebar-primary" : "")} />
+      {active && (
+        <motion.span
+          layoutId="sidebar-active-indicator"
+          className="absolute inset-y-2 inset-s-1 w-0.5 rounded-full bg-primary"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+      <Icon className={cn("size-4 shrink-0 transition-colors duration-200", active && "text-primary")} />
       <span>{label}</span>
     </Link>
   );
@@ -71,25 +78,27 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
 
 export function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 inset-s-0 z-40 w-52 flex flex-col bg-sidebar border-e border-sidebar-border">
-      <div className="px-3 py-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <div className="size-7 rounded-md bg-sidebar-primary flex items-center justify-center shrink-0 shadow-sm">
-            <Swords className="size-3.5 text-sidebar-primary-foreground" />
+    <aside className="fixed inset-y-0 inset-s-0 z-40 w-56 flex flex-col glass border-0 ring-0 rounded-none">
+      <div className="px-4 py-5">
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-xl neu-raised-sm bloom bloom-indigo flex items-center justify-center shrink-0">
+            <Swords className="size-4 text-primary" />
           </div>
-          <span className="text-sm font-semibold text-sidebar-foreground">Chess Nimbus</span>
+          <span className="text-base font-semibold tracking-tight text-foreground">
+            Chess Nimbus
+          </span>
         </div>
       </div>
 
-      <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-4">
+      <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-5">
         {navSections.map((section, i) => (
           <div key={i}>
             {section.label && (
-              <p className="text-xs text-sidebar-foreground/40 uppercase tracking-widest px-2 mb-1">
+              <p className="text-[0.65rem] text-foreground/50 uppercase tracking-[0.18em] px-3 mb-2">
                 {section.label}
               </p>
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {section.items.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
@@ -98,10 +107,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-sidebar-border px-2 py-3">
+      <div className="px-3 py-4">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
+          className="w-full justify-start gap-3 px-3 py-2 h-auto rounded-xl text-sm text-foreground/70 hover:text-foreground hover:neu-raised-xs transition-all duration-200"
         >
           <LogOut className="size-4 shrink-0" />
           <span>יציאה</span>
