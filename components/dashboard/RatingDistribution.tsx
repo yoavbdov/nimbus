@@ -163,8 +163,8 @@ function PlayersTable() {
             <TableRow
               key={p.name}
               className={cn(
-                "border-0 transition-colors duration-150 hover:bg-foreground/4",
-                i % 2 === 1 && "bg-foreground/2",
+                "border-0 transition-colors duration-150 hover:bg-foreground/8",
+                i % 2 === 1 && "bg-foreground/6",
               )}
             >
               <TableCell className="px-4 py-2.5 text-sm font-medium text-foreground">

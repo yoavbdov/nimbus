@@ -64,7 +64,7 @@ export function TodaySessions() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="border-0"
+                      className={i % 2 === 1 ? "border-0 bg-foreground/6" : "border-0"}
                     >
                       <TableCell className="px-4 py-3 text-sm font-mono tabular-nums whitespace-nowrap">
                         {s.time}
