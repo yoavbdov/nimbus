@@ -85,7 +85,7 @@ export function StatCard({
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground">
               {label}
             </p>
-            <p className="text-3xl font-semibold font-mono tabular-nums tint-text leading-none">
+            <p className="text-3xl font-semibold num tint-text leading-none">
               {value}
             </p>
             {subtext && (
@@ -94,7 +94,7 @@ export function StatCard({
             {trend && (
               <p
                 className={cn(
-                  "text-xs font-mono",
+                  "text-xs num",
                   trendUp ? "text-emerald-500" : "text-rose-500",
                   accentMap[color],
                 )}

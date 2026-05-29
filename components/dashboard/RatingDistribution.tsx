@@ -27,6 +27,9 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
+import { Popover, PopoverAnchor } from "@/components/ui/popover";
+import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
+import { usePlayerActionsMenu } from "@/hooks/usePlayerActionsMenu";
 import { cn } from "@/lib/utils";
 
 export interface RatingTier {
@@ -101,9 +104,50 @@ function SortIcon({
   );
 }
 
+function RatingRow({
+  player: p,
+  index: i,
+  activeName,
+  onOpen,
+}: {
+  player: Player;
+  index: number;
+  activeName: string | null;
+  onOpen: (name: string, e: React.MouseEvent) => void;
+}) {
+  const isOpen = activeName === p.name;
+  return (
+    <TableRow
+      onClick={(e) => onOpen(p.name, e)}
+      className={cn(
+        "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
+        i % 2 === 1 && "bg-primary/15",
+        isOpen && "bg-primary/30",
+      )}
+    >
+      <TableCell className="px-4 py-2.5 text-sm font-medium text-foreground">
+        {p.name}
+      </TableCell>
+      <TableCell className="px-4 py-2.5 text-sm num text-foreground">
+        {p.rating}
+      </TableCell>
+      <TableCell className="px-4 py-2.5 text-sm num text-foreground text-end">
+        {p.birthYear}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function PlayersTable() {
   const [sortKey, setSortKey] = useState<SortKey>("rating");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const { open, setOpen, virtualRef, openAt, onSelect } = usePlayerActionsMenu();
+  const [activeName, setActiveName] = useState<string | null>(null);
+
+  const handleOpen = (name: string, e: React.MouseEvent) => {
+    setActiveName(name);
+    openAt(e);
+  };
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -149,6 +193,8 @@ function PlayersTable() {
   }
 
   return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor virtualRef={virtualRef} />
     <ScrollArea className="h-90" dir="rtl">
       <Table>
         <TableHeader className="sticky top-0 z-10 [&_tr]:border-b-0">
@@ -160,27 +206,13 @@ function PlayersTable() {
         </TableHeader>
         <TableBody>
           {sorted.map((p, i) => (
-            <TableRow
-              key={p.name}
-              className={cn(
-                "border-0 transition-colors duration-150 hover:bg-foreground/8",
-                i % 2 === 1 && "bg-foreground/6",
-              )}
-            >
-              <TableCell className="px-4 py-2.5 text-sm font-medium text-foreground">
-                {p.name}
-              </TableCell>
-              <TableCell className="px-4 py-2.5 text-sm font-mono tabular-nums text-foreground">
-                {p.rating}
-              </TableCell>
-              <TableCell className="px-4 py-2.5 text-sm font-mono tabular-nums text-foreground text-end">
-                {p.birthYear}
-              </TableCell>
-            </TableRow>
+            <RatingRow key={p.name} player={p} index={i} activeName={activeName} onOpen={handleOpen} />
           ))}
         </TableBody>
       </Table>
     </ScrollArea>
+    <PlayerActionsMenuContent onSelect={onSelect} />
+    </Popover>
   );
 }
 
@@ -280,7 +312,7 @@ function TierBox({
               onCommit={(label) => onChange({ label })}
               className="text-sm font-medium uppercase tracking-[0.12em] text-foreground justify-center"
             />
-            <span className="text-5xl font-semibold font-mono tabular-nums tint-text leading-none">
+            <span className="text-5xl font-semibold num tint-text leading-none">
               {tier.count}
             </span>
             <EditableField
@@ -309,7 +341,7 @@ export function RatingDistribution({
           <CardTitle className="text-base font-semibold tracking-wide tint-text">
             התפלגות דירוגים
           </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground/80 font-mono tabular-nums">
+          <CardDescription className="text-xs text-muted-foreground/80 num">
             {total} שחקנים
           </CardDescription>
         </div>

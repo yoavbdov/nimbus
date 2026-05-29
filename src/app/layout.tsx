@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, JetBrains_Mono, Heebo } from "next/font/google";
+import { Space_Grotesk, Roboto_Mono, Heebo } from "next/font/google";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import "./globals.css";
 
@@ -15,7 +15,7 @@ const heebo = Heebo({
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const robotoMono = Roboto_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
@@ -35,7 +35,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${spaceGrotesk.variable} ${heebo.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${heebo.variable} ${robotoMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full bg-background text-foreground">

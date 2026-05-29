@@ -56,7 +56,7 @@ export function RegistrationStatus() {
                 >
                   {status.label}
                 </Badge>
-                <span className="text-xs font-mono tabular-nums text-muted-foreground shrink-0">
+                <span className="text-xs num text-muted-foreground shrink-0">
                   {c.enrolled} / {c.capacity}
                 </span>
               </div>

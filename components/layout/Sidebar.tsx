@@ -20,9 +20,7 @@ import { cn } from "@/lib/utils";
 
 const navSections = [
   {
-    items: [
-      { href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard },
-    ],
+    items: [{ href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard }],
   },
   {
     label: "נתונים",
@@ -49,7 +47,15 @@ const navSections = [
   },
 ];
 
-function NavItem({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+}) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(href + "/");
 
@@ -60,7 +66,7 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
         "relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200",
         active
           ? "neu-pressed text-foreground font-medium"
-          : "text-foreground/70 hover:text-foreground hover:neu-raised-xs"
+          : "text-foreground/70 hover:text-foreground hover:neu-raised-xs",
       )}
     >
       {active && (
@@ -70,7 +76,12 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
           transition={{ type: "spring", stiffness: 380, damping: 30 }}
         />
       )}
-      <Icon className={cn("size-4 shrink-0 transition-colors duration-200", active && "text-primary")} />
+      <Icon
+        className={cn(
+          "size-4 shrink-0 transition-colors duration-200",
+          active && "text-primary",
+        )}
+      />
       <span>{label}</span>
     </Link>
   );
@@ -78,7 +89,7 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
 
 export function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 inset-s-0 z-40 w-56 flex flex-col glass border-0 ring-0 rounded-none">
+    <aside className="fixed inset-y-0 inset-s-0 z-40 w-56 flex flex-col glass border-none! ring-0 rounded-none shadow-none! bg-primary/12!">
       <div className="px-4 py-5">
         <div className="flex items-center gap-3">
           <div className="size-9 rounded-xl neu-raised-sm bloom bloom-indigo flex items-center justify-center shrink-0">

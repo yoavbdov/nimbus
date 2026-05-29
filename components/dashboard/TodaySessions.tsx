@@ -64,9 +64,9 @@ export function TodaySessions() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className={i % 2 === 1 ? "border-0 bg-foreground/6" : "border-0"}
+                      className={i % 2 === 1 ? "border-0 bg-primary/15 hover:bg-primary/25" : "border-0 hover:bg-primary/15"}
                     >
-                      <TableCell className="px-4 py-3 text-sm font-mono tabular-nums whitespace-nowrap">
+                      <TableCell className="px-4 py-3 text-sm num whitespace-nowrap">
                         {s.time}
                       </TableCell>
                       <TableCell className="px-4 py-3">
@@ -84,7 +84,7 @@ export function TodaySessions() {
                       <TableCell className="px-4 py-3 text-sm text-muted-foreground">
                         {s.location} · {s.coach}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-sm font-mono tabular-nums text-muted-foreground">
+                      <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
                         {s.enrolled} / {s.capacity}
                       </TableCell>
                     </motion.tr>
