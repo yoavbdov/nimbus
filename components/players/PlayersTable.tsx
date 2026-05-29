@@ -188,6 +188,11 @@ export function PlayersTable({ players }: PlayersTableProps) {
     openAt(e);
   };
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) setActiveId(null);
+  };
+
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -231,7 +236,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
   });
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
     <div
       dir="ltr"

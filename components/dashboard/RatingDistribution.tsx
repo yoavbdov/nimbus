@@ -149,6 +149,11 @@ function PlayersTable() {
     openAt(e);
   };
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) setActiveName(null);
+  };
+
   function handleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -193,7 +198,7 @@ function PlayersTable() {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
     <ScrollArea className="h-90" dir="rtl">
       <Table>
