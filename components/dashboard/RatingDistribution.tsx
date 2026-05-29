@@ -10,26 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Pencil,
-  Check,
-  X,
-  ChevronUp,
-  ChevronDown,
-  ChevronsUpDown,
-} from "lucide-react";
-import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
-import { usePlayerActionsMenu } from "@/hooks/usePlayerActionsMenu";
+import { Pencil, Check, X } from "lucide-react";
+import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
+import type { RatingPlayer } from "@/hooks/dashboard/useRatingPlayersTable";
 import { cn } from "@/lib/utils";
 
 export interface RatingTier {
@@ -43,14 +26,7 @@ interface RatingDistributionProps {
   onTierChange: (index: number, updated: Partial<RatingTier>) => void;
 }
 
-
-interface Player {
-  name: string;
-  rating: number;
-  birthYear: number;
-}
-
-const players: Player[] = [
+const players: RatingPlayer[] = [
   { name: "יוסי כהן", rating: 2100, birthYear: 2001 },
   { name: "יצחק לוי", rating: 2000, birthYear: 2012 },
   { name: "אברהם יוסף", rating: 1531, birthYear: 1961 },
@@ -82,144 +58,6 @@ const players: Player[] = [
   { name: "נתן אוחיון", rating: 1640, birthYear: 2011 },
   { name: "עמוס רביד", rating: 1990, birthYear: 1994 },
 ];
-
-type SortKey = "name" | "rating" | "birthYear";
-type SortDir = "asc" | "desc";
-
-function SortIcon({
-  col,
-  sortKey,
-  sortDir,
-}: {
-  col: SortKey;
-  sortKey: SortKey;
-  sortDir: SortDir;
-}) {
-  if (col !== sortKey)
-    return <ChevronsUpDown className="size-3 text-muted-foreground/50" />;
-  return sortDir === "asc" ? (
-    <ChevronUp className="size-3" />
-  ) : (
-    <ChevronDown className="size-3" />
-  );
-}
-
-function RatingRow({
-  player: p,
-  index: i,
-  activeName,
-  onOpen,
-}: {
-  player: Player;
-  index: number;
-  activeName: string | null;
-  onOpen: (name: string, e: React.MouseEvent) => void;
-}) {
-  const isOpen = activeName === p.name;
-  return (
-    <TableRow
-      onClick={(e) => onOpen(p.name, e)}
-      className={cn(
-        "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
-        i % 2 === 1 && "bg-primary/15",
-        isOpen && "bg-primary/30",
-      )}
-    >
-      <TableCell className="px-4 py-2.5 text-sm font-medium text-foreground">
-        {p.name}
-      </TableCell>
-      <TableCell className="px-4 py-2.5 text-sm num text-foreground">
-        {p.rating}
-      </TableCell>
-      <TableCell className="px-4 py-2.5 text-sm num text-foreground text-end">
-        {p.birthYear}
-      </TableCell>
-    </TableRow>
-  );
-}
-
-function PlayersTable() {
-  const [sortKey, setSortKey] = useState<SortKey>("rating");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const { open, setOpen, virtualRef, openAt, onSelect } = usePlayerActionsMenu();
-  const [activeName, setActiveName] = useState<string | null>(null);
-
-  const handleOpen = (name: string, e: React.MouseEvent) => {
-    setActiveName(name);
-    openAt(e);
-  };
-
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (!next) setActiveName(null);
-  };
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir(key === "name" ? "asc" : "desc");
-    }
-  }
-
-  const sorted = [...players].sort((a, b) => {
-    const aVal = a[sortKey];
-    const bVal = b[sortKey];
-    const cmp =
-      typeof aVal === "string"
-        ? aVal.localeCompare(bVal as string, "he")
-        : (aVal as number) - (bVal as number);
-    return sortDir === "asc" ? cmp : -cmp;
-  });
-
-  function ColHead({ col, label, align }: { col: SortKey; label: string; align?: "start" | "end" }) {
-    return (
-      <TableHead
-        className={cn(
-          "px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/80",
-          align === "end" ? "text-end" : "text-start",
-        )}
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-auto px-0 py-0 font-medium text-foreground/80 gap-1.5 hover:bg-transparent hover:text-foreground",
-            align === "end" && "ms-auto",
-          )}
-          onClick={() => handleSort(col)}
-        >
-          {label}
-          <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
-        </Button>
-      </TableHead>
-    );
-  }
-
-  return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverAnchor virtualRef={virtualRef} />
-    <ScrollArea className="h-90" dir="rtl">
-      <Table>
-        <TableHeader className="sticky top-0 z-10 [&_tr]:border-b-0">
-          <TableRow className="hover:bg-transparent">
-            <ColHead col="name" label="שם" />
-            <ColHead col="rating" label="מד כושר" />
-            <ColHead col="birthYear" label="שנתון" align="end" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sorted.map((p, i) => (
-            <RatingRow key={p.name} player={p} index={i} activeName={activeName} onOpen={handleOpen} />
-          ))}
-        </TableBody>
-      </Table>
-    </ScrollArea>
-    <PlayerActionsMenuContent onSelect={onSelect} />
-    </Popover>
-  );
-}
 
 interface EditableFieldProps {
   value: string;
@@ -364,7 +202,7 @@ export function RatingDistribution({
             </div>
           </div>
           <div className="w-1/2 neu-inset rounded-2xl p-3">
-            <PlayersTable />
+            <RatingPlayersTable players={players} />
           </div>
         </div>
       </CardContent>

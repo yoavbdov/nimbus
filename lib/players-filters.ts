@@ -85,8 +85,8 @@ export const FIELD_DEFS: FieldDef[] = [
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
-      { op: "in", label: "הוא אחד מ", valueMode: "multi-enum" },
-      { op: "not_in", label: "הוא לא אחד מ", valueMode: "multi-enum" },
+      { op: "in", label: "הוא אחד מהבאים", valueMode: "multi-enum" },
+      { op: "not_in", label: "הוא לא אחד מהבאים", valueMode: "multi-enum" },
     ],
   },
   {

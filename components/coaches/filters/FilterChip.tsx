@@ -9,18 +9,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FilterBuilder } from "@/components/players/filters/FilterBuilder";
+import { FilterBuilder } from "@/components/coaches/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import {
   FIELD_BY_KEY,
   formatValue,
   getOperator,
-  type PlayerFilter,
-} from "@/lib/players-filters";
+  type CoachFilter,
+} from "@/lib/coaches-filters";
 
 interface FilterChipProps {
-  filter: PlayerFilter;
-  onUpdate: (filter: PlayerFilter) => void;
+  filter: CoachFilter;
+  onUpdate: (filter: CoachFilter) => void;
   onRemove: () => void;
 }
 
@@ -32,7 +32,7 @@ export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
   const valueText = formatValue(filter);
   const hasValue = valueText.length > 0;
 
-  function handleSubmit(next: PlayerFilter) {
+  function handleSubmit(next: CoachFilter) {
     onUpdate(next);
     close();
   }

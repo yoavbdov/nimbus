@@ -14,12 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { PlayerStatusBadge } from "@/components/players/PlayerStatusBadge";
-import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
-import { usePlayersTable } from "@/hooks/players/usePlayersTable";
-import type { SortDir, SortKey } from "@/hooks/players/usePlayersSort";
+import { CoachStatusBadge } from "@/components/coaches/CoachStatusBadge";
+import { CoachActionsMenuContent } from "@/components/coaches/CoachActionsMenu";
+import { useCoachesTable } from "@/hooks/coaches/useCoachesTable";
+import type { SortDir, SortKey } from "@/hooks/coaches/useCoachesSort";
 import { cn } from "@/lib/utils";
-import type { Player } from "@/lib/players-data";
+import type { Coach } from "@/lib/coaches-data";
 
 function CountPill({ value }: { value: number }) {
   if (value === 0)
@@ -74,13 +74,13 @@ function SortableHeader({
 
 const MotionTableRow = motion.create(TableRow);
 
-function PlayerRow({
-  player: p,
+function CoachRow({
+  coach: c,
   index: i,
   isActive,
   onOpen,
 }: {
-  player: Player;
+  coach: Coach;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
@@ -94,7 +94,7 @@ function PlayerRow({
         duration: 0.3,
         ease: [0.22, 1, 0.36, 1],
       }}
-      onClick={(e) => onOpen(p.id, e)}
+      onClick={(e) => onOpen(c.id, e)}
       className={cn(
         "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
         i % 2 === 1 && "bg-primary/15",
@@ -102,41 +102,26 @@ function PlayerRow({
       )}
     >
       <TableCell className="px-4 py-3 text-sm font-medium text-foreground text-center">
-        {p.name}
+        {c.name}
       </TableCell>
       <TableCell className="px-4 py-3 text-sm num text-foreground/80 text-center">
-        {p.age}
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/80 text-center">
-        {p.grade}
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm num text-foreground text-center">
-        {p.israeliRating}
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm num text-foreground/80 text-center">
-        <span dir="ltr">{p.phone}</span>
+        <span dir="ltr">{c.phone}</span>
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-center">
-        <CountPill value={p.clubs.length} />
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-center">
-        <CountPill value={p.tournaments.length} />
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/80 text-center">
-        {p.leagueTeam ?? <span className="text-foreground/40 num">—</span>}
+        <CountPill value={c.clubs.length} />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <PlayerStatusBadge status={p.status} />
+        <CoachStatusBadge status={c.status} />
       </TableCell>
     </MotionTableRow>
   );
 }
 
-interface PlayersTableProps {
-  players: Player[];
+interface CoachesTableProps {
+  coaches: Coach[];
 }
 
-export function PlayersTable({ players }: PlayersTableProps) {
+export function CoachesTable({ coaches }: CoachesTableProps) {
   const {
     sortKey,
     sortDir,
@@ -148,13 +133,13 @@ export function PlayersTable({ players }: PlayersTableProps) {
     activeId,
     handleRowClick,
     handleMenuOpenChange,
-  } = usePlayersTable(players);
+  } = useCoachesTable(coaches);
 
-  if (players.length === 0) {
+  if (coaches.length === 0) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו שחקנים תואמים
+          לא נמצאו מדריכים תואמים
         </AlertTitle>
       </Alert>
     );
@@ -179,29 +164,18 @@ export function PlayersTable({ players }: PlayersTableProps) {
             <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם מלא</SortableHeader>
-                <SortableHeader {...headerProps("age")}>גיל</SortableHeader>
-                <SortableHeader {...headerProps("grade")}>כיתה</SortableHeader>
-                <SortableHeader {...headerProps("israeliRating")}>
-                  דירוג ישראלי
-                </SortableHeader>
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
-                <SortableHeader {...headerProps("clubs")}>חוגים</SortableHeader>
-                <SortableHeader {...headerProps("tournaments")}>
-                  תחרויות
-                </SortableHeader>
-                <SortableHeader {...headerProps("leagueTeam")}>
-                  קבוצות ליגה
-                </SortableHeader>
+                <SortableHeader {...headerProps("clubs")}>חוגים פעילים</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sorted.map((p, i) => (
-                <PlayerRow
-                  key={p.id}
-                  player={p}
+              {sorted.map((c, i) => (
+                <CoachRow
+                  key={c.id}
+                  coach={c}
                   index={i}
-                  isActive={activeId === p.id}
+                  isActive={activeId === c.id}
                   onOpen={handleRowClick}
                 />
               ))}
@@ -209,7 +183,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
           </Table>
         </div>
       </div>
-      <PlayerActionsMenuContent onSelect={onSelectAction} />
+      <CoachActionsMenuContent onSelect={onSelectAction} />
     </Popover>
   );
 }

@@ -13,13 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFilterBuilder } from "@/hooks/players/useFilterBuilder";
-import {
-  FIELD_BY_KEY,
-  FIELD_DEFS,
-  type FilterField,
-  type PlayerFilter,
-} from "@/lib/players-filters";
+import { useFilterBuilder } from "@/hooks/coaches/useFilterBuilder";
+import { FIELD_BY_KEY, FIELD_DEFS, type FilterField, type CoachFilter } from "@/lib/coaches-filters";
 
 const stepVariants = {
   initial: { opacity: 0, x: 8 },
@@ -88,8 +83,8 @@ const selectItemClass =
   "justify-center pl-8 pr-8 [&>span:last-child]:grow [&>span:last-child]:justify-center";
 
 interface FilterBuilderProps {
-  initial?: PlayerFilter;
-  onSubmit: (filter: PlayerFilter) => void;
+  initial?: CoachFilter;
+  onSubmit: (filter: CoachFilter) => void;
   onCancel: () => void;
 }
 

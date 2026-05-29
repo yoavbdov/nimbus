@@ -7,18 +7,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FilterBuilder } from "@/components/players/filters/FilterBuilder";
+import { FilterBuilder } from "@/components/coaches/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import type { PlayerFilter } from "@/lib/players-filters";
+import type { CoachFilter } from "@/lib/coaches-filters";
 
 interface AddFilterPopoverProps {
-  onAdd: (filter: PlayerFilter) => void;
+  onAdd: (filter: CoachFilter) => void;
 }
 
 export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
   const { open, setOpen, close } = useDisclosure();
 
-  function handleSubmit(filter: PlayerFilter) {
+  function handleSubmit(filter: CoachFilter) {
     onAdd(filter);
     close();
   }
