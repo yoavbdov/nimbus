@@ -1,4 +1,4 @@
-import { players, allClubs, allGrades, allStatuses, type Player } from "@/lib/players-data";
+import { players, allClubs, allStatuses, type Player } from "@/lib/players-data";
 
 export type FilterField =
   | "name"
@@ -35,18 +35,20 @@ export interface PlayerFilter {
 }
 
 const GRADE_ORDER = [
-  "כיתה א׳",
-  "כיתה ב׳",
-  "כיתה ג׳",
-  "כיתה ד׳",
-  "כיתה ה׳",
-  "כיתה ו׳",
-  "כיתה ז׳",
-  "כיתה ח׳",
-  "כיתה ט׳",
-  "כיתה י׳",
-  "כיתה י״א",
-  "כיתה י״ב",
+  "גן",
+  "כיתה א",
+  "כיתה ב",
+  "כיתה ג",
+  "כיתה ד",
+  "כיתה ה",
+  "כיתה ו",
+  "כיתה ז",
+  "כיתה ח",
+  "כיתה ט",
+  "כיתה י",
+  "כיתה יא",
+  "כיתה יב",
+  "מבוגר",
 ];
 
 function gradeRank(g: string): number {
@@ -114,7 +116,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "grade",
     label: "כיתה",
-    options: allGrades,
+    options: GRADE_ORDER,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "single-enum" },
       { op: "not_equals", label: "לא שווה ל", valueMode: "single-enum" },
