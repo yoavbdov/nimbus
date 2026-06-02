@@ -10,9 +10,11 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle";
 interface PageShellProps {
   title: string;
   children: React.ReactNode;
+  /** When true the content fills the available width instead of capping at max-w-7xl. */
+  wide?: boolean;
 }
 
-export function PageShell({ title: _title, children }: PageShellProps) {
+export function PageShell({ title: _title, children, wide = false }: PageShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -23,7 +25,7 @@ export function PageShell({ title: _title, children }: PageShellProps) {
 
       <div className="flex-1 flex flex-col lg:ms-56 min-w-0">
         <main className="flex-1 px-5 py-6 bg-ambient">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className={wide ? "w-full" : "max-w-7xl mx-auto"}>{children}</div>
         </main>
       </div>
 
