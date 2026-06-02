@@ -12,6 +12,7 @@ import {
   DoorOpen,
   ClipboardCheck,
   Swords,
+  Settings,
   LogOut,
 } from "lucide-react";
 import {
@@ -42,7 +43,7 @@ const navSections = [
     label: "אירועים",
     items: [
       { href: "/schedule", label: "לוח זמנים", icon: CalendarDays },
-      { href: "/tournaments", label: "תחרויות", icon: Trophy },
+      { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
     ],
   },
   {
@@ -52,6 +53,10 @@ const navSections = [
       { href: "/attendance", label: "נוכחות", icon: ClipboardCheck },
       { href: "/leagues", label: "קבוצות ליגה", icon: Swords },
     ],
+  },
+  {
+    label: "מערכת",
+    items: [{ href: "/settings", label: "הגדרות", icon: Settings }],
   },
 ];
 

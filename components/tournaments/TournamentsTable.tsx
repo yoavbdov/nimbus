@@ -147,6 +147,9 @@ function TournamentRow({
       <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
         {t.nextDate}
       </TableCell>
+      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
+        {t.room}
+      </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <TournamentStatusBadge status={t.status} />
       </TableCell>
@@ -207,6 +210,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
                 <SortableHeader {...headerProps("rating")}>טווח דירוג</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
                 <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
+                <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
               </TableRow>
             </TableHeader>

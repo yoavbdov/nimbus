@@ -1,6 +1,6 @@
 import { startOfMonth, toISODate } from "@/lib/calendar";
 
-export type EventCategory = "חוג" | "אימון" | "תחרות" | "מבחן דירוג" | "אירוע";
+export type EventCategory = "חוג" | "תחרות" | "אירוע" | "ליגה";
 
 export interface ScheduleEvent {
   id: string;
@@ -28,10 +28,9 @@ interface CategoryMeta {
 // Each category owns a hue so the month grid reads at a glance.
 export const CATEGORY_META: Record<EventCategory, CategoryMeta> = {
   חוג: { label: "חוג", color: "oklch(0.62 0.2 278)", soft: "oklch(0.62 0.2 278 / 0.14)" },
-  אימון: { label: "אימון", color: "oklch(0.62 0.16 220)", soft: "oklch(0.62 0.16 220 / 0.14)" },
   תחרות: { label: "תחרות", color: "oklch(0.58 0.2 22)", soft: "oklch(0.58 0.2 22 / 0.15)" },
-  "מבחן דירוג": { label: "מבחן דירוג", color: "oklch(0.58 0.16 80)", soft: "oklch(0.62 0.16 80 / 0.18)" },
   אירוע: { label: "אירוע", color: "oklch(0.58 0.15 158)", soft: "oklch(0.62 0.15 158 / 0.15)" },
+  ליגה: { label: "ליגה", color: "oklch(0.62 0.16 220)", soft: "oklch(0.62 0.16 220 / 0.14)" },
 };
 
 export const ALL_CATEGORIES = Object.keys(CATEGORY_META) as EventCategory[];
@@ -91,11 +90,11 @@ const WEEKLY_TEMPLATES: Template[] = [
   { weekday: 0, title: "שחמט מתחילים", category: "חוג", start: "16:00", end: "17:30", coach: "אבי לוי", location: "כיתה א׳" },
   { weekday: 0, title: "חוג גן", category: "חוג", start: "17:00", end: "18:00", coach: "ליאת מור", location: "כיתה ב׳" },
   { weekday: 1, title: "שחמט מתקדמים", category: "חוג", start: "16:30", end: "18:00", coach: "יוסי בן עמי", location: "אולם ראשי" },
-  { weekday: 1, title: "אימון קבוצת ליגה", category: "אימון", start: "18:30", end: "20:00", coach: "נדב אורן", location: "אולם תחרויות" },
+  { weekday: 1, title: "אימון קבוצת ליגה", category: "ליגה", start: "18:30", end: "20:00", coach: "נדב אורן", location: "אולם תחרויות" },
   { weekday: 2, title: "שחמט בוגרים", category: "חוג", start: "19:00", end: "20:30", coach: "רון פרידמן", location: "אולם ראשי" },
   { weekday: 2, title: "כיתות נמוכות", category: "חוג", start: "15:30", end: "16:30", coach: "אלון זיו", location: "כיתה א׳" },
-  { weekday: 3, title: "סדנת פתיחות", category: "אימון", start: "17:00", end: "18:30", coach: "אורן שגב", location: "אולם ראשי" },
-  { weekday: 3, title: "הכנה לתחרויות", category: "אימון", start: "18:30", end: "20:00", coach: "מתן יערי", location: "אולם תחרויות" },
+  { weekday: 3, title: "סדנת פתיחות", category: "חוג", start: "17:00", end: "18:30", coach: "אורן שגב", location: "אולם ראשי" },
+  { weekday: 3, title: "הכנה לתחרויות", category: "תחרות", start: "18:30", end: "20:00", coach: "מתן יערי", location: "אולם תחרויות" },
   { weekday: 4, title: "מועדון אחה״צ", category: "חוג", start: "16:00", end: "17:30", coach: "מירב כהן", location: "כיתה ב׳" },
   { weekday: 4, title: "טורניר חמישי", category: "תחרות", start: "18:00", end: "21:00", coach: "אייל סופר", location: "אולם תחרויות" },
   { weekday: 5, title: "חוג שישי", category: "חוג", start: "10:00", end: "11:30", coach: "רעות שני", location: "כיתה א׳" },
@@ -114,11 +113,11 @@ interface SpecialTemplate {
 }
 
 const SPECIAL_TEMPLATES: SpecialTemplate[] = [
-  { dayOfMonth: 7, title: "מבחן דירוג ארצי", category: "מבחן דירוג", start: "09:00", end: "14:00", coach: "ועדת הדירוג", location: "אולם תחרויות" },
+  { dayOfMonth: 7, title: "מבחן דירוג ארצי", category: "אירוע", start: "09:00", end: "14:00", coach: "ועדת הדירוג", location: "אולם תחרויות" },
   { dayOfMonth: 14, title: "גביע המועדון", category: "תחרות", start: "09:00", end: "16:00", coach: "צוות שיפוט", location: "אולם תחרויות" },
   { dayOfMonth: 18, title: "הרצאת אורח", category: "אירוע", start: "19:00", end: "20:30", coach: "GM אורח", location: "אולם ראשי" },
-  { dayOfMonth: 24, title: "מבחן דירוג פנימי", category: "מבחן דירוג", start: "16:00", end: "19:00", coach: "מעיין דקל", location: "כיתה ב׳" },
-  { dayOfMonth: 28, title: "ליגת נוער", category: "תחרות", start: "10:00", end: "15:00", coach: "גיא רביב", location: "אולם תחרויות" },
+  { dayOfMonth: 24, title: "מבחן דירוג פנימי", category: "אירוע", start: "16:00", end: "19:00", coach: "מעיין דקל", location: "כיתה ב׳" },
+  { dayOfMonth: 28, title: "ליגת נוער", category: "ליגה", start: "10:00", end: "15:00", coach: "גיא רביב", location: "אולם תחרויות" },
 ];
 
 /**

@@ -9,7 +9,8 @@ export type SortKey =
   | "days"
   | "nextDate"
   | "participants"
-  | "rating";
+  | "rating"
+  | "room";
 export type SortDir = "asc" | "desc";
 
 const statusOrder: Record<Tournament["status"], number> = {
@@ -36,6 +37,8 @@ function getSortValue(t: Tournament, key: SortKey): string | number {
       return t.participants;
     case "rating":
       return t.ratingMin;
+    case "room":
+      return t.room;
   }
 }
 

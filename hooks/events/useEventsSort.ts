@@ -1,51 +1,33 @@
 import { useMemo, useState } from "react";
-import type { Activity } from "@/lib/activities-data";
+import type { ClubEvent } from "@/lib/events-data";
 
-export type SortKey =
-  | "name"
-  | "coach"
-  | "age"
-  | "fitness"
-  | "enrolled"
-  | "capacity"
-  | "days"
-  | "nextDate"
-  | "status"
-  | "room";
+export type SortKey = "name" | "days" | "nextDate" | "status" | "recurrence" | "room";
 export type SortDir = "asc" | "desc";
 
-const statusOrder: Record<Activity["status"], number> = {
+const statusOrder: Record<ClubEvent["status"], number> = {
   "פעיל": 0,
-  "מלא": 1,
-  "לא פעיל": 2,
+  "מתוכנן": 1,
+  "הסתיים": 2,
 };
 
-function getSortValue(a: Activity, key: SortKey): string | number {
+function getSortValue(e: ClubEvent, key: SortKey): string | number {
   switch (key) {
     case "name":
-      return a.name;
-    case "coach":
-      return a.coach;
-    case "age":
-      return a.ageMin;
-    case "fitness":
-      return a.fitnessMin;
-    case "enrolled":
-      return a.enrolled;
-    case "capacity":
-      return a.capacity;
+      return e.name;
     case "days":
-      return a.days.length;
+      return e.days.length;
     case "nextDate":
-      return a.nextDate;
+      return e.nextDate;
     case "status":
-      return statusOrder[a.status];
+      return statusOrder[e.status];
+    case "recurrence":
+      return e.recurrence;
     case "room":
-      return a.room;
+      return e.room;
   }
 }
 
-export function useActivitiesSort(activities: Activity[]) {
+export function useEventsSort(events: ClubEvent[]) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -59,7 +41,7 @@ export function useActivitiesSort(activities: Activity[]) {
   }
 
   const sorted = useMemo(() => {
-    const arr = [...activities];
+    const arr = [...events];
     arr.sort((a, b) => {
       const av = getSortValue(a, sortKey);
       const bv = getSortValue(b, sortKey);
@@ -70,7 +52,7 @@ export function useActivitiesSort(activities: Activity[]) {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [activities, sortKey, sortDir]);
+  }, [events, sortKey, sortDir]);
 
   return { sortKey, sortDir, sorted, handleSort };
 }

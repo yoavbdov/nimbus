@@ -1,26 +1,17 @@
 import {
-  tournaments,
-  allTournamentJudges,
-  allTournamentStatuses,
-  allTournamentRooms,
-  type Tournament,
-} from "@/lib/tournaments-data";
+  events,
+  allEventStatuses,
+  allEventRecurrences,
+  allEventRooms,
+  type ClubEvent,
+} from "@/lib/events-data";
 import {
   ACTIVITY_DAYS,
   todayHebrewDay,
   type ActivityDay,
 } from "@/lib/activities-data";
 
-export type FilterField =
-  | "name"
-  | "judge"
-  | "status"
-  | "rounds"
-  | "days"
-  | "participants"
-  | "ratingMin"
-  | "ratingMax"
-  | "room";
+export type FilterField = "name" | "days" | "status" | "recurrence" | "room";
 
 export type ValueMode = "none" | "text" | "number" | "single-enum" | "multi-enum";
 
@@ -37,20 +28,12 @@ export interface FieldDef {
   options?: string[];
 }
 
-export interface TournamentFilter {
+export interface EventFilter {
   id: string;
   field: FilterField;
   op: string;
   value: string | number | string[] | null;
 }
-
-const numericOps: OperatorDef[] = [
-  { op: "equals", label: "שווה ל", valueMode: "number" },
-  { op: "gt", label: "גדול מ", valueMode: "number" },
-  { op: "gte", label: "גדול או שווה ל", valueMode: "number" },
-  { op: "lt", label: "קטן מ", valueMode: "number" },
-  { op: "lte", label: "קטן או שווה ל", valueMode: "number" },
-];
 
 const enumOps: OperatorDef[] = [
   { op: "is", label: "הוא", valueMode: "single-enum" },
@@ -62,25 +45,12 @@ const enumOps: OperatorDef[] = [
 export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
-    label: "שם תחרות",
+    label: "שם אירוע",
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "text" },
       { op: "contains", label: "מכיל בתוכו", valueMode: "text" },
     ],
   },
-  {
-    field: "judge",
-    label: "שופט",
-    options: allTournamentJudges,
-    operators: enumOps,
-  },
-  {
-    field: "status",
-    label: "סטטוס",
-    options: allTournamentStatuses,
-    operators: enumOps,
-  },
-  { field: "rounds", label: "סיבובים", operators: numericOps },
   {
     field: "days",
     label: "ימי פעילות",
@@ -92,13 +62,22 @@ export const FIELD_DEFS: FieldDef[] = [
       { op: "is", label: "מתקיים ביום", valueMode: "single-enum" },
     ],
   },
-  { field: "participants", label: "משתתפים", operators: numericOps },
-  { field: "ratingMin", label: "דירוג מינימלי", operators: numericOps },
-  { field: "ratingMax", label: "דירוג מקסימלי", operators: numericOps },
+  {
+    field: "status",
+    label: "סטטוס",
+    options: allEventStatuses,
+    operators: enumOps,
+  },
+  {
+    field: "recurrence",
+    label: "קבוע/חד פעמי",
+    options: allEventRecurrences,
+    operators: enumOps,
+  },
   {
     field: "room",
     label: "חדר",
-    options: allTournamentRooms,
+    options: allEventRooms,
     operators: enumOps,
   },
 ];
@@ -111,22 +90,13 @@ export function getOperator(field: FilterField, op: string): OperatorDef | undef
   return FIELD_BY_KEY[field].operators.find((o) => o.op === op);
 }
 
-export function formatValue(filter: TournamentFilter): string {
+export function formatValue(filter: EventFilter): string {
   if (filter.value == null) return "";
   if (Array.isArray(filter.value)) return filter.value.join(", ");
   return String(filter.value);
 }
 
-function compareNumber(a: number, op: string, b: number): boolean {
-  if (op === "equals") return a === b;
-  if (op === "gt") return a > b;
-  if (op === "gte") return a >= b;
-  if (op === "lt") return a < b;
-  if (op === "lte") return a <= b;
-  return false;
-}
-
-function applyEnumFilter(value: string, f: TournamentFilter): boolean {
+function applyEnumFilter(value: string, f: EventFilter): boolean {
   if (f.op === "is") return value === f.value;
   if (f.op === "is_not") return value !== f.value;
   const arr = Array.isArray(f.value) ? f.value : [];
@@ -134,7 +104,7 @@ function applyEnumFilter(value: string, f: TournamentFilter): boolean {
   return f.op === "in" ? has : !has;
 }
 
-function applyDaysFilter(days: ActivityDay[], f: TournamentFilter): boolean {
+function applyDaysFilter(days: ActivityDay[], f: EventFilter): boolean {
   if (f.op === "is") {
     return days.includes(String(f.value ?? "") as ActivityDay);
   }
@@ -146,50 +116,40 @@ function applyDaysFilter(days: ActivityDay[], f: TournamentFilter): boolean {
   return false;
 }
 
-function applyFilter(t: Tournament, f: TournamentFilter): boolean {
+function applyFilter(e: ClubEvent, f: EventFilter): boolean {
   switch (f.field) {
     case "name": {
-      const v = t.name.toLowerCase();
+      const v = e.name.toLowerCase();
       const q = String(f.value ?? "").toLowerCase();
       return f.op === "equals" ? v === q : v.includes(q);
     }
-    case "judge":
-      return applyEnumFilter(t.judge, f);
-    case "status":
-      return applyEnumFilter(t.status, f);
-    case "rounds":
-      return compareNumber(t.rounds, f.op, Number(f.value));
     case "days":
-      return applyDaysFilter(t.days, f);
-    case "participants":
-      return compareNumber(t.participants, f.op, Number(f.value));
-    case "ratingMin":
-      return compareNumber(t.ratingMin, f.op, Number(f.value));
-    case "ratingMax":
-      return compareNumber(t.ratingMax, f.op, Number(f.value));
+      return applyDaysFilter(e.days, f);
+    case "status":
+      return applyEnumFilter(e.status, f);
+    case "recurrence":
+      return applyEnumFilter(e.recurrence, f);
     case "room":
-      return applyEnumFilter(t.room, f);
+      return applyEnumFilter(e.room, f);
   }
 }
 
-function matchesSearch(t: Tournament, query: string): boolean {
+function matchesSearch(e: ClubEvent, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return (
-    t.name.toLowerCase().includes(q) || t.judge.toLowerCase().includes(q)
-  );
+  return e.name.toLowerCase().includes(q) || e.room.toLowerCase().includes(q);
 }
 
-export function filterTournaments(
+export function filterEvents(
   query: string,
-  filters: TournamentFilter[],
+  filters: EventFilter[],
   todayOnly: boolean,
-): Tournament[] {
+): ClubEvent[] {
   const today = todayOnly ? todayHebrewDay() : null;
-  return tournaments.filter(
-    (t) =>
-      matchesSearch(t, query) &&
-      filters.every((f) => applyFilter(t, f)) &&
-      (today == null || (t.status === "פעילה" && t.days.includes(today))),
+  return events.filter(
+    (e) =>
+      matchesSearch(e, query) &&
+      filters.every((f) => applyFilter(e, f)) &&
+      (today == null || (e.status === "פעיל" && e.days.includes(today))),
   );
 }
