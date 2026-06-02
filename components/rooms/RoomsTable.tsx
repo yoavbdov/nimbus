@@ -1,0 +1,134 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowUpDown } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Popover, PopoverAnchor } from "@/components/ui/popover";
+import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
+import { roomActions } from "@/lib/row-actions";
+import { cn } from "@/lib/utils";
+import type { Room } from "@/lib/rooms-data";
+
+function StaticHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
+      <span className="mx-auto inline-flex items-center gap-1.5">
+        {children}
+        <ArrowUpDown className="size-3 opacity-40" />
+      </span>
+    </TableHead>
+  );
+}
+
+const MotionTableRow = motion.create(TableRow);
+
+function EquipmentPills({ equipment }: { equipment: string[] }) {
+  if (equipment.length === 0)
+    return <span className="text-foreground/40 num">—</span>;
+  return (
+    <div className="flex flex-wrap justify-center gap-1">
+      {equipment.map((item) => (
+        <Badge
+          key={item}
+          variant="secondary"
+          className="h-6 px-2 rounded-full neu-raised-xs bg-transparent border-0 text-[0.7rem] text-foreground"
+        >
+          {item}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
+function CapacityPill({ value }: { value: number }) {
+  return (
+    <Badge
+      variant="secondary"
+      className="min-w-6 h-6 px-2 rounded-full neu-raised-xs bg-transparent border-0 text-[0.7rem] num text-foreground justify-center"
+    >
+      {value}
+    </Badge>
+  );
+}
+
+interface RoomsTableProps {
+  rooms: Room[];
+}
+
+export function RoomsTable({ rooms }: RoomsTableProps) {
+  const { open, activeId, virtualRef, openAt, handleOpenChange, onSelect } =
+    useRowActionsMenu();
+
+  if (rooms.length === 0) {
+    return (
+      <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
+        <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
+          לא נמצאו חדרים תואמים
+        </AlertTitle>
+      </Alert>
+    );
+  }
+
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverAnchor virtualRef={virtualRef} />
+      <div
+        dir="ltr"
+        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
+      >
+        <div dir="rtl">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
+              <TableRow className="hover:bg-transparent">
+                <StaticHeader>שם חדר</StaticHeader>
+                <StaticHeader>קיבולת</StaticHeader>
+                <StaticHeader>מאחסן</StaticHeader>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rooms.map((room, i) => (
+                <MotionTableRow
+                  key={room.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: Math.min(i * 0.015, 0.2),
+                    duration: 0.3,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  onClick={(e) => openAt(room.id, e)}
+                  className={cn(
+                    "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
+                    i % 2 === 1 && "bg-primary/15",
+                    activeId === room.id && "bg-primary/30",
+                  )}
+                >
+                  <TableCell className="px-4 py-3 text-sm font-medium text-foreground text-center">
+                    {room.name}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center">
+                    <CapacityPill value={room.capacity} />
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center">
+                    <EquipmentPills equipment={room.equipment} />
+                  </TableCell>
+                </MotionTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+      <RowActionsMenuContent actions={roomActions} onSelect={onSelect} />
+    </Popover>
+  );
+}

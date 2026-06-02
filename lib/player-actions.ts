@@ -20,6 +20,6 @@ export const playerActions: PlayerAction[] = [
   { id: "clubs", label: "הרשמה לחוגים", icon: BookOpen, variant: "default" },
   { id: "tournaments", label: "הרשמה לתחרויות", icon: Trophy, variant: "default" },
   { id: "league", label: "הרשמה לליגה", icon: Swords, variant: "default" },
-  { id: "availability", label: "בדיקת זמינות", icon: CalendarCheck, variant: "default" },
+  { id: "availability", label: "בדוק זמינות", icon: CalendarCheck, variant: "default" },
   { id: "delete", label: "מחק שחקן", icon: Trash2, variant: "destructive" },
 ];

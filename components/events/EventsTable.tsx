@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { EventStatusBadge } from "@/components/events/EventStatusBadge";
-import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { eventActions } from "@/lib/row-actions";
 import { useEventsTable } from "@/hooks/events/useEventsTable";
 import type { SortDir, SortKey } from "@/hooks/events/useEventsSort";
 import { cn } from "@/lib/utils";
@@ -203,7 +204,7 @@ export function EventsTable({ events }: EventsTableProps) {
           </Table>
         </div>
       </div>
-      <TournamentActionsMenuContent onSelect={onSelectAction} />
+      <RowActionsMenuContent actions={eventActions} onSelect={onSelectAction} />
     </Popover>
   );
 }
