@@ -1,0 +1,14 @@
+import { BookOpen, User, Trash2, type LucideIcon } from "lucide-react";
+
+export interface ActivityAction {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  variant: "default" | "destructive";
+}
+
+export const activityActions: ActivityAction[] = [
+  { id: "details", label: "פרטי חוג", icon: BookOpen, variant: "default" },
+  { id: "coach", label: "פרטי מדריך", icon: User, variant: "default" },
+  { id: "delete", label: "מחיקת חוג", icon: Trash2, variant: "destructive" },
+];
