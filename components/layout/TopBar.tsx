@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { MobileSidebar } from "@/components/layout/MobileSidebar";
+import { useDisclosure } from "@/hooks/useDisclosure";
 
 interface TopBarProps {
   title: string;
 }
 
 export function TopBar({ title }: TopBarProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { open: mobileOpen, show: openMobile, close: closeMobile } = useDisclosure();
 
   return (
     <>
@@ -21,7 +21,7 @@ export function TopBar({ title }: TopBarProps) {
           variant="ghost"
           size="icon"
           className="lg:hidden size-7"
-          onClick={() => setMobileOpen(true)}
+          onClick={openMobile}
           aria-label="פתח תפריט"
         >
           <Menu className="size-4" />
@@ -34,7 +34,7 @@ export function TopBar({ title }: TopBarProps) {
         <ThemeToggle />
       </header>
 
-      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileSidebar open={mobileOpen} onClose={closeMobile} />
     </>
   );
 }

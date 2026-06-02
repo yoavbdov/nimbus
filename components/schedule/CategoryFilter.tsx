@@ -1,5 +1,6 @@
 "use client";
 
+import { Toggle } from "@/components/ui/toggle";
 import { CATEGORY_META, type EventCategory } from "@/lib/schedule-data";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +22,12 @@ export function CategoryFilter({
         const meta = CATEGORY_META[category];
         const hidden = hiddenCategories.has(category);
         return (
-          <button
+          <Toggle
             key={category}
-            type="button"
-            onClick={() => onToggleCategory(category)}
-            aria-pressed={!hidden}
+            pressed={!hidden}
+            onPressedChange={() => onToggleCategory(category)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] transition-all duration-150",
+              "h-auto gap-1.5 rounded-full bg-transparent px-2.5 py-1 text-[0.7rem] transition-all duration-150 hover:bg-transparent data-[state=on]:bg-transparent",
               hidden
                 ? "text-muted-foreground/50 neu-pressed"
                 : "text-foreground/80 neu-raised-xs neu-interactive",
@@ -38,7 +38,7 @@ export function CategoryFilter({
               style={{ backgroundColor: meta.color, opacity: hidden ? 0.3 : 1 }}
             />
             {meta.label}
-          </button>
+          </Toggle>
         );
       })}
     </div>

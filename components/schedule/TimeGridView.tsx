@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
 import { HEBREW_WEEKDAYS_SHORT, isSameDay } from "@/lib/calendar";
 import {
   CATEGORY_META,
-  layoutDayEvents,
   timeToMinutes,
   type ScheduleEvent,
 } from "@/lib/schedule-data";
+import {
+  HOUR_HEIGHT,
+  useDayLayout,
+  useTimeGrid,
+} from "@/hooks/schedule/useTimeGrid";
 import { cn } from "@/lib/utils";
 
 interface DayColumn {
@@ -21,34 +24,10 @@ interface TimeGridViewProps {
   today: Date;
 }
 
-const HOUR_HEIGHT = 64; // px per hour — taller rows so event boxes breathe
-const GUTTER = "3.5rem";
-const DEFAULT_SCROLL_HOUR = 11; // first view lands at 11:00; scroll up/down for more
-
 export function TimeGridView({ days, today }: TimeGridViewProps) {
-  // The grid always renders the full 24-hour day so it can be scrolled to any
-  // hour; the viewport just defaults to the morning so the first view is useful.
-  const startHour = 0;
-  const endHour = 24;
-
-  const hours = useMemo(
-    () => Array.from({ length: endHour - startHour }, (_, i) => startHour + i),
-    [],
+  const { hours, bodyHeight, scrollRef, gridCols, startHour } = useTimeGrid(
+    days.length,
   );
-  const bodyHeight = hours.length * HOUR_HEIGHT;
-
-  // On mount, scroll down to the default morning hour so the user isn't staring
-  // at the empty pre-dawn hours, while keeping 00:00 reachable.
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = DEFAULT_SCROLL_HOUR * HOUR_HEIGHT;
-    }
-  }, []);
-
-  // Columns always divide the full width equally: more days → thinner columns,
-  // so every selected day stays visible without horizontal scrolling.
-  const gridCols = `${GUTTER} repeat(${days.length}, minmax(0, 1fr))`;
 
   return (
     <div className="neu-inset overflow-hidden rounded-2xl">
@@ -131,7 +110,7 @@ function DayColumnBody({
   hours: number[];
   startHour: number;
 }) {
-  const positioned = useMemo(() => layoutDayEvents(events), [events]);
+  const positioned = useDayLayout(events);
 
   return (
     <div className="relative border-s border-foreground/8">

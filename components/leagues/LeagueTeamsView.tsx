@@ -1,22 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DoorOpen, Package } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { RoomsPanel } from "@/components/rooms/RoomsPanel";
-import { EquipmentPanel } from "@/components/rooms/EquipmentPanel";
+import { Users, Sparkles, Venus } from "lucide-react";
+import { LeaguesPanel } from "@/components/leagues/LeaguesPanel";
 import { useTabView } from "@/hooks/shared/useTabView";
+import type { LeagueCategory } from "@/lib/leagues-data";
 import { cn } from "@/lib/utils";
 
-type View = "rooms" | "equipment";
-
-const tabs: { key: View; label: string; icon: React.ElementType }[] = [
-  { key: "rooms", label: "חדרים", icon: DoorOpen },
-  { key: "equipment", label: "ציוד", icon: Package },
+const tabs: { key: LeagueCategory; label: string; icon: React.ElementType }[] = [
+  { key: "בוגרים", label: "בוגרים", icon: Users },
+  { key: "נוער", label: "נוער", icon: Sparkles },
+  { key: "נשים", label: "נשים", icon: Venus },
 ];
 
-export function RoomsEquipmentView() {
-  const { view, setView } = useTabView<View>("rooms");
+export function LeagueTeamsView() {
+  const { view, setView } = useTabView<LeagueCategory>("בוגרים");
 
   return (
     <div className="space-y-4">
@@ -36,7 +34,7 @@ export function RoomsEquipmentView() {
             >
               {active && (
                 <motion.span
-                  layoutId="rooms-equipment-tab"
+                  layoutId="league-category-tab"
                   className="absolute inset-0 rounded-xl neu-raised-xs bg-(--tint-soft)"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
@@ -48,14 +46,7 @@ export function RoomsEquipmentView() {
         })}
       </div>
 
-      {view === "rooms" ? (
-        <RoomsPanel />
-      ) : (
-        <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
-          <div className="h-1 tint-bar" />
-          <EquipmentPanel />
-        </Card>
-      )}
+      <LeaguesPanel category={view} />
     </div>
   );
 }

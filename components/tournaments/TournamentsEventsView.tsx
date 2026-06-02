@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, CalendarHeart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TournamentsPanel } from "@/components/tournaments/TournamentsPanel";
 import { EventsPanel } from "@/components/events/EventsPanel";
+import { useTabView } from "@/hooks/shared/useTabView";
 import { cn } from "@/lib/utils";
 
 type View = "tournaments" | "events";
@@ -16,7 +16,7 @@ const tabs: { key: View; label: string; icon: React.ElementType }[] = [
 ];
 
 export function TournamentsEventsView() {
-  const [view, setView] = useState<View>("tournaments");
+  const { view, setView } = useTabView<View>("tournaments");
 
   return (
     <div className="space-y-4">

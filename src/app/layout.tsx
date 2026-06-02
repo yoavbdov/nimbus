@@ -34,11 +34,11 @@ export default function RootLayout({
   return (
     <html
       lang="he"
-      dir="rtl"
+      dir="ltr"
       className={`${spaceGrotesk.variable} ${heebo.variable} ${robotoMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full bg-background text-foreground">
+      <body dir="rtl" className="min-h-full bg-background text-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

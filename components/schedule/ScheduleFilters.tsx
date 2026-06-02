@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useFacetDropdown } from "@/hooks/schedule/useFacetDropdown";
 import { cn } from "@/lib/utils";
 import type { FacetKey } from "@/lib/schedule-data";
 
@@ -78,14 +78,7 @@ function FacetDropdown({
   onToggle: (value: string) => void;
   onClear: () => void;
 }) {
-  const [query, setQuery] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = query.trim();
-    if (!q) return options;
-    return options.filter((o) => o.includes(q));
-  }, [options, query]);
-
+  const { query, setQuery, filtered } = useFacetDropdown(options);
   const count = selected.size;
 
   return (

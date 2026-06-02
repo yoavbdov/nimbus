@@ -1,18 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useEnumPickerSearch } from "@/hooks/shared/useEnumPickerSearch";
 import { cn } from "@/lib/utils";
-
-function useFiltered(options: string[], query: string) {
-  return useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter((o) => o.toLowerCase().includes(q));
-  }, [options, query]);
-}
 
 function SearchBox({
   value,
@@ -46,7 +38,7 @@ const optionClass =
   "tint-indigo w-full flex items-center justify-center text-center px-2 py-1.5 rounded-md text-xs font-normal text-foreground hover:bg-foreground/8";
 
 const selectedClass =
-  "bg-(--tint-soft) text-foreground font-medium ring-1 ring-[color-mix(in_oklab,var(--tint)_35%,transparent)]";
+  "data-[state=on]:bg-(--tint-soft) data-[state=on]:text-foreground data-[state=on]:font-medium data-[state=on]:ring-1 data-[state=on]:ring-[color-mix(in_oklab,var(--tint)_35%,transparent)]";
 
 export function SingleEnumPicker({
   options,
@@ -57,26 +49,32 @@ export function SingleEnumPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const filtered = useFiltered(options, query);
+  const { query, setQuery, filtered } = useEnumPickerSearch(options);
 
   return (
     <div className="w-full space-y-1.5">
       <SearchBox value={query} onChange={setQuery} />
-      <div className="w-full h-44 overflow-y-auto neu-inset rounded-lg p-1.5 flex flex-col gap-0.5">
+      <div className="w-full h-44 overflow-y-auto neu-inset rounded-lg p-1.5">
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          filtered.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => onChange(opt)}
-              className={cn(optionClass, value === opt && selectedClass)}
-            >
-              {opt}
-            </button>
-          ))
+          <ToggleGroup
+            type="single"
+            value={value}
+            // a single picker always keeps a selection — ignore deselect events
+            onValueChange={(v) => v && onChange(v)}
+            className="flex flex-col gap-0.5 items-stretch w-full"
+          >
+            {filtered.map((opt) => (
+              <ToggleGroupItem
+                key={opt}
+                value={opt}
+                className={cn(optionClass, selectedClass)}
+              >
+                {opt}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         )}
       </div>
     </div>
@@ -92,8 +90,7 @@ export function MultiEnumPicker({
   value: string[];
   onChange: (v: string[]) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const filtered = useFiltered(options, query);
+  const { query, setQuery, filtered } = useEnumPickerSearch(options);
 
   return (
     <div className="w-full space-y-1.5">
@@ -112,10 +109,7 @@ export function MultiEnumPicker({
               <ToggleGroupItem
                 key={opt}
                 value={opt}
-                className={cn(
-                  optionClass,
-                  "data-[state=on]:bg-(--tint-soft) data-[state=on]:text-foreground data-[state=on]:font-medium data-[state=on]:ring-1 data-[state=on]:ring-[color-mix(in_oklab,var(--tint)_35%,transparent)]",
-                )}
+                className={cn(optionClass, selectedClass)}
               >
                 {opt}
               </ToggleGroupItem>

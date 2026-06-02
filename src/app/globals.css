@@ -191,6 +191,21 @@
     margin-left: 0 !important;
     overflow: visible !important;
   }
+  /* Tailwind v4 defaults interactive elements to the default cursor —
+     restore the pointer for anything clickable. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  a[href],
+  label[for],
+  summary,
+  select:not(:disabled),
+  [data-slot="context-menu-item"],
+  [data-slot="select-trigger"] {
+    cursor: pointer;
+  }
 }
 
 /* ── Neumorphism utility classes ──────────────────────────── */

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileSidebar } from "@/components/layout/MobileSidebar";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { useDisclosure } from "@/hooks/useDisclosure";
 
 interface PageShellProps {
   title: string;
@@ -15,7 +15,7 @@ interface PageShellProps {
 }
 
 export function PageShell({ title: _title, children, wide = false }: PageShellProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { open: mobileOpen, show: openMobile, close: closeMobile } = useDisclosure();
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -34,7 +34,7 @@ export function PageShell({ title: _title, children, wide = false }: PageShellPr
           variant="ghost"
           size="icon"
           className="lg:hidden size-9 rounded-xl neu-raised-xs neu-interactive"
-          onClick={() => setMobileOpen(true)}
+          onClick={openMobile}
           aria-label="פתח תפריט"
         >
           <Menu className="size-4" />
@@ -44,7 +44,7 @@ export function PageShell({ title: _title, children, wide = false }: PageShellPr
         </div>
       </div>
 
-      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileSidebar open={mobileOpen} onClose={closeMobile} />
     </div>
   );
 }

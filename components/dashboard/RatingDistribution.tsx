@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -12,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X } from "lucide-react";
 import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
-import type { RatingPlayer } from "@/hooks/dashboard/useRatingPlayersTable";
+import { useEditableField } from "@/hooks/dashboard/useEditableField";
+import { ratingPlayers } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
 
 export interface RatingTier {
@@ -26,39 +26,6 @@ interface RatingDistributionProps {
   onTierChange: (index: number, updated: Partial<RatingTier>) => void;
 }
 
-const players: RatingPlayer[] = [
-  { name: "יוסי כהן", rating: 2100, birthYear: 2001 },
-  { name: "יצחק לוי", rating: 2000, birthYear: 2012 },
-  { name: "אברהם יוסף", rating: 1531, birthYear: 1961 },
-  { name: "דוד מזרחי", rating: 1800, birthYear: 1995 },
-  { name: "משה פרץ", rating: 1650, birthYear: 2005 },
-  { name: "נועם שפירא", rating: 2250, birthYear: 1998 },
-  { name: "אורי גולן", rating: 1920, birthYear: 2003 },
-  { name: "תמיר בן-דוד", rating: 1780, birthYear: 2008 },
-  { name: "רועי אלון", rating: 1430, birthYear: 1990 },
-  { name: "עמית שלום", rating: 2050, birthYear: 2000 },
-  { name: "גיל ברקוביץ'", rating: 1350, birthYear: 1975 },
-  { name: "שי אברהם", rating: 1600, birthYear: 2010 },
-  { name: "ליאור נחמן", rating: 1720, birthYear: 2006 },
-  { name: "בן כץ", rating: 1480, birthYear: 1985 },
-  { name: "עידן מור", rating: 1950, birthYear: 2002 },
-  { name: "אלון ברון", rating: 1280, birthYear: 1970 },
-  { name: "יהונתן פלד", rating: 1830, birthYear: 1999 },
-  { name: "מתן זיו", rating: 1560, birthYear: 2007 },
-  { name: "ניב שגיא", rating: 2180, birthYear: 1997 },
-  { name: "עמיחי דקל", rating: 1410, birthYear: 1983 },
-  { name: "רן הרפז", rating: 1690, birthYear: 2004 },
-  { name: "טל ורד", rating: 1870, birthYear: 1996 },
-  { name: "אבי שרון", rating: 1320, birthYear: 1968 },
-  { name: "כרמל נוי", rating: 2020, birthYear: 2001 },
-  { name: "שחר לפיד", rating: 1750, birthYear: 2009 },
-  { name: "אדם פישר", rating: 1580, birthYear: 1993 },
-  { name: "יובל גפן", rating: 1900, birthYear: 2000 },
-  { name: "ארי בלום", rating: 1450, birthYear: 1980 },
-  { name: "נתן אוחיון", rating: 1640, birthYear: 2011 },
-  { name: "עמוס רביד", rating: 1990, birthYear: 1994 },
-];
-
 interface EditableFieldProps {
   value: string;
   onCommit: (val: string) => void;
@@ -66,18 +33,8 @@ interface EditableFieldProps {
 }
 
 function EditableField({ value, onCommit, className }: EditableFieldProps) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  function commit() {
-    onCommit(draft.trim() || value);
-    setEditing(false);
-  }
-
-  function cancel() {
-    setDraft(value);
-    setEditing(false);
-  }
+  const { editing, draft, setDraft, startEditing, commit, cancel } =
+    useEditableField(value, onCommit);
 
   if (editing) {
     return (
@@ -121,10 +78,7 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
         variant="ghost"
         size="icon"
         className="absolute -right-5 size-5 opacity-0 group-hover:opacity-100 transition-opacity duration-100 text-muted-foreground shrink-0"
-        onClick={() => {
-          setDraft(value);
-          setEditing(true);
-        }}
+        onClick={startEditing}
         aria-label="ערוך"
       >
         <Pencil className="size-3" />
@@ -202,7 +156,7 @@ export function RatingDistribution({
             </div>
           </div>
           <div className="w-1/2 neu-inset rounded-2xl p-3">
-            <RatingPlayersTable players={players} />
+            <RatingPlayersTable players={ratingPlayers} />
           </div>
         </div>
       </CardContent>

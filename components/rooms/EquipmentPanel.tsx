@@ -1,17 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EquipmentActions } from "@/components/rooms/EquipmentActions";
 import { RoomsFilterBar } from "@/components/rooms/RoomsFilterBar";
 import { EquipmentTable } from "@/components/rooms/EquipmentTable";
-import { equipment as allEquipment, filterEquipment } from "@/lib/rooms-data";
+import { useEquipmentPanel } from "@/hooks/rooms/useEquipmentPanel";
 
 export function EquipmentPanel() {
-  const [search, setSearch] = useState("");
-  const filtered = filterEquipment(search);
+  const { search, setSearch, filtered, total } = useEquipmentPanel();
 
   return (
     <CardContent className="p-6 space-y-5">
@@ -21,7 +19,7 @@ export function EquipmentPanel() {
             ניהול ציוד
           </h1>
           <p className="text-xs text-muted-foreground/80 num">
-            {filtered.length} מתוך {allEquipment.length} פריטי ציוד
+            {filtered.length} מתוך {total} פריטי ציוד
           </p>
         </div>
         <EquipmentActions />
