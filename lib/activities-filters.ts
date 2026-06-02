@@ -191,6 +191,6 @@ export function filterActivities(
     (a) =>
       matchesSearch(a, query) &&
       filters.every((f) => applyFilter(a, f)) &&
-      (today == null || a.days.includes(today)),
+      (today == null || (a.status === "פעיל" && a.days.includes(today))),
   );
 }

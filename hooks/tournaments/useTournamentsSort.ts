@@ -1,48 +1,45 @@
 import { useMemo, useState } from "react";
-import type { Activity } from "@/lib/activities-data";
+import type { Tournament } from "@/lib/tournaments-data";
 
 export type SortKey =
   | "name"
-  | "coach"
-  | "age"
-  | "fitness"
-  | "enrolled"
-  | "capacity"
+  | "status"
+  | "judge"
+  | "rounds"
   | "days"
   | "nextDate"
-  | "status";
+  | "participants"
+  | "rating";
 export type SortDir = "asc" | "desc";
 
-const statusOrder: Record<Activity["status"], number> = {
-  "פעיל": 0,
-  "מלא": 1,
-  "לא פעיל": 2,
+const statusOrder: Record<Tournament["status"], number> = {
+  "פעילה": 0,
+  "מתוכננת": 1,
+  "הסתיימה": 2,
 };
 
-function getSortValue(a: Activity, key: SortKey): string | number {
+function getSortValue(t: Tournament, key: SortKey): string | number {
   switch (key) {
     case "name":
-      return a.name;
-    case "coach":
-      return a.coach;
-    case "age":
-      return a.ageMin;
-    case "fitness":
-      return a.fitnessMin;
-    case "enrolled":
-      return a.enrolled;
-    case "capacity":
-      return a.capacity;
-    case "days":
-      return a.days.length;
-    case "nextDate":
-      return a.nextDate;
+      return t.name;
     case "status":
-      return statusOrder[a.status];
+      return statusOrder[t.status];
+    case "judge":
+      return t.judge;
+    case "rounds":
+      return t.rounds;
+    case "days":
+      return t.days.length;
+    case "nextDate":
+      return t.nextDate;
+    case "participants":
+      return t.participants;
+    case "rating":
+      return t.ratingMin;
   }
 }
 
-export function useActivitiesSort(activities: Activity[]) {
+export function useTournamentsSort(tournaments: Tournament[]) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -56,7 +53,7 @@ export function useActivitiesSort(activities: Activity[]) {
   }
 
   const sorted = useMemo(() => {
-    const arr = [...activities];
+    const arr = [...tournaments];
     arr.sort((a, b) => {
       const av = getSortValue(a, sortKey);
       const bv = getSortValue(b, sortKey);
@@ -67,7 +64,7 @@ export function useActivitiesSort(activities: Activity[]) {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [activities, sortKey, sortDir]);
+  }, [tournaments, sortKey, sortDir]);
 
   return { sortKey, sortDir, sorted, handleSort };
 }

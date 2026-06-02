@@ -1,0 +1,37 @@
+import { FileDown, FileUp, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface ActionButtonProps {
+  icon: React.ElementType;
+  label: string;
+  variant?: "default" | "ghost";
+}
+
+function ActionButton({ icon: Icon, label, variant = "ghost" }: ActionButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant={variant}
+      className={cn(
+        "group/btn relative overflow-hidden tint-indigo",
+        "h-9 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
+        variant === "default" && "bg-transparent text-foreground hover:bg-transparent",
+      )}
+    >
+      <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+      <Icon className="size-4" />
+      {label}
+    </Button>
+  );
+}
+
+export function TournamentsActions() {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <ActionButton icon={Trophy} label="הוסף תחרות" variant="default" />
+      <ActionButton icon={FileDown} label="ייצוא לאקסל" />
+      <ActionButton icon={FileUp} label="משיכה מאקסל" />
+    </div>
+  );
+}

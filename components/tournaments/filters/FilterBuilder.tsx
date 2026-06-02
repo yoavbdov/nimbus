@@ -16,13 +16,13 @@ import {
   SingleEnumPicker,
   MultiEnumPicker,
 } from "@/components/shared/filters/EnumValuePickers";
-import { useFilterBuilder } from "@/hooks/activities/useFilterBuilder";
+import { useFilterBuilder } from "@/hooks/tournaments/useFilterBuilder";
 import {
   FIELD_BY_KEY,
   FIELD_DEFS,
   type FilterField,
-  type ActivityFilter,
-} from "@/lib/activities-filters";
+  type TournamentFilter,
+} from "@/lib/tournaments-filters";
 
 const stepVariants = {
   initial: { opacity: 0, x: 8 },
@@ -91,8 +91,8 @@ const selectItemClass =
   "justify-center pl-8 pr-8 [&>span:last-child]:grow [&>span:last-child]:justify-center";
 
 interface FilterBuilderProps {
-  initial?: ActivityFilter;
-  onSubmit: (filter: ActivityFilter) => void;
+  initial?: TournamentFilter;
+  onSubmit: (filter: TournamentFilter) => void;
   onCancel: () => void;
 }
 
