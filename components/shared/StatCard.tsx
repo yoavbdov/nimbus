@@ -79,7 +79,7 @@ export function StatCard({
                 alt=""
                 width={30}
                 height={30}
-                className="object-contain opacity-90"
+                className="object-contain opacity-90 dark:invert"
               />
             </div>
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground">

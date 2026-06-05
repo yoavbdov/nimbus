@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RatingDistribution } from "@/components/dashboard/RatingDistribution";
 import { TodaySessions } from "@/components/dashboard/TodaySessions";
+import { TodayTournaments } from "@/components/dashboard/TodayTournaments";
 import { RegistrationStatus } from "@/components/dashboard/RegistrationStatus";
 import { useDashboard } from "@/hooks/useDashboard";
 
@@ -57,13 +58,8 @@ export default function DashboardPage() {
                 </div>
               )}
               {activePanel === "tournaments" && (
-                <div className="bloom bloom-indigo rounded-3xl tint-indigo">
-                  <div className="glass shadow-depth-xl rounded-3xl overflow-hidden">
-                    <div className="h-1 tint-bar" />
-                    <p className="text-center text-muted-foreground font-medium py-12">
-                      אין תחרויות מתוכננות להיום
-                    </p>
-                  </div>
+                <div className="bloom bloom-indigo rounded-3xl">
+                  <TodayTournaments />
                 </div>
               )}
             </motion.div>

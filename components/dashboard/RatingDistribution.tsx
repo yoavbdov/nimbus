@@ -12,13 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Check, X } from "lucide-react";
 import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
+import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
+import { useTierNavigation } from "@/hooks/dashboard/useTierNavigation";
 import { ratingPlayers } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
 
 export interface RatingTier {
   label: string;
   count: number;
-  filter: string;
+  min: number;
+  max: number;
 }
 
 interface RatingDistributionProps {
@@ -38,7 +41,10 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
 
   if (editing) {
     return (
-      <div className="flex items-center gap-1">
+      <div
+        className="flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -78,8 +84,101 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
         variant="ghost"
         size="icon"
         className="absolute -right-5 size-5 opacity-0 group-hover:opacity-100 transition-opacity duration-100 text-muted-foreground shrink-0"
-        onClick={startEditing}
+        onClick={(e) => {
+          e.stopPropagation();
+          startEditing();
+        }}
         aria-label="ערוך"
+      >
+        <Pencil className="size-3" />
+      </Button>
+    </div>
+  );
+}
+
+interface RangeFieldProps {
+  min: number;
+  max: number;
+  onCommit: (range: { min: number; max: number }) => void;
+}
+
+function RangeField({ min, max, onCommit }: RangeFieldProps) {
+  const {
+    editing,
+    minDraft,
+    setMinDraft,
+    maxDraft,
+    setMaxDraft,
+    startEditing,
+    commit,
+    cancel,
+  } = useEditableRange(min, max, onCommit);
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") commit();
+    if (e.key === "Escape") cancel();
+  }
+
+  if (editing) {
+    return (
+      <div
+        className="flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Input
+          value={minDraft}
+          onChange={(e) => setMinDraft(e.target.value)}
+          onKeyDown={onKeyDown}
+          inputMode="numeric"
+          autoFocus
+          aria-label="מינימום"
+          className="h-7 w-14 text-xs px-2 neu-inset border-0 rounded-md num text-center"
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <Input
+          value={maxDraft}
+          onChange={(e) => setMaxDraft(e.target.value)}
+          onKeyDown={onKeyDown}
+          inputMode="numeric"
+          aria-label="מקסימום"
+          className="h-7 w-14 text-xs px-2 neu-inset border-0 rounded-md num text-center"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-5"
+          onClick={commit}
+          aria-label="אשר"
+        >
+          <Check className="size-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-5"
+          onClick={cancel}
+          aria-label="בטל"
+        >
+          <X className="size-3" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative flex items-center justify-center min-w-0 text-xs text-foreground num">
+      <span className="truncate">
+        {min}–{max}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -right-5 size-5 opacity-0 group-hover:opacity-100 transition-opacity duration-100 text-muted-foreground shrink-0"
+        onClick={(e) => {
+          e.stopPropagation();
+          startEditing();
+        }}
+        aria-label="ערוך טווח"
       >
         <Pencil className="size-3" />
       </Button>
@@ -94,11 +193,23 @@ function TierBox({
   tier: RatingTier;
   onChange: (updated: Partial<RatingTier>) => void;
 }) {
+  const goToPlayers = useTierNavigation();
+
   return (
     <motion.div
       whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.97 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
-      className="tint-indigo bloom bloom-indigo bloom-hover rounded-2xl h-full"
+      onClick={() => goToPlayers(tier.min, tier.max)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goToPlayers(tier.min, tier.max);
+        }
+      }}
+      className="tint-indigo bloom bloom-indigo bloom-hover rounded-2xl h-full cursor-pointer"
     >
       <Card className="group/tier relative overflow-hidden glass-sm shadow-depth neu-interactive border-0 ring-0 rounded-2xl h-full gap-0 py-0">
         <div className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/tier:scale-x-100 transition-transform duration-700 ease-out" />
@@ -107,15 +218,15 @@ function TierBox({
             <EditableField
               value={tier.label}
               onCommit={(label) => onChange({ label })}
-              className="text-sm font-medium uppercase tracking-[0.12em] text-foreground justify-center"
+              className="text-lg font-semibold uppercase tracking-[0.12em] text-foreground justify-center"
             />
             <span className="text-5xl font-semibold num tint-text leading-none">
               {tier.count}
             </span>
-            <EditableField
-              value={tier.filter}
-              onCommit={(filter) => onChange({ filter })}
-              className="text-xs text-foreground justify-center"
+            <RangeField
+              min={tier.min}
+              max={tier.max}
+              onCommit={({ min, max }) => onChange({ min, max })}
             />
           </div>
         </CardContent>

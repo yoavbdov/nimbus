@@ -13,20 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
-import { useTodaySessions, todayLabel } from "@/hooks/dashboard/useTodaySessions";
+import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { useTodayTournaments, todayLabel } from "@/hooks/dashboard/useTodayTournaments";
 import { cn } from "@/lib/utils";
 
-export function TodaySessions() {
+export function TodayTournaments() {
   const {
-    sessions,
+    tournaments,
     menuOpen,
     virtualRef,
     onSelectAction,
     activeIndex,
     handleRowClick,
     handleMenuOpenChange,
-  } = useTodaySessions();
+  } = useTodayTournaments();
 
   return (
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
@@ -35,7 +35,7 @@ export function TodaySessions() {
         <div className="h-1 tint-bar" />
         <CardHeader className="px-6 pt-5 pb-4 flex flex-col items-center space-y-0">
           <CardTitle className="text-base font-semibold tracking-wide tint-text text-center">
-            מפגשים היום · {todayLabel}
+            תחרויות היום · {todayLabel}
           </CardTitle>
         </CardHeader>
 
@@ -46,21 +46,21 @@ export function TodaySessions() {
                 <TableHeader>
                   <TableRow className="border-b-0 hover:bg-transparent">
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סוג</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / מדריך</TableHead>
+                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סבב</TableHead>
+                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / שופט</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sessions.length === 0 ? (
+                  {tournaments.length === 0 ? (
                     <TableRow className="border-0 hover:bg-transparent">
                       <TableCell colSpan={5} className="p-10 text-center text-sm text-muted-foreground/60">
-                        אין מפגשים מתוכננים להיום
+                        אין תחרויות מתוכננות להיום
                       </TableCell>
                     </TableRow>
                   ) : (
-                    sessions.map((s, i) => (
+                    tournaments.map((t, i) => (
                       <motion.tr
                         key={i}
                         initial={{ opacity: 0, x: -10 }}
@@ -74,7 +74,10 @@ export function TodaySessions() {
                         )}
                       >
                         <TableCell className="px-4 py-3 text-sm num whitespace-nowrap">
-                          {s.time}
+                          {t.time}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-foreground">
+                          {t.name}
                         </TableCell>
                         <TableCell className="px-4 py-3">
                           <Badge
@@ -82,17 +85,14 @@ export function TodaySessions() {
                             className="status-ok tint-text rounded-full px-2.5 py-0.5 text-[0.65rem] font-medium border-0"
                             style={{ backgroundColor: "var(--tint-soft)" }}
                           >
-                            {s.type}
+                            {t.round}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-foreground">
-                          {s.name}
-                        </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-muted-foreground">
-                          {s.location} · {s.coach}
+                          {t.room} · {t.judge}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
-                          {s.enrolled} / {s.capacity}
+                          {t.participants}
                         </TableCell>
                       </motion.tr>
                     ))
@@ -103,7 +103,7 @@ export function TodaySessions() {
           </div>
         </CardContent>
       </Card>
-      <ActivityActionsMenuContent onSelect={onSelectAction} />
+      <TournamentActionsMenuContent onSelect={onSelectAction} />
     </Popover>
   );
 }

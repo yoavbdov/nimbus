@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { PageShell } from "@/components/layout/PageShell";
 import { PlayersPanel } from "@/components/players/PlayersPanel";
@@ -13,7 +14,9 @@ export default function PlayersPage() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="bloom bloom-indigo rounded-3xl"
       >
-        <PlayersPanel />
+        <Suspense fallback={null}>
+          <PlayersPanel />
+        </Suspense>
       </motion.div>
     </PageShell>
   );

@@ -3,10 +3,10 @@ import type { ActivePanel } from "@/components/dashboard/DashboardStats";
 import type { RatingTier } from "@/components/dashboard/RatingDistribution";
 
 const initialTiers: RatingTier[] = [
-  { label: "מתחילים", count: 2, filter: "מתחת ל-800" },
-  { label: "בינוניים", count: 3, filter: "800 – 1200" },
-  { label: "מתקדמים", count: 2, filter: "1200 – 1600" },
-  { label: "אליטה", count: 3, filter: "1600+" },
+  { label: "מתחילים", count: 2, min: 0, max: 800 },
+  { label: "בינוניים", count: 3, min: 800, max: 1200 },
+  { label: "מתקדמים", count: 2, min: 1200, max: 1600 },
+  { label: "אליטה", count: 3, min: 1600, max: 3000 },
 ];
 
 export function useDashboard() {

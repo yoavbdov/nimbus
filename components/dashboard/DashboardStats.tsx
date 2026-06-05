@@ -47,7 +47,7 @@ const stats: Array<{
   {
     key: "tournaments",
     label: "תחרויות היום",
-    value: 0,
+    value: 2,
     icon: "/icons/trophy icon.png",
     color: "indigo",
   },
