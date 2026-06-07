@@ -68,8 +68,8 @@ export function TodayTournaments() {
                         transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                         onClick={(e) => handleRowClick(i, e)}
                         className={cn(
-                          "cursor-pointer border-0 transition-colors duration-150",
-                          i % 2 === 1 ? "bg-primary/15 hover:bg-primary/25" : "hover:bg-primary/15",
+                          "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
+                          i % 2 === 1 && "bg-primary/15",
                           activeIndex === i && "bg-primary/30",
                         )}
                       >
