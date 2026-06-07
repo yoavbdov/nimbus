@@ -1,3 +1,7 @@
+# Read first
+
+Before running or writing anything, read [RULES.md](RULES.md) and follow it.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
