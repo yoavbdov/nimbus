@@ -10,6 +10,7 @@ export type SortKey =
   | "clubs"
   | "tournaments"
   | "leagueTeam"
+  | "ratingUpdatedRecently"
   | "status";
 export type SortDir = "asc" | "desc";
 
@@ -37,6 +38,8 @@ function getSortValue(p: Player, key: SortKey): string | number {
       return p.tournaments.length;
     case "leagueTeam":
       return p.leagueTeam ?? "";
+    case "ratingUpdatedRecently":
+      return p.ratingUpdatedRecently ? 1 : 0;
     case "status":
       return statusOrder[p.status];
   }

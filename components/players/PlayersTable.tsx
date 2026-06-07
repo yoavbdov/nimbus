@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { PlayerStatusBadge } from "@/components/players/PlayerStatusBadge";
+import { RatingUpdatedBadge } from "@/components/players/RatingUpdatedBadge";
 import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
 import { usePlayersTable } from "@/hooks/players/usePlayersTable";
 import type { SortDir, SortKey } from "@/hooks/players/usePlayersSort";
@@ -125,6 +126,9 @@ function PlayerRow({
         {p.leagueTeam ?? <span className="text-foreground/40 num">—</span>}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
+        <RatingUpdatedBadge updated={p.ratingUpdatedRecently} />
+      </TableCell>
+      <TableCell className="px-4 py-3 text-center">
         <PlayerStatusBadge status={p.status} />
       </TableCell>
     </MotionTableRow>
@@ -190,6 +194,9 @@ export function PlayersTable({ players }: PlayersTableProps) {
                 </SortableHeader>
                 <SortableHeader {...headerProps("leagueTeam")}>
                   קבוצות ליגה
+                </SortableHeader>
+                <SortableHeader {...headerProps("ratingUpdatedRecently")}>
+                  עדכון מד כושר
                 </SortableHeader>
                 <SortableHeader {...headerProps("status")}>
                   סטטוס
