@@ -49,6 +49,7 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
             if (e.key === "Enter") commit();
             if (e.key === "Escape") cancel();
           }}
@@ -115,6 +116,7 @@ function RangeField({ min, max, onCommit }: RangeFieldProps) {
   } = useEditableRange(min, max, onCommit);
 
   function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
     if (e.key === "Enter") commit();
     if (e.key === "Escape") cancel();
   }
