@@ -22,8 +22,7 @@ import { cn } from "@/lib/utils";
 import type { Player } from "@/lib/players-data";
 
 function CountPill({ value }: { value: number }) {
-  if (value === 0)
-    return <span className="text-foreground/40 num">—</span>;
+  if (value === 0) return <span className="text-foreground/40 num">—</span>;
   return (
     <Badge
       variant="secondary"
@@ -182,7 +181,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
                 <SortableHeader {...headerProps("age")}>גיל</SortableHeader>
                 <SortableHeader {...headerProps("grade")}>כיתה</SortableHeader>
                 <SortableHeader {...headerProps("israeliRating")}>
-                  דירוג ישראלי
+                  מד כושר ישראלי
                 </SortableHeader>
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
                 <SortableHeader {...headerProps("clubs")}>חוגים</SortableHeader>
@@ -192,7 +191,9 @@ export function PlayersTable({ players }: PlayersTableProps) {
                 <SortableHeader {...headerProps("leagueTeam")}>
                   קבוצות ליגה
                 </SortableHeader>
-                <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SortableHeader {...headerProps("status")}>
+                  סטטוס
+                </SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>

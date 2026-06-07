@@ -25,6 +25,7 @@ export interface FieldDef {
   label: string;
   operators: OperatorDef[];
   options?: string[];
+  basic?: boolean;
 }
 
 export interface PlayerFilter {
@@ -68,6 +69,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
     label: "שם",
+    basic: true,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "text" },
       { op: "contains", label: "מכיל בתוכו", valueMode: "text" },
@@ -81,6 +83,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "status",
     label: "סטטוס",
+    basic: true,
     options: allStatuses,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
@@ -92,6 +95,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "club",
     label: "חוג",
+    basic: true,
     options: allClubs,
     operators: [
       { op: "participates", label: "משתתף בחוג", valueMode: "single-enum" },
@@ -104,6 +108,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "tournament",
     label: "תחרות",
+    basic: true,
     options: allTournaments,
     operators: [
       { op: "participates", label: "משתתף בתחרות", valueMode: "single-enum" },
@@ -139,6 +144,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "age",
     label: "גיל",
+    basic: true,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "number" },
       { op: "gt", label: "גדול מ", valueMode: "number" },
@@ -149,7 +155,8 @@ export const FIELD_DEFS: FieldDef[] = [
   },
   {
     field: "israeliRating",
-    label: "דירוג ישראלי",
+    label: "מד כושר ישראלי",
+    basic: true,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "number" },
       { op: "gt", label: "גדול מ", valueMode: "number" },
@@ -160,7 +167,7 @@ export const FIELD_DEFS: FieldDef[] = [
   },
   {
     field: "fideRating",
-    label: "דירוג FIDE",
+    label: "מד כושר בין לאומי",
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "number" },
       { op: "gt", label: "גדול מ", valueMode: "number" },
@@ -170,6 +177,8 @@ export const FIELD_DEFS: FieldDef[] = [
     ],
   },
 ];
+
+export const BASIC_FIELD_DEFS: FieldDef[] = FIELD_DEFS.filter((f) => f.basic);
 
 export const FIELD_BY_KEY: Record<FilterField, FieldDef> = Object.fromEntries(
   FIELD_DEFS.map((f) => [f.field, f]),

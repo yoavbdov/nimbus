@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, Check } from "lucide-react";
+import { ChevronLeft, Check, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import {
 import { useFilterBuilder } from "@/hooks/players/useFilterBuilder";
 import {
   FIELD_BY_KEY,
-  FIELD_DEFS,
   type FilterField,
   type PlayerFilter,
 } from "@/lib/players-filters";
@@ -99,6 +98,9 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     op,
     textValue,
     multiValue,
+    visibleFields,
+    showAdvanced,
+    toggleAdvanced,
     fieldDef,
     opDef,
     mode,
@@ -131,11 +133,22 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
             <SelectValue placeholder="בחר שדה" />
           </SelectTrigger>
           <SelectContent position="popper" className={selectContentClass}>
-            {FIELD_DEFS.map((c) => (
+            {visibleFields.map((c) => (
               <SelectItem key={c.field} value={c.field} className={selectItemClass}>
                 {c.label}
               </SelectItem>
             ))}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleAdvanced();
+              }}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 border-t border-foreground/10 px-2 pt-2 pb-1 text-[0.7rem] font-medium text-foreground/60 hover:text-foreground"
+            >
+              <SlidersHorizontal className="size-3" />
+              {showAdvanced ? "פילטור בסיסי" : "פילטור מתקדם"}
+            </button>
           </SelectContent>
         </Select>
       </StepShell>
