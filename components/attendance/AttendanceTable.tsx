@@ -72,7 +72,7 @@ export function AttendanceTable({
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 className={cn(
-                  "border-0 transition-colors duration-150",
+                  "border-b-2 border-foreground/10 transition-colors duration-150",
                   i % 2 === 1 && "bg-primary/15",
                 )}
               >

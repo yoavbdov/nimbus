@@ -117,7 +117,7 @@ export function RoomsTable({ rooms }: RoomsTableProps) {
                   }}
                   onClick={(e) => openAt(room.id, e)}
                   className={cn(
-                    "cursor-pointer border-0 transition-colors duration-150 hover:bg-primary/25",
+                    "cursor-pointer border-b-2 border-foreground/10 transition-colors duration-150 hover:bg-primary/25",
                     i % 2 === 1 && "bg-primary/15",
                     activeId === room.id && "bg-primary/30",
                   )}
