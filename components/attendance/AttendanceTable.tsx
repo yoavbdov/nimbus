@@ -46,7 +46,7 @@ export function AttendanceTable({
     >
       <div dir="rtl">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
+          <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
             <TableRow className="hover:bg-transparent">
               <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
                 שם תלמיד

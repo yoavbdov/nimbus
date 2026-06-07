@@ -96,7 +96,7 @@ export function RoomsTable({ rooms }: RoomsTableProps) {
       >
         <div dir="rtl">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
+            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
               <TableRow className="hover:bg-transparent">
                 <StaticHeader>שם חדר</StaticHeader>
                 <StaticHeader>קיבולת</StaticHeader>

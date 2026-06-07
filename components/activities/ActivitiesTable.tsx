@@ -218,7 +218,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
       >
         <div dir="rtl">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
+            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם החוג</SortableHeader>
                 <SortableHeader {...headerProps("coach")}>מדריך</SortableHeader>

@@ -174,7 +174,7 @@ export function CoachesTable({ coaches }: CoachesTableProps) {
       >
         <div dir="rtl">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-0">
+            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם מלא</SortableHeader>
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
