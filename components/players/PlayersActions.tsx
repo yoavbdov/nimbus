@@ -8,12 +8,14 @@ interface ActionButtonProps {
   icon: React.ElementType;
   label: string;
   variant?: "default" | "ghost";
+  onClick?: () => void;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost" }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", onClick }: ActionButtonProps) {
   return (
     <Button
       type="button"
+      onClick={onClick}
       variant={variant}
       className={cn(
         "group/btn relative overflow-hidden tint-indigo",
@@ -28,11 +30,15 @@ function ActionButton({ icon: Icon, label, variant = "ghost" }: ActionButtonProp
   );
 }
 
-export function PlayersActions() {
+interface PlayersActionsProps {
+  onCheckAvailability: () => void;
+}
+
+export function PlayersActions({ onCheckAvailability }: PlayersActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ActionButton icon={UserPlus} label="הוסף שחקן" variant="default" />
-      <ActionButton icon={CalendarCheck2} label="בדוק זמינות" />
+      <ActionButton icon={CalendarCheck2} label="בדוק זמינות" onClick={onCheckAvailability} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" />
     </div>

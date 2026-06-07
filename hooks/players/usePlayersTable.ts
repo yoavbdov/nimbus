@@ -1,9 +1,18 @@
 import { useState, type MouseEvent } from "react";
 import { usePlayersSort } from "@/hooks/players/usePlayersSort";
 import { usePlayerActionsMenu } from "@/hooks/usePlayerActionsMenu";
+import type { PlayerAction } from "@/lib/player-actions";
 import type { Player } from "@/lib/players-data";
 
-export function usePlayersTable(players: Player[]) {
+interface UsePlayersTableOptions {
+  /** Called when a menu action is chosen, with the row's player id. */
+  onAction?: (actionId: string, playerId: string | null) => void;
+}
+
+export function usePlayersTable(
+  players: Player[],
+  { onAction }: UsePlayersTableOptions = {},
+) {
   const sort = usePlayersSort(players);
   const menu = usePlayerActionsMenu();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -18,11 +27,18 @@ export function usePlayersTable(players: Player[]) {
     if (!next) setActiveId(null);
   }
 
+  function onSelectAction(action: PlayerAction) {
+    const playerId = activeId;
+    menu.close();
+    setActiveId(null);
+    onAction?.(action.id, playerId);
+  }
+
   return {
     ...sort,
     menuOpen: menu.open,
     virtualRef: menu.virtualRef,
-    onSelectAction: menu.onSelect,
+    onSelectAction,
     activeId,
     handleRowClick,
     handleMenuOpenChange,

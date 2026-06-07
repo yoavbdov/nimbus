@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { PlayersActions } from "@/components/players/PlayersActions";
 import { FilterBar } from "@/components/players/filters/FilterBar";
 import { PlayersTable } from "@/components/players/PlayersTable";
+import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { usePlayersPanel } from "@/hooks/players/usePlayersPanel";
+import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { players as allPlayers } from "@/lib/players-data";
 
 export function PlayersPanel() {
@@ -22,6 +24,14 @@ export function PlayersPanel() {
     filterKey,
   } = usePlayersPanel();
 
+  const availability = useAvailabilityCheck(allPlayers);
+
+  function handlePlayerAction(actionId: string, playerId: string | null) {
+    if (actionId === "availability") {
+      availability.openWith(playerId ? [playerId] : []);
+    }
+  }
+
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
       <div className="h-1 tint-bar" />
@@ -35,7 +45,7 @@ export function PlayersPanel() {
               {filtered.length} מתוך {allPlayers.length} שחקנים
             </p>
           </div>
-          <PlayersActions />
+          <PlayersActions onCheckAvailability={() => availability.openWith([])} />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -59,11 +69,25 @@ export function PlayersPanel() {
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <PlayersTable players={filtered} />
+              <PlayersTable players={filtered} onAction={handlePlayerAction} />
             </motion.div>
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <AvailabilityModal
+        open={availability.open}
+        onOpenChange={availability.handleOpenChange}
+        players={allPlayers}
+        selectedIds={availability.selectedIds}
+        onTogglePlayer={availability.togglePlayer}
+        slot={availability.slot}
+        onSlotChange={availability.updateSlot}
+        slotValid={availability.slotValid}
+        result={availability.result}
+        onConfirm={availability.confirm}
+        checkingAll={availability.checkingAll}
+      />
     </Card>
   );
 }

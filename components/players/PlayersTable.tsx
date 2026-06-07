@@ -145,9 +145,10 @@ function PlayerRow({
 
 interface PlayersTableProps {
   players: Player[];
+  onAction?: (actionId: string, playerId: string | null) => void;
 }
 
-export function PlayersTable({ players }: PlayersTableProps) {
+export function PlayersTable({ players, onAction }: PlayersTableProps) {
   const {
     sortKey,
     sortDir,
@@ -159,7 +160,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
     activeId,
     handleRowClick,
     handleMenuOpenChange,
-  } = usePlayersTable(players);
+  } = usePlayersTable(players, { onAction });
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((p) => p.id),
     activeId,
