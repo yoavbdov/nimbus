@@ -14,7 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
+import { useTableSelection } from "@/hooks/useTableSelection";
 import { equipmentActions } from "@/lib/row-actions";
 import { cn } from "@/lib/utils";
 import type { Equipment } from "@/lib/rooms-data";
@@ -50,6 +53,11 @@ interface EquipmentTableProps {
 export function EquipmentTable({ equipment }: EquipmentTableProps) {
   const { open, activeId, virtualRef, openAt, handleOpenChange, onSelect } =
     useRowActionsMenu();
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: equipment.map((e) => e.id),
+    activeId,
+    onAction: onSelect,
+  });
 
   if (equipment.length === 0) {
     return (
@@ -75,6 +83,7 @@ export function EquipmentTable({ equipment }: EquipmentTableProps) {
                 <StaticHeader>שם</StaticHeader>
                 <StaticHeader>כמות</StaticHeader>
                 <StaticHeader>הערות</StaticHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,13 +113,22 @@ export function EquipmentTable({ equipment }: EquipmentTableProps) {
                   <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
                     {item.notes}
                   </TableCell>
+                  <SelectionCell id={item.id} selection={selection} />
                 </MotionTableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <RowActionsMenuContent actions={equipmentActions} onSelect={onSelect} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={equipmentActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <RowActionsMenuContent actions={equipmentActions} onSelect={onSelect} />
+      )}
     </Popover>
   );
 }

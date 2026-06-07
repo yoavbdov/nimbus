@@ -14,6 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { tournamentActions } from "@/lib/tournament-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
 import { useTodayTournaments, todayLabel } from "@/hooks/dashboard/useTodayTournaments";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +31,11 @@ export function TodayTournaments() {
     handleRowClick,
     handleMenuOpenChange,
   } = useTodayTournaments();
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: tournaments.map((_, i) => String(i)),
+    activeId: activeIndex === null ? null : String(activeIndex),
+    onAction: onSelectAction,
+  });
 
   return (
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
@@ -50,12 +59,13 @@ export function TodayTournaments() {
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סבב</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / שופט</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <SelectionHead selection={selection} />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tournaments.length === 0 ? (
                     <TableRow className="border-0 hover:bg-transparent">
-                      <TableCell colSpan={5} className="p-10 text-center text-sm text-muted-foreground/60">
+                      <TableCell colSpan={6} className="p-10 text-center text-sm text-muted-foreground/60">
                         אין תחרויות מתוכננות להיום
                       </TableCell>
                     </TableRow>
@@ -94,6 +104,7 @@ export function TodayTournaments() {
                         <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
                           {t.participants}
                         </TableCell>
+                        <SelectionCell id={String(i)} selection={selection} />
                       </motion.tr>
                     ))
                   )}
@@ -103,7 +114,15 @@ export function TodayTournaments() {
           </div>
         </CardContent>
       </Card>
-      <TournamentActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={tournamentActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <TournamentActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

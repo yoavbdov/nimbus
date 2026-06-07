@@ -14,6 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { activityActions } from "@/lib/activity-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
 import { useTodaySessions, todayLabel } from "@/hooks/dashboard/useTodaySessions";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +31,11 @@ export function TodaySessions() {
     handleRowClick,
     handleMenuOpenChange,
   } = useTodaySessions();
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sessions.map((_, i) => String(i)),
+    activeId: activeIndex === null ? null : String(activeIndex),
+    onAction: onSelectAction,
+  });
 
   return (
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
@@ -50,12 +59,13 @@ export function TodaySessions() {
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / מדריך</TableHead>
                     <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <SelectionHead selection={selection} />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sessions.length === 0 ? (
                     <TableRow className="border-0 hover:bg-transparent">
-                      <TableCell colSpan={5} className="p-10 text-center text-sm text-muted-foreground/60">
+                      <TableCell colSpan={6} className="p-10 text-center text-sm text-muted-foreground/60">
                         אין מפגשים מתוכננים להיום
                       </TableCell>
                     </TableRow>
@@ -94,6 +104,7 @@ export function TodaySessions() {
                         <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
                           {s.enrolled} / {s.capacity}
                         </TableCell>
+                        <SelectionCell id={String(i)} selection={selection} />
                       </motion.tr>
                     ))
                   )}
@@ -103,7 +114,15 @@ export function TodaySessions() {
           </div>
         </CardContent>
       </Card>
-      <ActivityActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={activityActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <ActivityActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

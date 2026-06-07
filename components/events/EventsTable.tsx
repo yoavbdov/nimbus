@@ -17,6 +17,10 @@ import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { EventStatusBadge } from "@/components/events/EventStatusBadge";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
 import { eventActions } from "@/lib/row-actions";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { useEventsTable } from "@/hooks/events/useEventsTable";
 import type { SortDir, SortKey } from "@/hooks/events/useEventsSort";
 import { cn } from "@/lib/utils";
@@ -96,11 +100,13 @@ function EventRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   event: ClubEvent;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -133,6 +139,7 @@ function EventRow({
       <TableCell className="px-4 py-3 text-center">
         <EventStatusBadge status={e.status} />
       </TableCell>
+      <SelectionCell id={e.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -154,6 +161,11 @@ export function EventsTable({ events }: EventsTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useEventsTable(events);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((e) => e.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (events.length === 0) {
     return (
@@ -188,6 +200,7 @@ export function EventsTable({ events }: EventsTableProps) {
                 <SortableHeader {...headerProps("recurrence")}>קבוע/חד פעמי</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,13 +211,22 @@ export function EventsTable({ events }: EventsTableProps) {
                   index={i}
                   isActive={activeId === e.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <RowActionsMenuContent actions={eventActions} onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={eventActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <RowActionsMenuContent actions={eventActions} onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { AttendanceMarkButton } from "@/components/attendance/AttendanceMarkButton";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { useRowSelection } from "@/hooks/useRowSelection";
 import { cn } from "@/lib/utils";
 import type { AttendanceMark } from "@/lib/attendance-data";
 
@@ -35,6 +37,8 @@ export function AttendanceTable({
   onCycle,
   onComment,
 }: AttendanceTableProps) {
+  const selection = useRowSelection(roster.map((r) => r.id));
+
   return (
     <div
       dir="ltr"
@@ -53,6 +57,7 @@ export function AttendanceTable({
               <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
                 הערה
               </TableHead>
+              <SelectionHead selection={selection} />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,6 +93,7 @@ export function AttendanceTable({
                     className="h-8 rounded-lg border-0 neu-inset bg-transparent text-sm text-right"
                   />
                 </TableCell>
+                <SelectionCell id={row.id} selection={selection} />
               </MotionTableRow>
             ))}
           </TableBody>

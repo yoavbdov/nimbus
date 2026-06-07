@@ -14,7 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
+import { useTableSelection } from "@/hooks/useTableSelection";
 import { roomActions } from "@/lib/row-actions";
 import { cn } from "@/lib/utils";
 import type { Room } from "@/lib/rooms-data";
@@ -68,6 +71,11 @@ interface RoomsTableProps {
 export function RoomsTable({ rooms }: RoomsTableProps) {
   const { open, activeId, virtualRef, openAt, handleOpenChange, onSelect } =
     useRowActionsMenu();
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: rooms.map((r) => r.id),
+    activeId,
+    onAction: onSelect,
+  });
 
   if (rooms.length === 0) {
     return (
@@ -93,6 +101,7 @@ export function RoomsTable({ rooms }: RoomsTableProps) {
                 <StaticHeader>שם חדר</StaticHeader>
                 <StaticHeader>קיבולת</StaticHeader>
                 <StaticHeader>מאחסן</StaticHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,13 +131,22 @@ export function RoomsTable({ rooms }: RoomsTableProps) {
                   <TableCell className="px-4 py-3 text-center">
                     <EquipmentPills equipment={room.equipment} />
                   </TableCell>
+                  <SelectionCell id={room.id} selection={selection} />
                 </MotionTableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <RowActionsMenuContent actions={roomActions} onSelect={onSelect} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={roomActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <RowActionsMenuContent actions={roomActions} onSelect={onSelect} />
+      )}
     </Popover>
   );
 }

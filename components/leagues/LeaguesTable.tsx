@@ -16,6 +16,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { LeagueRankBadge } from "@/components/leagues/LeagueRankBadge";
 import { LeagueActionsMenuContent } from "@/components/leagues/LeagueActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { leagueActions } from "@/lib/league-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { useLeaguesTable } from "@/hooks/leagues/useLeaguesTable";
 import type { SortDir, SortKey } from "@/hooks/leagues/useLeaguesSort";
 import { cn } from "@/lib/utils";
@@ -78,11 +83,13 @@ function LeagueTeamRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   team: LeagueTeam;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -112,6 +119,7 @@ function LeagueTeamRow({
       <TableCell className="px-4 py-3 text-sm text-foreground/75 text-center">
         {team.notes || <span className="text-foreground/40">—</span>}
       </TableCell>
+      <SelectionCell id={team.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -133,6 +141,11 @@ export function LeaguesTable({ teams }: LeaguesTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useLeaguesTable(teams);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((t) => t.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (teams.length === 0) {
     return (
@@ -166,6 +179,7 @@ export function LeaguesTable({ teams }: LeaguesTableProps) {
                 <SortableHeader {...headerProps("rank")}>דרגת ליגה</SortableHeader>
                 <SortableHeader {...headerProps("players")}>שחקנים</SortableHeader>
                 <SortableHeader {...headerProps("notes")}>הערות</SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,13 +190,22 @@ export function LeaguesTable({ teams }: LeaguesTableProps) {
                   index={i}
                   isActive={activeId === team.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <LeagueActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={leagueActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <LeagueActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

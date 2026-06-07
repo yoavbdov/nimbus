@@ -16,6 +16,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { CoachStatusBadge } from "@/components/coaches/CoachStatusBadge";
 import { CoachActionsMenuContent } from "@/components/coaches/CoachActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { coachActions } from "@/lib/coach-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { useCoachesTable } from "@/hooks/coaches/useCoachesTable";
 import type { SortDir, SortKey } from "@/hooks/coaches/useCoachesSort";
 import { cn } from "@/lib/utils";
@@ -79,11 +84,13 @@ function CoachRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   coach: Coach;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -113,6 +120,7 @@ function CoachRow({
       <TableCell className="px-4 py-3 text-center">
         <CoachStatusBadge status={c.status} />
       </TableCell>
+      <SelectionCell id={c.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -134,6 +142,11 @@ export function CoachesTable({ coaches }: CoachesTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useCoachesTable(coaches);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((c) => c.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (coaches.length === 0) {
     return (
@@ -167,6 +180,7 @@ export function CoachesTable({ coaches }: CoachesTableProps) {
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
                 <SortableHeader {...headerProps("clubs")}>חוגים פעילים</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,13 +191,22 @@ export function CoachesTable({ coaches }: CoachesTableProps) {
                   index={i}
                   isActive={activeId === c.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <CoachActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={coachActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <CoachActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

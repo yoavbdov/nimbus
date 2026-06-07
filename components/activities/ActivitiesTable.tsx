@@ -16,6 +16,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge";
 import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { activityActions } from "@/lib/activity-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { useActivitiesTable } from "@/hooks/activities/useActivitiesTable";
 import type { SortDir, SortKey } from "@/hooks/activities/useActivitiesSort";
 import { cn } from "@/lib/utils";
@@ -105,11 +110,13 @@ function ActivityRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   activity: Activity;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -157,6 +164,7 @@ function ActivityRow({
       <TableCell className="px-4 py-3 text-center">
         <ActivityStatusBadge status={a.status} />
       </TableCell>
+      <SelectionCell id={a.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -178,6 +186,11 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useActivitiesTable(activities);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((a) => a.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (activities.length === 0) {
     return (
@@ -217,6 +230,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
                 <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
                 <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,13 +241,22 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
                   index={i}
                   isActive={activeId === a.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <ActivityActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={activityActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <ActivityActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

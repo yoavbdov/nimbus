@@ -16,6 +16,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { TournamentStatusBadge } from "@/components/tournaments/TournamentStatusBadge";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { tournamentActions } from "@/lib/tournament-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { useTournamentsTable } from "@/hooks/tournaments/useTournamentsTable";
 import type { SortDir, SortKey } from "@/hooks/tournaments/useTournamentsSort";
 import { cn } from "@/lib/utils";
@@ -104,11 +109,13 @@ function TournamentRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   tournament: Tournament;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -153,6 +160,7 @@ function TournamentRow({
       <TableCell className="px-4 py-3 text-center">
         <TournamentStatusBadge status={t.status} />
       </TableCell>
+      <SelectionCell id={t.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -174,6 +182,11 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useTournamentsTable(tournaments);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((t) => t.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (tournaments.length === 0) {
     return (
@@ -212,6 +225,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
                 <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
                 <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -222,13 +236,22 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
                   index={i}
                   isActive={activeId === t.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <TournamentActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={tournamentActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <TournamentActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

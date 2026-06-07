@@ -12,6 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { playerActions } from "@/lib/player-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import {
   useRatingPlayersTable,
   type RatingPlayer,
@@ -71,11 +76,13 @@ function RatingRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   player: RatingPlayer;
   index: number;
   isActive: boolean;
   onOpen: (name: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <TableRow
@@ -95,6 +102,7 @@ function RatingRow({
       <TableCell className="px-4 py-2.5 text-sm num text-foreground text-center">
         {p.birthYear}
       </TableCell>
+      <SelectionCell id={p.name} selection={selection} />
     </TableRow>
   );
 }
@@ -116,6 +124,11 @@ export function RatingPlayersTable({ players }: RatingPlayersTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = useRatingPlayersTable(players);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((p) => p.name),
+    activeId: activeName,
+    onAction: onSelectAction,
+  });
 
   return (
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
@@ -149,6 +162,7 @@ export function RatingPlayersTable({ players }: RatingPlayersTableProps) {
                   sortDir={sortDir}
                   onSort={handleSort}
                 />
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -159,13 +173,22 @@ export function RatingPlayersTable({ players }: RatingPlayersTableProps) {
                   index={i}
                   isActive={activeName === p.name}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <PlayerActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={playerActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <PlayerActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }

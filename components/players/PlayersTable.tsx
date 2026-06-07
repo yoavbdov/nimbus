@@ -17,6 +17,11 @@ import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { PlayerStatusBadge } from "@/components/players/PlayerStatusBadge";
 import { RatingUpdatedBadge } from "@/components/players/RatingUpdatedBadge";
 import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { playerActions } from "@/lib/player-actions";
+import { useTableSelection } from "@/hooks/useTableSelection";
+import type { RowSelection } from "@/hooks/useRowSelection";
 import { usePlayersTable } from "@/hooks/players/usePlayersTable";
 import type { SortDir, SortKey } from "@/hooks/players/usePlayersSort";
 import { cn } from "@/lib/utils";
@@ -79,11 +84,13 @@ function PlayerRow({
   index: i,
   isActive,
   onOpen,
+  selection,
 }: {
   player: Player;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  selection: RowSelection;
 }) {
   return (
     <MotionTableRow
@@ -131,6 +138,7 @@ function PlayerRow({
       <TableCell className="px-4 py-3 text-center">
         <PlayerStatusBadge status={p.status} />
       </TableCell>
+      <SelectionCell id={p.id} selection={selection} />
     </MotionTableRow>
   );
 }
@@ -152,6 +160,11 @@ export function PlayersTable({ players }: PlayersTableProps) {
     handleRowClick,
     handleMenuOpenChange,
   } = usePlayersTable(players);
+  const { selection, bulkMode, onBulkSelect } = useTableSelection({
+    ids: sorted.map((p) => p.id),
+    activeId,
+    onAction: onSelectAction,
+  });
 
   if (players.length === 0) {
     return (
@@ -201,6 +214,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
                 <SortableHeader {...headerProps("status")}>
                   סטטוס
                 </SortableHeader>
+                <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -211,13 +225,22 @@ export function PlayersTable({ players }: PlayersTableProps) {
                   index={i}
                   isActive={activeId === p.id}
                   onOpen={handleRowClick}
+                  selection={selection}
                 />
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      <PlayerActionsMenuContent onSelect={onSelectAction} />
+      {bulkMode ? (
+        <BulkActionsMenuContent
+          actions={playerActions}
+          count={selection.selectedCount}
+          onSelect={onBulkSelect}
+        />
+      ) : (
+        <PlayerActionsMenuContent onSelect={onSelectAction} />
+      )}
     </Popover>
   );
 }
