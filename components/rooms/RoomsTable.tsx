@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpDown } from "lucide-react";
+import { SortIcon } from "@/components/shared/SortIcon";
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ function StaticHeader({ children }: { children: React.ReactNode }) {
     <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
       <span className="mx-auto inline-flex items-center gap-1.5">
         {children}
-        <ArrowUpDown className="size-3 opacity-40" />
+        <SortIcon active={false} dir="asc" />
       </span>
     </TableHead>
   );

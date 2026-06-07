@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { SortIcon } from "@/components/shared/SortIcon";
 import {
   Table,
   TableBody,
@@ -78,7 +78,6 @@ function SortableHeader({
   dir: SortDir;
   onSort: (key: SortKey) => void;
 }) {
-  const Icon = !active ? ArrowUpDown : dir === "asc" ? ArrowUp : ArrowDown;
   return (
     <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
       <Button
@@ -92,12 +91,7 @@ function SortableHeader({
         )}
       >
         {children}
-        <Icon
-          className={cn(
-            "size-3 transition-opacity",
-            active ? "opacity-100" : "opacity-40",
-          )}
-        />
+        <SortIcon active={active} dir={dir} />
       </Button>
     </TableHead>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { SortIcon as SortCaret } from "@/components/shared/SortIcon";
 import {
   Table,
   TableBody,
@@ -34,13 +34,7 @@ function SortIcon({
   sortKey: SortKey;
   sortDir: SortDir;
 }) {
-  if (col !== sortKey)
-    return <ChevronsUpDown className="size-3 text-muted-foreground/50" />;
-  return sortDir === "asc" ? (
-    <ChevronUp className="size-3" />
-  ) : (
-    <ChevronDown className="size-3" />
-  );
+  return <SortCaret active={col === sortKey} dir={sortDir} />;
 }
 
 function ColHead({
