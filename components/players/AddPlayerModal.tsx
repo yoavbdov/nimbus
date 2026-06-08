@@ -147,10 +147,7 @@ export function AddPlayerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        dir="rtl"
-        className="top-[7vh] max-w-lg translate-y-0"
-      >
+      <DialogContent dir="rtl" className="top-[7vh] max-w-lg translate-y-0">
         <DialogHeader>
           <DialogTitle>הוספת שחקן</DialogTitle>
           <DialogDescription>
@@ -495,7 +492,7 @@ export function AddPlayerModal({
                   </Field>
                 </div>
 
-                <Field>
+                <Field className="mx-auto flex w-28 flex-col items-center">
                   <FieldLabel>תואר שחמטאי</FieldLabel>
                   <Select
                     value={values.title}
@@ -503,8 +500,10 @@ export function AddPlayerModal({
                       onFieldChange("title", v as PlayerFormValues["title"])
                     }
                   >
-                    <SelectTrigger className={triggerClass}>
-                      <SelectValue placeholder="בחר/י תואר" />
+                    <SelectTrigger
+                      className={cn(selectTriggerClass, "flex-row-reverse")}
+                    >
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent
                       dir="rtl"
