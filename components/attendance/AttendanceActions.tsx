@@ -20,6 +20,7 @@ interface ActionButtonProps {
   label: string;
   variant?: "default" | "ghost";
   onClick?: () => void;
+  iconClassName?: string;
 }
 
 function ActionButton({
@@ -27,6 +28,7 @@ function ActionButton({
   label,
   variant = "ghost",
   onClick,
+  iconClassName,
 }: ActionButtonProps) {
   return (
     <Button
@@ -41,7 +43,7 @@ function ActionButton({
       )}
     >
       <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-      <Icon className="size-4" />
+      <Icon className={cn("size-4", iconClassName)} />
       {label}
     </Button>
   );
@@ -92,7 +94,7 @@ export function AttendanceActions({ classes }: AttendanceActionsProps) {
             )}
           >
             <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-            <FileDown className="size-4" />
+            <FileDown className="size-4 text-[#217346]" />
             ייצוא לאקסל
           </Button>
         </PopoverTrigger>
@@ -186,7 +188,7 @@ export function AttendanceActions({ classes }: AttendanceActionsProps) {
         </PopoverContent>
       </Popover>
 
-      <ActionButton icon={FileUp} label="משיכה מאקסל" />
+      <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>
   );
 }

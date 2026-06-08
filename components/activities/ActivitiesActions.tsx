@@ -8,9 +8,10 @@ interface ActionButtonProps {
   icon: React.ElementType;
   label: string;
   variant?: "default" | "ghost";
+  iconClassName?: string;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost" }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: ActionButtonProps) {
   return (
     <Button
       type="button"
@@ -22,7 +23,7 @@ function ActionButton({ icon: Icon, label, variant = "ghost" }: ActionButtonProp
       )}
     >
       <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-      <Icon className="size-4" />
+      <Icon className={cn("size-4", iconClassName)} />
       {label}
     </Button>
   );
@@ -32,8 +33,8 @@ export function ActivitiesActions() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ActionButton icon={BookPlus} label="הוסף חוג" variant="default" />
-      <ActionButton icon={FileDown} label="ייצוא לאקסל" />
-      <ActionButton icon={FileUp} label="משיכה מאקסל" />
+      <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
+      <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>
   );
 }

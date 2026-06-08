@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, CircleCheck, CircleX, Plus, X } from "lucide-react";
+import { Check, ChevronDown, CircleCheck, CircleX, FileDown, Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -258,23 +258,51 @@ export function AvailabilityModal({
           </AnimatePresence>
         </motion.div>
 
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            ביטול
-          </Button>
-          <Button
-            type="button"
-            disabled={!slotValid}
-            onClick={onConfirm}
-            className="rounded-xl"
-          >
-            אישור
-          </Button>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="rounded-xl"
+            >
+              ביטול
+            </Button>
+            <Button
+              type="button"
+              disabled={!slotValid}
+              onClick={onConfirm}
+              className="rounded-xl"
+            >
+              אישור
+            </Button>
+          </div>
+          <AnimatePresence initial={false}>
+            {result && (
+              <motion.div
+                key="export-excel"
+                initial={{ opacity: 0, x: 12, filter: "blur(4px)" }}
+                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, x: 12, filter: "blur(4px)" }}
+                transition={{ duration: 0.32, ease }}
+                className="ms-auto"
+              >
+                <Button
+                  type="button"
+                  onClick={() => {}}
+                  variant="ghost"
+                  className={cn(
+                    "group/btn relative overflow-hidden tint-indigo",
+                    "h-9 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
+                  )}
+                >
+                  <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+                  <FileDown className="size-4 text-[#217346]" />
+                  ייצוא לאקסל
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogFooter>
       </DialogContent>
     </Dialog>
