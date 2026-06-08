@@ -7,8 +7,10 @@ import { PlayersActions } from "@/components/players/PlayersActions";
 import { FilterBar } from "@/components/players/filters/FilterBar";
 import { PlayersTable } from "@/components/players/PlayersTable";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
+import { AddPlayerModal } from "@/components/players/AddPlayerModal";
 import { usePlayersPanel } from "@/hooks/players/usePlayersPanel";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
+import { useAddPlayer } from "@/hooks/players/useAddPlayer";
 import { players as allPlayers } from "@/lib/players-data";
 
 export function PlayersPanel() {
@@ -25,6 +27,7 @@ export function PlayersPanel() {
   } = usePlayersPanel();
 
   const availability = useAvailabilityCheck(allPlayers);
+  const addPlayer = useAddPlayer();
 
   function handlePlayerAction(actionId: string, playerId: string | null) {
     if (actionId === "availability") {
@@ -45,7 +48,10 @@ export function PlayersPanel() {
               {filtered.length} מתוך {allPlayers.length} שחקנים
             </p>
           </div>
-          <PlayersActions onCheckAvailability={() => availability.openWith([])} />
+          <PlayersActions
+            onAddPlayer={addPlayer.openModal}
+            onCheckAvailability={() => availability.openWith([])}
+          />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -87,6 +93,18 @@ export function PlayersPanel() {
         result={availability.result}
         onConfirm={availability.confirm}
         checkingAll={availability.checkingAll}
+      />
+
+      <AddPlayerModal
+        open={addPlayer.open}
+        onOpenChange={addPlayer.handleOpenChange}
+        values={addPlayer.values}
+        onFieldChange={addPlayer.updateField}
+        birthParts={addPlayer.birthParts}
+        onBirthPartChange={addPlayer.setBirthPart}
+        onGradeChange={addPlayer.setGrade}
+        valid={addPlayer.valid}
+        onConfirm={addPlayer.confirm}
       />
     </Card>
   );
