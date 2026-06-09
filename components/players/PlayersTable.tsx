@@ -19,7 +19,7 @@ import { RatingUpdatedBadge } from "@/components/players/RatingUpdatedBadge";
 import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
-import { playerActions } from "@/lib/player-actions";
+import { playerActions, type PlayerAction } from "@/lib/player-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
 import { usePlayersTable } from "@/hooks/players/usePlayersTable";
@@ -140,9 +140,10 @@ function PlayerRow({
 interface PlayersTableProps {
   players: Player[];
   onAction?: (actionId: string, playerId: string | null) => void;
+  onBulkAction?: (actionId: string, playerIds: string[]) => void;
 }
 
-export function PlayersTable({ players, onAction }: PlayersTableProps) {
+export function PlayersTable({ players, onAction, onBulkAction }: PlayersTableProps) {
   const {
     sortKey,
     sortDir,
@@ -158,7 +159,7 @@ export function PlayersTable({ players, onAction }: PlayersTableProps) {
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((p) => p.id),
     activeId,
-    onAction: onSelectAction,
+    onAction: (action: PlayerAction, ids) => onBulkAction?.(action.id, ids),
   });
 
   if (players.length === 0) {

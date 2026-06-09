@@ -1,4 +1,5 @@
 import type { RatingPlayer } from "@/hooks/dashboard/useRatingPlayersTable";
+import type { Player } from "@/lib/players-data";
 
 /** Sample roster shown in the rating-distribution panel on the dashboard. */
 export const ratingPlayers: RatingPlayer[] = [
@@ -33,3 +34,25 @@ export const ratingPlayers: RatingPlayer[] = [
   { name: "נתן אוחיון", rating: 1640, birthYear: 2011 },
   { name: "עמוס רביד", rating: 1990, birthYear: 1994 },
 ];
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+/**
+ * The rating roster as full `Player` objects, keyed by name, so the dashboard
+ * can reuse the players availability modal. Only id/name drive that flow; the
+ * rest is filled from the rating data for completeness.
+ */
+export const ratingPlayersAsPlayers: Player[] = ratingPlayers.map((p) => ({
+  id: p.name,
+  name: p.name,
+  age: CURRENT_YEAR - p.birthYear,
+  grade: "",
+  israeliRating: p.rating,
+  fideRating: null,
+  ratingUpdatedRecently: false,
+  phone: "",
+  clubs: [],
+  tournaments: [],
+  leagueTeam: null,
+  status: "פעיל",
+}));

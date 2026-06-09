@@ -11,10 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X } from "lucide-react";
 import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
+import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
+import { AvailabilityModal } from "@/components/players/AvailabilityModal";
+import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
+import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
 import { useTierNavigation } from "@/hooks/dashboard/useTierNavigation";
-import { ratingPlayers } from "@/lib/dashboard-data";
+import { ratingPlayers, ratingPlayersAsPlayers } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
 
 export interface RatingTier {
@@ -242,6 +246,24 @@ export function RatingDistribution({
   onTierChange,
 }: RatingDistributionProps) {
   const total = tiers.reduce((sum, t) => sum + t.count, 0);
+  const deletePlayer = useDeletePlayer();
+  const availability = useAvailabilityCheck(ratingPlayersAsPlayers);
+
+  function handlePlayerAction(actionId: string, playerName: string | null) {
+    if (actionId === "availability") {
+      availability.openWith(playerName ? [playerName] : []);
+    } else if (actionId === "delete" && playerName) {
+      deletePlayer.openFor([playerName]);
+    }
+  }
+
+  function handleBulkAction(actionId: string, playerNames: string[]) {
+    if (actionId === "availability") {
+      availability.openWith(playerNames);
+    } else if (actionId === "delete") {
+      deletePlayer.openFor(playerNames);
+    }
+  }
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -269,10 +291,39 @@ export function RatingDistribution({
             </div>
           </div>
           <div className="w-1/2 neu-inset rounded-2xl p-3">
-            <RatingPlayersTable players={ratingPlayers} />
+            <RatingPlayersTable
+              players={ratingPlayers}
+              onAction={handlePlayerAction}
+              onBulkAction={handleBulkAction}
+            />
           </div>
         </div>
       </CardContent>
+
+      <DeletePlayerModal
+        open={deletePlayer.open}
+        onOpenChange={deletePlayer.handleOpenChange}
+        playerNames={deletePlayer.names}
+        expectedPhrase={deletePlayer.expectedPhrase}
+        confirmText={deletePlayer.confirmText}
+        onConfirmTextChange={deletePlayer.setConfirmText}
+        valid={deletePlayer.valid}
+        onConfirm={deletePlayer.confirm}
+      />
+
+      <AvailabilityModal
+        open={availability.open}
+        onOpenChange={availability.handleOpenChange}
+        players={ratingPlayersAsPlayers}
+        selectedIds={availability.selectedIds}
+        onTogglePlayer={availability.togglePlayer}
+        slot={availability.slot}
+        onSlotChange={availability.updateSlot}
+        slotValid={availability.slotValid}
+        result={availability.result}
+        onConfirm={availability.confirm}
+        checkingAll={availability.checkingAll}
+      />
     </Card>
   );
 }

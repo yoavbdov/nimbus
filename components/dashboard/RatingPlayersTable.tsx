@@ -14,7 +14,7 @@ import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { PlayerActionsMenuContent } from "@/components/players/PlayerActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
-import { playerActions } from "@/lib/player-actions";
+import { playerActions, type PlayerAction } from "@/lib/player-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
 import {
@@ -103,9 +103,15 @@ function RatingRow({
 
 interface RatingPlayersTableProps {
   players: RatingPlayer[];
+  onAction?: (actionId: string, playerName: string | null) => void;
+  onBulkAction?: (actionId: string, playerNames: string[]) => void;
 }
 
-export function RatingPlayersTable({ players }: RatingPlayersTableProps) {
+export function RatingPlayersTable({
+  players,
+  onAction,
+  onBulkAction,
+}: RatingPlayersTableProps) {
   const {
     sortKey,
     sortDir,
@@ -117,11 +123,11 @@ export function RatingPlayersTable({ players }: RatingPlayersTableProps) {
     activeName,
     handleRowClick,
     handleMenuOpenChange,
-  } = useRatingPlayersTable(players);
+  } = useRatingPlayersTable(players, { onAction });
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((p) => p.name),
     activeId: activeName,
-    onAction: onSelectAction,
+    onAction: (action: PlayerAction, names) => onBulkAction?.(action.id, names),
   });
 
   return (

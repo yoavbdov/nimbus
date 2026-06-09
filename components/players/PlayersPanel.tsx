@@ -8,9 +8,11 @@ import { FilterBar } from "@/components/players/filters/FilterBar";
 import { PlayersTable } from "@/components/players/PlayersTable";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { AddPlayerModal } from "@/components/players/AddPlayerModal";
+import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
 import { usePlayersPanel } from "@/hooks/players/usePlayersPanel";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
+import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { players as allPlayers } from "@/lib/players-data";
 
 export function PlayersPanel() {
@@ -28,10 +30,25 @@ export function PlayersPanel() {
 
   const availability = useAvailabilityCheck(allPlayers);
   const addPlayer = useAddPlayer();
+  const deletePlayer = useDeletePlayer();
 
   function handlePlayerAction(actionId: string, playerId: string | null) {
     if (actionId === "availability") {
       availability.openWith(playerId ? [playerId] : []);
+    } else if (actionId === "delete") {
+      const player = allPlayers.find((p) => p.id === playerId);
+      if (player) deletePlayer.openFor([player.name]);
+    }
+  }
+
+  function handleBulkAction(actionId: string, playerIds: string[]) {
+    if (actionId === "availability") {
+      availability.openWith(playerIds);
+    } else if (actionId === "delete") {
+      const names = playerIds
+        .map((id) => allPlayers.find((p) => p.id === id)?.name)
+        .filter((name): name is string => name != null);
+      deletePlayer.openFor(names);
     }
   }
 
@@ -75,7 +92,11 @@ export function PlayersPanel() {
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <PlayersTable players={filtered} onAction={handlePlayerAction} />
+              <PlayersTable
+                players={filtered}
+                onAction={handlePlayerAction}
+                onBulkAction={handleBulkAction}
+              />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -105,6 +126,17 @@ export function PlayersPanel() {
         onGradeChange={addPlayer.setGrade}
         valid={addPlayer.valid}
         onConfirm={addPlayer.confirm}
+      />
+
+      <DeletePlayerModal
+        open={deletePlayer.open}
+        onOpenChange={deletePlayer.handleOpenChange}
+        playerNames={deletePlayer.names}
+        expectedPhrase={deletePlayer.expectedPhrase}
+        confirmText={deletePlayer.confirmText}
+        onConfirmTextChange={deletePlayer.setConfirmText}
+        valid={deletePlayer.valid}
+        onConfirm={deletePlayer.confirm}
       />
     </Card>
   );

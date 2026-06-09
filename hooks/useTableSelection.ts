@@ -6,8 +6,8 @@ interface TableSelectionOptions<A> {
   ids: string[];
   /** The row whose action menu is open, or null when none is open. */
   activeId: string | null;
-  /** The table's existing single-row action handler. */
-  onAction: (action: A) => void;
+  /** Runs a bulk action; receives the ids of every selected row. */
+  onAction: (action: A, selectedIds: string[]) => void;
 }
 
 /**
@@ -31,7 +31,7 @@ export function useTableSelection<A>({
 
   const onBulkSelect = useCallback(
     (action: A) => {
-      onAction(action);
+      onAction(action, [...selection.selectedIds]);
       selection.clear();
     },
     [onAction, selection],

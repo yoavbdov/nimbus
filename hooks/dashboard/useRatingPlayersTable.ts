@@ -1,5 +1,6 @@
 import { useMemo, useState, type MouseEvent } from "react";
 import { usePlayerActionsMenu } from "@/hooks/usePlayerActionsMenu";
+import type { PlayerAction } from "@/lib/player-actions";
 
 export interface RatingPlayer {
   name: string;
@@ -10,7 +11,15 @@ export interface RatingPlayer {
 export type SortKey = "name" | "rating" | "birthYear";
 export type SortDir = "asc" | "desc";
 
-export function useRatingPlayersTable(players: RatingPlayer[]) {
+interface UseRatingPlayersTableOptions {
+  /** Called when a menu action is chosen, with the row's player name. */
+  onAction?: (actionId: string, playerName: string | null) => void;
+}
+
+export function useRatingPlayersTable(
+  players: RatingPlayer[],
+  { onAction }: UseRatingPlayersTableOptions = {},
+) {
   const [sortKey, setSortKey] = useState<SortKey>("rating");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const menu = usePlayerActionsMenu();
@@ -24,6 +33,13 @@ export function useRatingPlayersTable(players: RatingPlayer[]) {
   function handleMenuOpenChange(next: boolean) {
     menu.setOpen(next);
     if (!next) setActiveName(null);
+  }
+
+  function onSelectAction(action: PlayerAction) {
+    const playerName = activeName;
+    menu.close();
+    setActiveName(null);
+    onAction?.(action.id, playerName);
   }
 
   function handleSort(key: SortKey) {
@@ -56,7 +72,7 @@ export function useRatingPlayersTable(players: RatingPlayer[]) {
     handleSort,
     menuOpen: menu.open,
     virtualRef: menu.virtualRef,
-    onSelectAction: menu.onSelect,
+    onSelectAction,
     activeName,
     handleRowClick,
     handleMenuOpenChange,
