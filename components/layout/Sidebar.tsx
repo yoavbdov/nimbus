@@ -28,14 +28,14 @@ const navSections = [
     items: [
       { href: "/players", label: "שחקנים", icon: Users },
       { href: "/coaches", label: "מדריכים", icon: GraduationCap },
-      { href: "/classes", label: "חוגים", icon: BookOpen },
     ],
   },
   {
     label: "אירועים",
     items: [
-      { href: "/schedule", label: "לוח זמנים", icon: CalendarDays },
       { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
+      { href: "/classes", label: "חוגים", icon: BookOpen },
+      { href: "/schedule", label: "לוח זמנים", icon: CalendarDays },
     ],
   },
   {

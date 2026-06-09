@@ -354,6 +354,14 @@
   .tint-text { color: var(--tint); }
   .tint-ring { box-shadow: 0 0 0 1px color-mix(in oklab, var(--tint) 35%, transparent); }
 
+  /* Static glow halo for an active toggle (e.g. "חוגים היום"). */
+  .tint-glow {
+    animation: none !important;
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--tint) 55%, transparent),
+      0 0 14px 3px color-mix(in oklab, var(--tint) 45%, transparent) !important;
+  }
+
   .bloom-hover::before {
     opacity: 0;
   }
