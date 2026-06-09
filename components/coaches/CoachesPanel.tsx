@@ -8,8 +8,10 @@ import { FilterBar } from "@/components/coaches/filters/FilterBar";
 import { CoachesTable } from "@/components/coaches/CoachesTable";
 import { DeleteCoachModal } from "@/components/coaches/DeleteCoachModal";
 import { AvailabilityModal } from "@/components/coaches/AvailabilityModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { useCoachesPanel } from "@/hooks/coaches/useCoachesPanel";
 import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
+import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useCoachAvailabilityCheck } from "@/hooks/coaches/useCoachAvailabilityCheck";
 
 export function CoachesPanel() {
@@ -29,6 +31,7 @@ export function CoachesPanel() {
 
   const deleteCoach = useDeleteCoach();
   const availability = useCoachAvailabilityCheck(coaches);
+  const addCoach = useAddCoach();
 
   function handleCoachAction(actionId: string, coachId: string | null) {
     if (actionId === "availability") {
@@ -64,6 +67,7 @@ export function CoachesPanel() {
             </p>
           </div>
           <CoachesActions
+            onAddCoach={addCoach.openModal}
             onCheckAvailability={() => availability.openWith([])}
           />
         </div>
@@ -119,6 +123,15 @@ export function CoachesPanel() {
         pickerMatches={availability.pickerMatches}
         container={availability.container}
         onContainerChange={availability.setContainer}
+      />
+
+      <AddCoachModal
+        open={addCoach.open}
+        onOpenChange={addCoach.handleOpenChange}
+        values={addCoach.values}
+        onFieldChange={addCoach.updateField}
+        valid={addCoach.valid}
+        onConfirm={addCoach.confirm}
       />
 
       <DeleteCoachModal

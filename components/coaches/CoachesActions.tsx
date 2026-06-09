@@ -32,13 +32,14 @@ function ActionButton({ icon: Icon, label, variant = "ghost", onClick, iconClass
 }
 
 interface CoachesActionsProps {
+  onAddCoach: () => void;
   onCheckAvailability: () => void;
 }
 
-export function CoachesActions({ onCheckAvailability }: CoachesActionsProps) {
+export function CoachesActions({ onAddCoach, onCheckAvailability }: CoachesActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ActionButton icon={UserPlus} label="הוסף מדריך" variant="default" />
+      <ActionButton icon={UserPlus} label="הוסף מדריך" variant="default" onClick={onAddCoach} />
       <ActionButton icon={CalendarCheck2} label="בדוק זמינות" onClick={onCheckAvailability} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
