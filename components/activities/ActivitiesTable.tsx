@@ -16,6 +16,8 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge";
 import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { PossibleEnrollmentsModal } from "@/components/activities/PossibleEnrollmentsModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { activityActions } from "@/lib/activity-actions";
@@ -25,6 +27,9 @@ import { useActivitiesTable } from "@/hooks/activities/useActivitiesTable";
 import type { SortDir, SortKey } from "@/hooks/activities/useActivitiesSort";
 import { cn } from "@/lib/utils";
 import type { Activity } from "@/lib/activities-data";
+
+/** "רישומים אפשריים" is a per-activity action, so it never appears in the bulk menu. */
+const bulkActions = activityActions.filter((a) => a.id !== "enrollments");
 
 function RangePill({ from, to }: { from: number; to: number }) {
   return (
@@ -176,6 +181,9 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
     menuOpen,
     virtualRef,
     onSelectAction,
+    onRowAction,
+    enrollments,
+    coachEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
@@ -204,6 +212,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
   });
 
   return (
+    <>
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
       <div
@@ -244,13 +253,30 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
       </div>
       {bulkMode ? (
         <BulkActionsMenuContent
-          actions={activityActions}
+          actions={bulkActions}
           count={selection.selectedCount}
           onSelect={onBulkSelect}
         />
       ) : (
-        <ActivityActionsMenuContent onSelect={onSelectAction} />
+        <ActivityActionsMenuContent onSelect={onRowAction} />
       )}
     </Popover>
+    <PossibleEnrollmentsModal
+      open={enrollments.open}
+      onOpenChange={enrollments.onOpenChange}
+      activity={enrollments.activity}
+      candidates={enrollments.candidates}
+      onExport={() => {}}
+    />
+    <AddCoachModal
+      open={coachEdit.open}
+      mode={coachEdit.mode}
+      onOpenChange={coachEdit.handleOpenChange}
+      values={coachEdit.values}
+      onFieldChange={coachEdit.updateField}
+      valid={coachEdit.valid}
+      onConfirm={coachEdit.confirm}
+    />
+    </>
   );
 }

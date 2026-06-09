@@ -74,7 +74,10 @@ function Field({
   className?: string;
 }) {
   return (
-    <motion.div variants={itemVariants} className={cn("space-y-1.5", className)}>
+    <motion.div
+      variants={itemVariants}
+      className={cn("space-y-1.5", className)}
+    >
       {children}
     </motion.div>
   );
@@ -111,7 +114,7 @@ export function AddCoachModal({
         <DialogHeader>
           <DialogTitle>{isEdit ? "עריכת מדריך" : "הוספת מדריך"}</DialogTitle>
           <DialogDescription>
-            מלאו את הפרטים. שדות המסומנים ב־
+            שדות המסומנים ב־
             <span className="text-destructive">*</span> הם שדות חובה.
           </DialogDescription>
         </DialogHeader>

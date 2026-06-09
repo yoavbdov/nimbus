@@ -155,7 +155,7 @@ export function AddPlayerModal({
         <DialogHeader>
           <DialogTitle>{isEdit ? "עריכת שחקן" : "הוספת שחקן"}</DialogTitle>
           <DialogDescription>
-            מלאו את הפרטים. שדות המסומנים ב־
+            שדות המסומנים ב־
             <span className="text-destructive">*</span> הם שדות חובה.
           </DialogDescription>
         </DialogHeader>
