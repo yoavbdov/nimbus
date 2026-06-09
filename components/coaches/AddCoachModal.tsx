@@ -82,6 +82,8 @@ function Field({
 
 interface AddCoachModalProps {
   open: boolean;
+  /** "add" shows the empty add flow; "edit" reframes it for an existing coach. */
+  mode?: "add" | "edit";
   onOpenChange: (open: boolean) => void;
   values: CoachFormValues;
   onFieldChange: <K extends keyof CoachFormValues>(
@@ -94,17 +96,20 @@ interface AddCoachModalProps {
 
 export function AddCoachModal({
   open,
+  mode = "add",
   onOpenChange,
   values,
   onFieldChange,
   valid,
   onConfirm,
 }: AddCoachModalProps) {
+  const isEdit = mode === "edit";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="top-[7vh] max-w-lg translate-y-0">
         <DialogHeader>
-          <DialogTitle>הוספת מדריך</DialogTitle>
+          <DialogTitle>{isEdit ? "עריכת מדריך" : "הוספת מדריך"}</DialogTitle>
           <DialogDescription>
             מלאו את הפרטים. שדות המסומנים ב־
             <span className="text-destructive">*</span> הם שדות חובה.
@@ -184,7 +189,7 @@ export function AddCoachModal({
             onClick={onConfirm}
             className="rounded-xl"
           >
-            אישור
+            {isEdit ? "עדכון" : "אישור"}
           </Button>
           <Button
             type="button"

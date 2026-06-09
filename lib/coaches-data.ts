@@ -15,7 +15,7 @@ export interface Coach extends CoachRecord {
 
 export const coachRecords: CoachRecord[] = [
   { id: "c-1", name: "אבי לוי", phone: "050-1000001", clubs: ["שחמט מתחילים"], competitions: 3 },
-  { id: "c-2", name: "מירב כהן", phone: "054-1000002", clubs: ["שחמט מתחילים", "מועדון אחה״צ"], competitions: 5 },
+  { id: "c-2", name: "מירב כהן", phone: "054-1000002", clubs: ["שחמט מתחילים", "מועדון אחה״צ", "אימון קבוצתי", "שחמט מתקדמים", "סדנת פתיחות"], competitions: 5 },
   { id: "c-3", name: "יוסי בן עמי", phone: "052-1000003", clubs: ["שחמט מתקדמים"], competitions: 2 },
   { id: "c-4", name: "דנה אביב", phone: "053-1000004", clubs: [], competitions: 0 },
   { id: "c-5", name: "רון פרידמן", phone: "050-1000005", clubs: ["שחמט מתקדמים", "אימון קבוצתי"], competitions: 4 },

@@ -9,9 +9,14 @@ import { CoachesTable } from "@/components/coaches/CoachesTable";
 import { DeleteCoachModal } from "@/components/coaches/DeleteCoachModal";
 import { AvailabilityModal } from "@/components/coaches/AvailabilityModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { ClubsModal } from "@/components/coaches/ClubsModal";
+import { TournamentsModal } from "@/components/coaches/TournamentsModal";
 import { useCoachesPanel } from "@/hooks/coaches/useCoachesPanel";
 import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
+import { useCoachClubRegistration } from "@/hooks/coaches/useCoachClubRegistration";
+import { useCoachTournamentRegistration } from "@/hooks/coaches/useCoachTournamentRegistration";
+import { coachFormValuesFor, coachCompetitionsFor } from "@/lib/coach-details";
 import { useCoachAvailabilityCheck } from "@/hooks/coaches/useCoachAvailabilityCheck";
 
 export function CoachesPanel() {
@@ -32,9 +37,24 @@ export function CoachesPanel() {
   const deleteCoach = useDeleteCoach();
   const availability = useCoachAvailabilityCheck(coaches);
   const addCoach = useAddCoach();
+  const clubRegistration = useCoachClubRegistration();
+  const tournamentRegistration = useCoachTournamentRegistration();
 
   function handleCoachAction(actionId: string, coachId: string | null) {
-    if (actionId === "availability") {
+    if (actionId === "details") {
+      const coach = coaches.find((c) => c.id === coachId);
+      if (coach) addCoach.openForEdit(coachFormValuesFor(coach));
+    } else if (actionId === "clubs") {
+      const coach = coaches.find((c) => c.id === coachId);
+      if (coach) clubRegistration.openFor({ name: coach.name, clubs: coach.clubs });
+    } else if (actionId === "competitions") {
+      const coach = coaches.find((c) => c.id === coachId);
+      if (coach)
+        tournamentRegistration.openFor({
+          name: coach.name,
+          tournaments: coachCompetitionsFor(coach),
+        });
+    } else if (actionId === "availability") {
       availability.openWith(coachId ? [coachId] : []);
     } else if (actionId === "delete") {
       const coach = coaches.find((c) => c.id === coachId);
@@ -127,11 +147,48 @@ export function CoachesPanel() {
 
       <AddCoachModal
         open={addCoach.open}
+        mode={addCoach.mode}
         onOpenChange={addCoach.handleOpenChange}
         values={addCoach.values}
         onFieldChange={addCoach.updateField}
         valid={addCoach.valid}
         onConfirm={addCoach.confirm}
+      />
+
+      <ClubsModal
+        open={clubRegistration.open}
+        onOpenChange={clubRegistration.handleOpenChange}
+        coachName={clubRegistration.coachName}
+        editing={clubRegistration.editing}
+        registered={clubRegistration.registered}
+        available={clubRegistration.available}
+        pendingRemoval={clubRegistration.pendingRemoval}
+        selectedClub={clubRegistration.selectedClub}
+        onSelectedClubChange={clubRegistration.setSelectedClub}
+        onStartEditing={clubRegistration.startEditing}
+        onStopEditing={clubRegistration.stopEditing}
+        onRequestRemove={clubRegistration.requestRemove}
+        onCancelRemove={clubRegistration.cancelRemove}
+        onConfirmRemove={clubRegistration.confirmRemove}
+        onAddClub={clubRegistration.addClub}
+      />
+
+      <TournamentsModal
+        open={tournamentRegistration.open}
+        onOpenChange={tournamentRegistration.handleOpenChange}
+        coachName={tournamentRegistration.coachName}
+        editing={tournamentRegistration.editing}
+        registered={tournamentRegistration.registered}
+        available={tournamentRegistration.available}
+        pendingRemoval={tournamentRegistration.pendingRemoval}
+        selectedTournament={tournamentRegistration.selectedTournament}
+        onSelectedTournamentChange={tournamentRegistration.setSelectedTournament}
+        onStartEditing={tournamentRegistration.startEditing}
+        onStopEditing={tournamentRegistration.stopEditing}
+        onRequestRemove={tournamentRegistration.requestRemove}
+        onCancelRemove={tournamentRegistration.cancelRemove}
+        onConfirmRemove={tournamentRegistration.confirmRemove}
+        onAddTournament={tournamentRegistration.addTournament}
       />
 
       <DeleteCoachModal
