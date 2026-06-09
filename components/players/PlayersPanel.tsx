@@ -9,10 +9,12 @@ import { PlayersTable } from "@/components/players/PlayersTable";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { AddPlayerModal } from "@/components/players/AddPlayerModal";
 import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
+import { ClubsModal } from "@/components/players/ClubsModal";
 import { usePlayersPanel } from "@/hooks/players/usePlayersPanel";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
+import { useClubRegistration } from "@/hooks/players/useClubRegistration";
 import { players as allPlayers } from "@/lib/players-data";
 import { playerFormValuesFor } from "@/lib/player-details";
 
@@ -32,11 +34,15 @@ export function PlayersPanel() {
   const availability = useAvailabilityCheck(allPlayers);
   const addPlayer = useAddPlayer();
   const deletePlayer = useDeletePlayer();
+  const clubRegistration = useClubRegistration();
 
   function handlePlayerAction(actionId: string, playerId: string | null) {
     if (actionId === "details") {
       const player = allPlayers.find((p) => p.id === playerId);
       if (player) addPlayer.openForEdit(playerFormValuesFor(player));
+    } else if (actionId === "clubs") {
+      const player = allPlayers.find((p) => p.id === playerId);
+      if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
     } else if (actionId === "availability") {
       availability.openWith(playerId ? [playerId] : []);
     } else if (actionId === "delete") {
@@ -142,6 +148,24 @@ export function PlayersPanel() {
         onConfirmTextChange={deletePlayer.setConfirmText}
         valid={deletePlayer.valid}
         onConfirm={deletePlayer.confirm}
+      />
+
+      <ClubsModal
+        open={clubRegistration.open}
+        onOpenChange={clubRegistration.handleOpenChange}
+        playerName={clubRegistration.playerName}
+        editing={clubRegistration.editing}
+        registered={clubRegistration.registered}
+        available={clubRegistration.available}
+        pendingRemoval={clubRegistration.pendingRemoval}
+        selectedClub={clubRegistration.selectedClub}
+        onSelectedClubChange={clubRegistration.setSelectedClub}
+        onStartEditing={clubRegistration.startEditing}
+        onStopEditing={clubRegistration.stopEditing}
+        onRequestRemove={clubRegistration.requestRemove}
+        onCancelRemove={clubRegistration.cancelRemove}
+        onConfirmRemove={clubRegistration.confirmRemove}
+        onAddClub={clubRegistration.addClub}
       />
     </Card>
   );

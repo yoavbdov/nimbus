@@ -14,9 +14,11 @@ import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
 import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { AddPlayerModal } from "@/components/players/AddPlayerModal";
+import { ClubsModal } from "@/components/players/ClubsModal";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
+import { useClubRegistration } from "@/hooks/players/useClubRegistration";
 import { playerFormValuesFor } from "@/lib/player-details";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
@@ -252,11 +254,15 @@ export function RatingDistribution({
   const deletePlayer = useDeletePlayer();
   const availability = useAvailabilityCheck(ratingPlayersAsPlayers);
   const addPlayer = useAddPlayer();
+  const clubRegistration = useClubRegistration();
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
     if (actionId === "details") {
       const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
       if (player) addPlayer.openForEdit(playerFormValuesFor(player));
+    } else if (actionId === "clubs") {
+      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
     } else if (actionId === "availability") {
       availability.openWith(playerName ? [playerName] : []);
     } else if (actionId === "delete" && playerName) {
@@ -343,6 +349,24 @@ export function RatingDistribution({
         result={availability.result}
         onConfirm={availability.confirm}
         checkingAll={availability.checkingAll}
+      />
+
+      <ClubsModal
+        open={clubRegistration.open}
+        onOpenChange={clubRegistration.handleOpenChange}
+        playerName={clubRegistration.playerName}
+        editing={clubRegistration.editing}
+        registered={clubRegistration.registered}
+        available={clubRegistration.available}
+        pendingRemoval={clubRegistration.pendingRemoval}
+        selectedClub={clubRegistration.selectedClub}
+        onSelectedClubChange={clubRegistration.setSelectedClub}
+        onStartEditing={clubRegistration.startEditing}
+        onStopEditing={clubRegistration.stopEditing}
+        onRequestRemove={clubRegistration.requestRemove}
+        onCancelRemove={clubRegistration.cancelRemove}
+        onConfirmRemove={clubRegistration.confirmRemove}
+        onAddClub={clubRegistration.addClub}
       />
     </Card>
   );
