@@ -19,8 +19,12 @@ import { players } from "@/lib/players-data";
 /** The modal's tabs, in order; the first is the default shown on open. */
 export type ActivityTab = "details" | "meetings" | "students" | "equipment";
 
+/** "add" shows the empty add flow; "edit" prefills an existing activity. */
+export type ActivityModalMode = "add" | "edit";
+
 export function useAddActivity() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<ActivityModalMode>("add");
   const [tab, setTab] = useState<ActivityTab>("details");
   const [values, setValues] = useState<ActivityFormValues>(EMPTY_ACTIVITY_FORM);
 
@@ -144,7 +148,16 @@ export function useAddActivity() {
   );
 
   const openModal = useCallback(() => {
+    setMode("add");
     setValues(EMPTY_ACTIVITY_FORM);
+    setTab("details");
+    setOpen(true);
+  }, []);
+
+  // Opens the modal in edit mode prefilled with an existing activity.
+  const openForEdit = useCallback((next: ActivityFormValues) => {
+    setMode("edit");
+    setValues(next);
     setTab("details");
     setOpen(true);
   }, []);
@@ -159,9 +172,11 @@ export function useAddActivity() {
 
   return {
     open,
+    mode,
     tab,
     setTab,
     openModal,
+    openForEdit,
     handleOpenChange,
     values,
     updateField,

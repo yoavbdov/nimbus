@@ -18,6 +18,7 @@ import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge
 import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
 import { PossibleEnrollmentsModal } from "@/components/activities/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { activityActions } from "@/lib/activity-actions";
@@ -184,6 +185,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
     onRowAction,
     enrollments,
     coachEdit,
+    activityEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
@@ -277,6 +279,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
       valid={coachEdit.valid}
       onConfirm={coachEdit.confirm}
     />
+    <ActivityFormModal addActivity={activityEdit} />
     </>
   );
 }

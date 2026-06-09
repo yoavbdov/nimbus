@@ -62,7 +62,10 @@ import {
   type EquipmentLineValues,
   type MeetingValues,
 } from "@/lib/activity-form";
-import type { ActivityTab } from "@/hooks/activities/useAddActivity";
+import type {
+  ActivityModalMode,
+  ActivityTab,
+} from "@/hooks/activities/useAddActivity";
 import type { Player } from "@/lib/players-data";
 
 /** The "no coach" choice in the searchable coach dropdown (maps to "" in the form). */
@@ -659,6 +662,7 @@ const tabHighlight = (
 
 interface AddActivityModalProps {
   open: boolean;
+  mode: ActivityModalMode;
   onOpenChange: (open: boolean) => void;
   tab: ActivityTab;
   onTabChange: (tab: ActivityTab) => void;
@@ -691,6 +695,7 @@ interface AddActivityModalProps {
 
 export function AddActivityModal({
   open,
+  mode,
   onOpenChange,
   tab,
   onTabChange,
@@ -727,7 +732,7 @@ export function AddActivityModal({
         className="top-[6vh] flex max-h-[88vh] max-w-lg translate-y-0 flex-col"
       >
         <DialogHeader>
-          <DialogTitle>הוספת חוג</DialogTitle>
+          <DialogTitle>{mode === "edit" ? "עריכת חוג" : "הוספת חוג"}</DialogTitle>
           <DialogDescription>
             שדות המסומנים ב־
             <span className="text-destructive">*</span> הם שדות חובה.
@@ -1070,7 +1075,7 @@ export function AddActivityModal({
             onClick={onConfirm}
             className="rounded-xl"
           >
-            אישור
+            {mode === "edit" ? "עדכון" : "אישור"}
           </Button>
           <Button
             type="button"

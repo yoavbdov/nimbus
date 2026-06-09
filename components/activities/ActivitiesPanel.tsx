@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { ActivitiesActions } from "@/components/activities/ActivitiesActions";
 import { FilterBar } from "@/components/activities/filters/FilterBar";
 import { ActivitiesTable } from "@/components/activities/ActivitiesTable";
-import { AddActivityModal } from "@/components/activities/AddActivityModal";
+import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
 import { useActivitiesPanel } from "@/hooks/activities/useActivitiesPanel";
 import { useAddActivity } from "@/hooks/activities/useAddActivity";
 import { activities as allActivities } from "@/lib/activities-data";
@@ -73,34 +73,7 @@ export function ActivitiesPanel() {
         </div>
       </CardContent>
 
-      <AddActivityModal
-        open={addActivity.open}
-        onOpenChange={addActivity.handleOpenChange}
-        tab={addActivity.tab}
-        onTabChange={addActivity.setTab}
-        values={addActivity.values}
-        onFieldChange={addActivity.updateField}
-        valid={addActivity.valid}
-        onConfirm={addActivity.confirm}
-        onAddMeeting={addActivity.addMeeting}
-        onUpdateMeeting={addActivity.updateMeeting}
-        onRemoveMeeting={addActivity.removeMeeting}
-        students={addActivity.students}
-        availableStudents={addActivity.availableStudents}
-        onRemoveStudent={addActivity.removeStudent}
-        studentPickerOpen={addActivity.studentPickerOpen}
-        onStudentPickerOpenChange={addActivity.setStudentPickerOpen}
-        onOpenStudentPicker={addActivity.openStudentPicker}
-        checkedStudentIds={addActivity.checkedStudentIds}
-        onToggleCheckedStudent={addActivity.toggleCheckedStudent}
-        onConfirmStudents={addActivity.confirmStudents}
-        onAddEquipment={addActivity.addEquipmentLine}
-        onUpdateEquipment={addActivity.updateEquipmentLine}
-        onRemoveEquipment={addActivity.removeEquipmentLine}
-        coachWarning={addActivity.coachWarning}
-        capacityWarning={addActivity.capacityWarning}
-        criteriaMismatch={addActivity.criteriaMismatch}
-      />
+      <ActivityFormModal addActivity={addActivity} />
     </Card>
   );
 }

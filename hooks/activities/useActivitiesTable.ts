@@ -3,8 +3,10 @@ import { useActivitiesSort } from "@/hooks/activities/useActivitiesSort";
 import { useActivityActionsMenu } from "@/hooks/useActivityActionsMenu";
 import { usePossibleEnrollments } from "@/hooks/activities/usePossibleEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
+import { useAddActivity } from "@/hooks/activities/useAddActivity";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
+import { activityFormValuesFor } from "@/lib/activity-details";
 import type { ActivityAction } from "@/lib/activity-actions";
 import type { Activity } from "@/lib/activities-data";
 
@@ -13,6 +15,7 @@ export function useActivitiesTable(activities: Activity[]) {
   const menu = useActivityActionsMenu();
   const enrollments = usePossibleEnrollments();
   const coachEdit = useAddCoach();
+  const activityEdit = useAddActivity();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {
@@ -32,6 +35,8 @@ export function useActivitiesTable(activities: Activity[]) {
     } else if (action.id === "coach") {
       const coach = activity && coaches.find((c) => c.name === activity.coach);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
+    } else if (action.id === "details") {
+      if (activity) activityEdit.openForEdit(activityFormValuesFor(activity));
     }
     menu.onSelect(action);
   }
@@ -44,6 +49,7 @@ export function useActivitiesTable(activities: Activity[]) {
     onRowAction: handleRowAction,
     enrollments,
     coachEdit,
+    activityEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
