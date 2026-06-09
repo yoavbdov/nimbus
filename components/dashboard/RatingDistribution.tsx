@@ -16,11 +16,13 @@ import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { AddPlayerModal } from "@/components/players/AddPlayerModal";
 import { ClubsModal } from "@/components/players/ClubsModal";
 import { TournamentsModal } from "@/components/players/TournamentsModal";
+import { LeagueModal } from "@/components/players/LeagueModal";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
 import { useClubRegistration } from "@/hooks/players/useClubRegistration";
 import { useTournamentRegistration } from "@/hooks/players/useTournamentRegistration";
+import { useLeagueRegistration } from "@/hooks/players/useLeagueRegistration";
 import { playerFormValuesFor } from "@/lib/player-details";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
@@ -258,6 +260,7 @@ export function RatingDistribution({
   const addPlayer = useAddPlayer();
   const clubRegistration = useClubRegistration();
   const tournamentRegistration = useTournamentRegistration();
+  const leagueRegistration = useLeagueRegistration();
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
     if (actionId === "details") {
@@ -272,6 +275,13 @@ export function RatingDistribution({
         tournamentRegistration.openFor({
           name: player.name,
           tournaments: player.tournaments,
+        });
+    } else if (actionId === "league") {
+      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      if (player)
+        leagueRegistration.openFor({
+          name: player.name,
+          leagueTeam: player.leagueTeam,
         });
     } else if (actionId === "availability") {
       availability.openWith(playerName ? [playerName] : []);
@@ -395,6 +405,23 @@ export function RatingDistribution({
         onCancelRemove={tournamentRegistration.cancelRemove}
         onConfirmRemove={tournamentRegistration.confirmRemove}
         onAddTournament={tournamentRegistration.addTournament}
+      />
+
+      <LeagueModal
+        open={leagueRegistration.open}
+        onOpenChange={leagueRegistration.handleOpenChange}
+        playerName={leagueRegistration.playerName}
+        registered={leagueRegistration.registered}
+        available={leagueRegistration.available}
+        confirmingRemoval={leagueRegistration.confirmingRemoval}
+        categoryFilter={leagueRegistration.categoryFilter}
+        onCategoryFilterChange={leagueRegistration.setCategoryFilter}
+        query={leagueRegistration.query}
+        onQueryChange={leagueRegistration.setQuery}
+        onRequestRemove={leagueRegistration.requestRemove}
+        onCancelRemove={leagueRegistration.cancelRemove}
+        onConfirmRemove={leagueRegistration.confirmRemove}
+        onRegister={leagueRegistration.register}
       />
     </Card>
   );

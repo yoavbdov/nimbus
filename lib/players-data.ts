@@ -61,7 +61,7 @@ const basePlayers: PlayerBase[] = [
     phone: "053-8888888",
     clubs: ["שחמט מתקדמים"],
     tournaments: [],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -75,7 +75,7 @@ const basePlayers: PlayerBase[] = [
     phone: "053-4444444",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -131,7 +131,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-0000001",
     clubs: ["שחמט מתקדמים"],
     tournaments: [],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -145,7 +145,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-2222222",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "פעיל",
   },
   {
@@ -159,7 +159,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-6666666",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -201,7 +201,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-1414141",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -229,7 +229,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-1616161",
     clubs: ["שחמט מתקדמים", "אימון קבוצתי"],
     tournaments: ["טורניר בית הספר"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -257,7 +257,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-1818181",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "פעיל",
   },
   {
@@ -285,7 +285,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-2020202",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -313,7 +313,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-2323232",
     clubs: ["שחמט מתקדמים"],
     tournaments: [],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -341,7 +341,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-2525252",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -381,7 +381,7 @@ const basePlayers: PlayerBase[] = [
       "גביע האלופים",
       "ליגת הנוער",
     ],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -409,7 +409,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-2929292",
     clubs: ["שחמט מתקדמים"],
     tournaments: [],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -437,7 +437,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-3131313",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -479,7 +479,7 @@ const basePlayers: PlayerBase[] = [
     phone: "050-3434343",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -507,7 +507,7 @@ const basePlayers: PlayerBase[] = [
     phone: "053-3636363",
     clubs: ["שחמט מתקדמים", "אימון קבוצתי"],
     tournaments: [],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -549,7 +549,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-3939393",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -577,7 +577,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-4141414",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -605,7 +605,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-4343434",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -633,7 +633,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-4545454",
     clubs: ["שחמט מתקדמים", "אימון קבוצתי"],
     tournaments: [],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -661,7 +661,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-4747474",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -689,7 +689,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-4949494",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "פעיל",
   },
   {
@@ -717,7 +717,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-5151515",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -745,7 +745,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-5353535",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["טורניר בית הספר"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "ליגה בלבד",
   },
   {
@@ -773,7 +773,7 @@ const basePlayers: PlayerBase[] = [
     phone: "052-5555556",
     clubs: ["שחמט מתקדמים", "אימון קבוצתי"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -801,7 +801,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-5757575",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת בוגרים ב'",
+    leagueTeam: "רגלי החייל",
     status: "פעיל",
   },
   {
@@ -857,7 +857,7 @@ const basePlayers: PlayerBase[] = [
     phone: "054-6161616",
     clubs: ["שחמט מתקדמים"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
   {
@@ -871,7 +871,7 @@ const basePlayers: PlayerBase[] = [
     phone: "050-6262626",
     clubs: ["שחמט מתקדמים", "אימון קבוצתי"],
     tournaments: ["גביע הנוער"],
-    leagueTeam: "קבוצת נוער ארצית",
+    leagueTeam: "אריות צעירים",
     status: "פעיל",
   },
 ];
