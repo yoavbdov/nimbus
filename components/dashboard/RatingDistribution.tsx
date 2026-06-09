@@ -15,10 +15,12 @@ import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
 import { AddPlayerModal } from "@/components/players/AddPlayerModal";
 import { ClubsModal } from "@/components/players/ClubsModal";
+import { TournamentsModal } from "@/components/players/TournamentsModal";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
 import { useClubRegistration } from "@/hooks/players/useClubRegistration";
+import { useTournamentRegistration } from "@/hooks/players/useTournamentRegistration";
 import { playerFormValuesFor } from "@/lib/player-details";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
@@ -255,6 +257,7 @@ export function RatingDistribution({
   const availability = useAvailabilityCheck(ratingPlayersAsPlayers);
   const addPlayer = useAddPlayer();
   const clubRegistration = useClubRegistration();
+  const tournamentRegistration = useTournamentRegistration();
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
     if (actionId === "details") {
@@ -263,6 +266,13 @@ export function RatingDistribution({
     } else if (actionId === "clubs") {
       const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
       if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
+    } else if (actionId === "tournaments") {
+      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      if (player)
+        tournamentRegistration.openFor({
+          name: player.name,
+          tournaments: player.tournaments,
+        });
     } else if (actionId === "availability") {
       availability.openWith(playerName ? [playerName] : []);
     } else if (actionId === "delete" && playerName) {
@@ -367,6 +377,24 @@ export function RatingDistribution({
         onCancelRemove={clubRegistration.cancelRemove}
         onConfirmRemove={clubRegistration.confirmRemove}
         onAddClub={clubRegistration.addClub}
+      />
+
+      <TournamentsModal
+        open={tournamentRegistration.open}
+        onOpenChange={tournamentRegistration.handleOpenChange}
+        playerName={tournamentRegistration.playerName}
+        editing={tournamentRegistration.editing}
+        registered={tournamentRegistration.registered}
+        available={tournamentRegistration.available}
+        pendingRemoval={tournamentRegistration.pendingRemoval}
+        selectedTournament={tournamentRegistration.selectedTournament}
+        onSelectedTournamentChange={tournamentRegistration.setSelectedTournament}
+        onStartEditing={tournamentRegistration.startEditing}
+        onStopEditing={tournamentRegistration.stopEditing}
+        onRequestRemove={tournamentRegistration.requestRemove}
+        onCancelRemove={tournamentRegistration.cancelRemove}
+        onConfirmRemove={tournamentRegistration.confirmRemove}
+        onAddTournament={tournamentRegistration.addTournament}
       />
     </Card>
   );

@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
@@ -12,6 +11,7 @@ import {
   Plus,
   Trash2,
   TriangleAlert,
+  Trophy,
   User,
 } from "lucide-react";
 import {
@@ -32,9 +32,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge";
+import { TournamentStatusBadge } from "@/components/tournaments/TournamentStatusBadge";
 import { cn } from "@/lib/utils";
-import type { Activity } from "@/lib/activities-data";
+import type { Tournament } from "@/lib/tournaments-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -59,30 +59,30 @@ const itemVariants = {
   },
 };
 
-function ClubMeta({ club }: { club: Activity }) {
+function TournamentMeta({ tournament }: { tournament: Tournament }) {
   return (
     <div className="flex flex-nowrap items-center gap-x-4 whitespace-nowrap text-xs text-foreground/70">
       <span className="flex shrink-0 items-center gap-1.5">
         <User className="size-3.5 text-primary/70" />
-        {club.coach}
+        {tournament.judge}
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
         <CalendarDays className="size-3.5 text-primary/70" />
-        {club.days.join(", ")}
+        {tournament.days.join(", ")}
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
         <MapPin className="size-3.5 text-primary/70" />
-        {club.room}
+        {tournament.room}
       </span>
       <span className="num shrink-0 text-foreground/55">
-        המועד הבא: {club.nextDate}
+        המועד הבא: {tournament.nextDate}
       </span>
     </div>
   );
 }
 
-interface ClubCardProps {
-  club: Activity;
+interface TournamentCardProps {
+  tournament: Tournament;
   editing: boolean;
   confirming: boolean;
   onRequestRemove: (name: string) => void;
@@ -90,14 +90,14 @@ interface ClubCardProps {
   onConfirmRemove: () => void;
 }
 
-function ClubCard({
-  club,
+function TournamentCard({
+  tournament,
   editing,
   confirming,
   onRequestRemove,
   onCancelRemove,
   onConfirmRemove,
-}: ClubCardProps) {
+}: TournamentCardProps) {
   return (
     <motion.li
       layout
@@ -111,11 +111,13 @@ function ClubCard({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 space-y-2">
           <div className="flex items-center gap-2">
-            <BookOpen className="size-4 shrink-0 text-primary" />
-            <span className="font-medium text-foreground">{club.name}</span>
-            <ActivityStatusBadge status={club.status} />
+            <Trophy className="size-4 shrink-0 text-primary" />
+            <span className="font-medium text-foreground">
+              {tournament.name}
+            </span>
+            <TournamentStatusBadge status={tournament.status} />
           </div>
-          <ClubMeta club={club} />
+          <TournamentMeta tournament={tournament} />
         </div>
 
         {editing && (
@@ -123,8 +125,8 @@ function ClubCard({
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => onRequestRemove(club.name)}
-            aria-label={`מחק רישום ל${club.name}`}
+            onClick={() => onRequestRemove(tournament.name)}
+            aria-label={`מחק רישום ל${tournament.name}`}
             className="size-8 shrink-0 rounded-lg text-destructive/80 hover:bg-destructive/15 hover:text-destructive"
           >
             <Trash2 className="size-4" />
@@ -144,7 +146,7 @@ function ClubCard({
             <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-destructive/10 px-3 py-2">
               <span className="flex items-center gap-2 text-sm text-destructive">
                 <TriangleAlert className="size-4 shrink-0" />
-                למחוק את הרישום לחוג זה?
+                למחוק את הרישום לתחרות זו?
               </span>
               <div className="flex shrink-0 gap-2">
                 <Button
@@ -174,19 +176,19 @@ function ClubCard({
   );
 }
 
-interface ClubComboboxProps {
-  available: Activity[];
-  selectedClub: string;
-  onSelectedClubChange: (value: string) => void;
+interface TournamentComboboxProps {
+  available: Tournament[];
+  selectedTournament: string;
+  onSelectedTournamentChange: (value: string) => void;
   container: HTMLElement | null;
 }
 
-function ClubCombobox({
+function TournamentCombobox({
   available,
-  selectedClub,
-  onSelectedClubChange,
+  selectedTournament,
+  onSelectedTournamentChange,
   container,
-}: ClubComboboxProps) {
+}: TournamentComboboxProps) {
   const { open, setOpen } = useDisclosure();
   const [query, setQuery] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -194,7 +196,9 @@ function ClubCombobox({
   // trigger) and then locked, so filtering the list never flips its direction.
   const [side, setSide] = useState<"top" | "bottom">("bottom");
 
-  const matches = available.filter((club) => club.name.includes(query.trim()));
+  const matches = available.filter((tournament) =>
+    tournament.name.includes(query.trim()),
+  );
 
   function handleOpenChange(next: boolean) {
     if (next && triggerRef.current) {
@@ -218,10 +222,10 @@ function ClubCombobox({
           <span
             className={cn(
               "flex-1 text-center",
-              !selectedClub && "text-muted-foreground",
+              !selectedTournament && "text-muted-foreground",
             )}
           >
-            {selectedClub || "בחרו חוג…"}
+            {selectedTournament || "בחרו תחרות…"}
           </span>
           <ChevronDown className="size-4 shrink-0 text-foreground/50" />
         </Button>
@@ -240,25 +244,25 @@ function ClubCombobox({
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="חיפוש חוג…"
+          placeholder="חיפוש תחרות…"
           className="h-8 shrink-0 rounded-lg text-center"
         />
         <div className="players-scroll scrollbar-right min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-0.5 pe-1">
             {matches.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-                לא נמצאו חוגים
+                לא נמצאו תחרויות
               </p>
             ) : (
-              matches.map((club) => {
-                const checked = selectedClub === club.name;
+              matches.map((tournament) => {
+                const checked = selectedTournament === tournament.name;
                 return (
                   <Button
-                    key={club.id}
+                    key={tournament.id}
                     type="button"
                     variant="ghost"
                     onClick={() => {
-                      onSelectedClubChange(club.name);
+                      onSelectedTournamentChange(tournament.name);
                       setOpen(false);
                     }}
                     className={cn(
@@ -268,7 +272,7 @@ function ClubCombobox({
                         : "font-normal text-foreground/80 hover:bg-primary/30 hover:text-foreground dark:hover:bg-primary/40",
                     )}
                   >
-                    <span className="text-start">{club.name}</span>
+                    <span className="text-start">{tournament.name}</span>
                     {checked && <Check className="size-4 text-primary" />}
                   </Button>
                 );
@@ -281,36 +285,36 @@ function ClubCombobox({
   );
 }
 
-interface AddClubFieldProps {
-  available: Activity[];
-  selectedClub: string;
-  onSelectedClubChange: (value: string) => void;
+interface AddTournamentFieldProps {
+  available: Tournament[];
+  selectedTournament: string;
+  onSelectedTournamentChange: (value: string) => void;
   onAdd: () => void;
   container: HTMLElement | null;
 }
 
-function AddClubField({
+function AddTournamentField({
   available,
-  selectedClub,
-  onSelectedClubChange,
+  selectedTournament,
+  onSelectedTournamentChange,
   onAdd,
   container,
-}: AddClubFieldProps) {
+}: AddTournamentFieldProps) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-foreground/80">הוספה לחוג קיים</Label>
+      <Label className="text-foreground/80">הוספה לתחרות קיימת</Label>
       <div className="flex w-72 gap-2">
         <div className="flex-1">
-          <ClubCombobox
+          <TournamentCombobox
             available={available}
-            selectedClub={selectedClub}
-            onSelectedClubChange={onSelectedClubChange}
+            selectedTournament={selectedTournament}
+            onSelectedTournamentChange={onSelectedTournamentChange}
             container={container}
           />
         </div>
         <Button
           type="button"
-          disabled={!selectedClub}
+          disabled={!selectedTournament}
           onClick={onAdd}
           className="h-9 shrink-0 gap-1.5 rounded-xl"
         >
@@ -322,25 +326,25 @@ function AddClubField({
   );
 }
 
-interface ClubsModalProps {
+interface TournamentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   playerName: string;
   editing: boolean;
-  registered: Activity[];
-  available: Activity[];
+  registered: Tournament[];
+  available: Tournament[];
   pendingRemoval: string | null;
-  selectedClub: string;
-  onSelectedClubChange: (value: string) => void;
+  selectedTournament: string;
+  onSelectedTournamentChange: (value: string) => void;
   onStartEditing: () => void;
   onStopEditing: () => void;
   onRequestRemove: (name: string) => void;
   onCancelRemove: () => void;
   onConfirmRemove: () => void;
-  onAddClub: () => void;
+  onAddTournament: () => void;
 }
 
-export function ClubsModal({
+export function TournamentsModal({
   open,
   onOpenChange,
   playerName,
@@ -348,17 +352,17 @@ export function ClubsModal({
   registered,
   available,
   pendingRemoval,
-  selectedClub,
-  onSelectedClubChange,
+  selectedTournament,
+  onSelectedTournamentChange,
   onStartEditing,
   onStopEditing,
   onRequestRemove,
   onCancelRemove,
   onConfirmRemove,
-  onAddClub,
-}: ClubsModalProps) {
-  // Portal the club combobox into the dialog so its wheel-scroll isn't blocked
-  // by the dialog's scroll lock (which only allows scrolling inside itself).
+  onAddTournament,
+}: TournamentsModalProps) {
+  // Portal the tournament combobox into the dialog so its wheel-scroll isn't
+  // blocked by the dialog's scroll lock (which only allows scrolling inside it).
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   return (
@@ -369,10 +373,10 @@ export function ClubsModal({
         className="top-[20%] max-w-2xl translate-y-0"
       >
         <DialogHeader>
-          <DialogTitle>הרשמה לחוגים</DialogTitle>
+          <DialogTitle>הרשמה לתחרויות</DialogTitle>
           <DialogDescription>
             {editing ? "ניהול " : "להלן "}
-            החוגים שאליהם רשום{" "}
+            התחרויות שאליהן רשום{" "}
             <span className="font-semibold text-foreground">{playerName}</span>.
           </DialogDescription>
         </DialogHeader>
@@ -385,7 +389,7 @@ export function ClubsModal({
               transition={{ duration: 0.3, ease }}
               className="rounded-2xl neu-inset bg-foreground/5 py-8 text-center text-sm text-foreground/60"
             >
-              השחקן אינו רשום לאף חוג.
+              השחקן אינו רשום לאף תחרות.
             </motion.p>
           ) : (
             <motion.ul
@@ -396,12 +400,12 @@ export function ClubsModal({
               className="players-scroll scrollbar-right max-h-60 space-y-2.5 overflow-y-auto pe-1"
             >
               <AnimatePresence initial={false}>
-                {registered.map((club) => (
-                  <ClubCard
-                    key={club.id}
-                    club={club}
+                {registered.map((tournament) => (
+                  <TournamentCard
+                    key={tournament.id}
+                    tournament={tournament}
                     editing={editing}
-                    confirming={pendingRemoval === club.name}
+                    confirming={pendingRemoval === tournament.name}
                     onRequestRemove={onRequestRemove}
                     onCancelRemove={onCancelRemove}
                     onConfirmRemove={onConfirmRemove}
@@ -421,11 +425,11 @@ export function ClubsModal({
                 className="space-y-4 overflow-hidden"
               >
                 <Separator className="bg-foreground/10" />
-                <AddClubField
+                <AddTournamentField
                   available={available}
-                  selectedClub={selectedClub}
-                  onSelectedClubChange={onSelectedClubChange}
-                  onAdd={onAddClub}
+                  selectedTournament={selectedTournament}
+                  onSelectedTournamentChange={onSelectedTournamentChange}
+                  onAdd={onAddTournament}
                   container={container}
                 />
               </motion.div>

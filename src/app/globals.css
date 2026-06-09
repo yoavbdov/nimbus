@@ -410,6 +410,15 @@
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklch, var(--primary) 70%, transparent) color-mix(in oklch, var(--primary) 15%, transparent);
   }
+  /* In an RTL container the scrollbar lands on the left. Flipping the scroller
+     to LTR moves it to the right; direct children are restored to RTL so their
+     own content keeps the right-to-left layout. */
+  .scrollbar-right {
+    direction: ltr;
+  }
+  .scrollbar-right > * {
+    direction: rtl;
+  }
   .players-scroll::-webkit-scrollbar {
     width: 10px;
   }
