@@ -144,6 +144,13 @@ export function PlayersPanel() {
         result={availability.result}
         onConfirm={availability.confirm}
         checkingAll={availability.checkingAll}
+        pickerOpen={availability.pickerOpen}
+        onPickerOpenChange={availability.setPickerOpen}
+        pickerQuery={availability.pickerQuery}
+        onPickerQueryChange={availability.setPickerQuery}
+        pickerMatches={availability.pickerMatches}
+        container={availability.container}
+        onContainerChange={availability.setContainer}
       />
 
       <AddPlayerModal

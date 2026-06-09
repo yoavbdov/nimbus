@@ -21,8 +21,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { AvailabilitySlot, PlayerAvailability } from "@/lib/availability";
-import type { Player } from "@/lib/players-data";
+import type { AvailabilitySlot, CoachAvailability } from "@/lib/coach-availability";
+import type { Coach } from "@/lib/coaches-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -36,8 +36,8 @@ const itemVariants = {
   show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.32, ease } },
 };
 
-interface PlayerMultiSelectProps {
-  matches: Player[];
+interface CoachMultiSelectProps {
+  matches: Coach[];
   selectedIds: string[];
   onToggle: (id: string) => void;
   open: boolean;
@@ -47,7 +47,7 @@ interface PlayerMultiSelectProps {
   container: HTMLElement | null;
 }
 
-function PlayerMultiSelect({
+function CoachMultiSelect({
   matches,
   selectedIds,
   onToggle,
@@ -56,7 +56,7 @@ function PlayerMultiSelect({
   query,
   onQueryChange,
   container,
-}: PlayerMultiSelectProps) {
+}: CoachMultiSelectProps) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -67,7 +67,7 @@ function PlayerMultiSelect({
         >
           <span className="flex items-center gap-2 text-foreground/80">
             <Plus className="size-4 text-primary/70" />
-            הוסף שחקן
+            הוסף מדריך
           </span>
           <ChevronDown className="size-4 text-foreground/50" />
         </Button>
@@ -86,24 +86,24 @@ function PlayerMultiSelect({
           autoFocus
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="חיפוש שחקן…"
+          placeholder="חיפוש מדריך…"
           className="h-8 shrink-0 rounded-lg"
         />
         <div className="players-scroll min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-0.5 pe-1">
             {matches.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-                לא נמצאו שחקנים
+                לא נמצאו מדריכים
               </p>
             ) : (
-              matches.map((p) => {
-                const checked = selectedIds.includes(p.id);
+              matches.map((c) => {
+                const checked = selectedIds.includes(c.id);
                 return (
                   <Button
-                    key={p.id}
+                    key={c.id}
                     type="button"
                     variant="ghost"
-                    onClick={() => onToggle(p.id)}
+                    onClick={() => onToggle(c.id)}
                     className={cn(
                       "h-auto w-full justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
                       checked
@@ -111,7 +111,7 @@ function PlayerMultiSelect({
                         : "font-normal text-foreground/80 hover:bg-primary/30 hover:text-foreground dark:hover:bg-primary/40",
                     )}
                   >
-                    <span className="text-start">{p.name}</span>
+                    <span className="text-start">{c.name}</span>
                     {checked && <Check className="size-4 text-primary" />}
                   </Button>
                 );
@@ -127,20 +127,20 @@ function PlayerMultiSelect({
 interface AvailabilityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  players: Player[];
+  coaches: Coach[];
   selectedIds: string[];
-  onTogglePlayer: (id: string) => void;
+  onToggleCoach: (id: string) => void;
   slot: AvailabilitySlot;
   onSlotChange: (patch: Partial<AvailabilitySlot>) => void;
   slotValid: boolean;
-  result: PlayerAvailability[] | null;
+  result: CoachAvailability[] | null;
   onConfirm: () => void;
   checkingAll: boolean;
   pickerOpen: boolean;
   onPickerOpenChange: (open: boolean) => void;
   pickerQuery: string;
   onPickerQueryChange: (value: string) => void;
-  pickerMatches: Player[];
+  pickerMatches: Coach[];
   container: HTMLElement | null;
   onContainerChange: (el: HTMLElement | null) => void;
 }
@@ -148,9 +148,9 @@ interface AvailabilityModalProps {
 export function AvailabilityModal({
   open,
   onOpenChange,
-  players,
+  coaches,
   selectedIds,
-  onTogglePlayer,
+  onToggleCoach,
   slot,
   onSlotChange,
   slotValid,
@@ -165,17 +165,17 @@ export function AvailabilityModal({
   container,
   onContainerChange,
 }: AvailabilityModalProps) {
-  const selected = players.filter((p) => selectedIds.includes(p.id));
+  const selected = coaches.filter((c) => selectedIds.includes(c.id));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Portal the player dropdown into the dialog so wheel-scroll isn't blocked
+      {/* Portal the coach dropdown into the dialog so wheel-scroll isn't blocked
           by the dialog's scroll lock (which only allows scrolling inside itself). */}
       <DialogContent ref={onContainerChange} dir="rtl" className="max-w-md">
         <DialogHeader>
           <DialogTitle>בדיקת זמינות</DialogTitle>
           <DialogDescription>
-            בחרו שחקנים וטווח זמן כדי לבדוק מי פנוי.
+            בחרו מדריכים וטווח זמן כדי לבדוק מי פנוי.
           </DialogDescription>
         </DialogHeader>
 
@@ -186,22 +186,22 @@ export function AvailabilityModal({
           animate="show"
         >
           <motion.div variants={itemVariants} className="space-y-1.5">
-            <Label>שחקנים</Label>
+            <Label>מדריכים</Label>
             {selected.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {selected.map((p) => (
+                {selected.map((c) => (
                   <Badge
-                    key={p.id}
+                    key={c.id}
                     variant="secondary"
                     className="gap-1 rounded-full bg-primary/15 py-1 ps-2.5 pe-1 text-foreground"
                   >
-                    {p.name}
+                    {c.name}
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => onTogglePlayer(p.id)}
-                      aria-label={`הסר ${p.name}`}
+                      onClick={() => onToggleCoach(c.id)}
+                      aria-label={`הסר ${c.name}`}
                       className="size-auto rounded-full p-0.5 hover:bg-foreground/10"
                     >
                       <X className="size-3" />
@@ -210,10 +210,10 @@ export function AvailabilityModal({
                 ))}
               </div>
             )}
-            <PlayerMultiSelect
+            <CoachMultiSelect
               matches={pickerMatches}
               selectedIds={selectedIds}
-              onToggle={onTogglePlayer}
+              onToggle={onToggleCoach}
               open={pickerOpen}
               onOpenChange={onPickerOpenChange}
               query={pickerQuery}
@@ -222,15 +222,15 @@ export function AvailabilityModal({
             />
             {checkingAll && (
               <p className="text-xs text-muted-foreground">
-                לא נבחרו שחקנים — נציג מי מכלל השחקנים פנוי בטווח שנבחר.
+                לא נבחרו מדריכים — נציג מי מכלל המדריכים פנוי בטווח שנבחר.
               </p>
             )}
           </motion.div>
 
           <motion.div variants={itemVariants} className="space-y-1.5">
-            <Label htmlFor="availability-date">תאריך</Label>
+            <Label htmlFor="coach-availability-date">תאריך</Label>
             <Input
-              id="availability-date"
+              id="coach-availability-date"
               type="date"
               value={slot.date}
               onChange={(e) => onSlotChange({ date: e.target.value })}
@@ -240,9 +240,9 @@ export function AvailabilityModal({
 
           <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="availability-start">שעת התחלה</Label>
+              <Label htmlFor="coach-availability-start">שעת התחלה</Label>
               <Input
-                id="availability-start"
+                id="coach-availability-start"
                 type="time"
                 value={slot.startTime}
                 onChange={(e) => onSlotChange({ startTime: e.target.value })}
@@ -250,9 +250,9 @@ export function AvailabilityModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="availability-end">שעת סיום</Label>
+              <Label htmlFor="coach-availability-end">שעת סיום</Label>
               <Input
-                id="availability-end"
+                id="coach-availability-end"
                 type="time"
                 value={slot.endTime}
                 onChange={(e) => onSlotChange({ endTime: e.target.value })}
@@ -333,7 +333,7 @@ function AvailabilityResult({
   result,
   checkingAll,
 }: {
-  result: PlayerAvailability[];
+  result: CoachAvailability[];
   checkingAll: boolean;
 }) {
   const rows = checkingAll ? result.filter((r) => r.available) : result;
@@ -343,12 +343,12 @@ function AvailabilityResult({
     <div className="space-y-2">
       <p className="text-xs font-medium text-foreground/70">
         {checkingAll
-          ? `${freeCount} שחקנים פנויים בטווח שנבחר`
+          ? `${freeCount} מדריכים פנויים בטווח שנבחר`
           : `${freeCount} מתוך ${result.length} פנויים`}
       </p>
       {rows.length === 0 ? (
         <p className="py-2 text-center text-xs text-muted-foreground">
-          אין שחקנים פנויים בטווח שנבחר
+          אין מדריכים פנויים בטווח שנבחר
         </p>
       ) : (
         <div className="players-scroll max-h-40 overflow-y-auto">
@@ -360,7 +360,7 @@ function AvailabilityResult({
           >
             {rows.map((r) => (
               <motion.li
-                key={r.playerId}
+                key={r.coachId}
                 variants={itemVariants}
                 className="flex items-center justify-between gap-2 rounded-lg bg-foreground/5 px-3 py-2 text-sm"
               >

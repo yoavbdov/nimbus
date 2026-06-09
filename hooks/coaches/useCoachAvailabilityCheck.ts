@@ -1,44 +1,44 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  checkAvailability,
+  checkCoachAvailability,
   isSlotValid,
   type AvailabilitySlot,
-  type PlayerAvailability,
-} from "@/lib/availability";
-import type { Player } from "@/lib/players-data";
+  type CoachAvailability,
+} from "@/lib/coach-availability";
+import type { Coach } from "@/lib/coaches-data";
 
 const EMPTY_SLOT: AvailabilitySlot = { date: "", startTime: "", endTime: "" };
 
 /**
- * Owns all state for the "check availability" modal: which players are being
+ * Owns all state for the "check availability" modal: which coaches are being
  * checked, the requested slot, and the (mock) result. The modal stays
  * presentational and receives everything from here.
  */
-export function useAvailabilityCheck(allPlayers: Player[]) {
+export function useCoachAvailabilityCheck(allCoaches: Coach[]) {
   const [open, setOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [slot, setSlot] = useState<AvailabilitySlot>(EMPTY_SLOT);
-  const [result, setResult] = useState<PlayerAvailability[] | null>(null);
+  const [result, setResult] = useState<CoachAvailability[] | null>(null);
 
-  // Presentational state for the modal's player picker and dialog portal target.
+  // Presentational state for the modal's coach picker and dialog portal target.
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
-  const selectedPlayers = useMemo(
-    () => allPlayers.filter((p) => selectedIds.includes(p.id)),
-    [allPlayers, selectedIds],
+  const selectedCoaches = useMemo(
+    () => allCoaches.filter((c) => selectedIds.includes(c.id)),
+    [allCoaches, selectedIds],
   );
 
   const pickerMatches = useMemo(
-    () => allPlayers.filter((p) => p.name.includes(pickerQuery.trim())),
-    [allPlayers, pickerQuery],
+    () => allCoaches.filter((c) => c.name.includes(pickerQuery.trim())),
+    [allCoaches, pickerQuery],
   );
 
   const slotValid = isSlotValid(slot);
 
-  const openWith = useCallback((playerIds: string[]) => {
-    setSelectedIds(playerIds);
+  const openWith = useCallback((coachIds: string[]) => {
+    setSelectedIds(coachIds);
     setSlot(EMPTY_SLOT);
     setResult(null);
     setPickerQuery("");
@@ -50,7 +50,7 @@ export function useAvailabilityCheck(allPlayers: Player[]) {
     if (!next) setResult(null);
   }, []);
 
-  const togglePlayer = useCallback((id: string) => {
+  const toggleCoach = useCallback((id: string) => {
     setResult(null);
     setSelectedIds((ids) =>
       ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
@@ -64,17 +64,17 @@ export function useAvailabilityCheck(allPlayers: Player[]) {
 
   const confirm = useCallback(() => {
     if (!slotValid) return;
-    // No players chosen → tell the coach which of all players are free.
-    const targets = selectedPlayers.length > 0 ? selectedPlayers : allPlayers;
-    setResult(checkAvailability(targets, slot));
-  }, [slotValid, selectedPlayers, allPlayers, slot]);
+    // No coaches chosen → tell which of all coaches are free.
+    const targets = selectedCoaches.length > 0 ? selectedCoaches : allCoaches;
+    setResult(checkCoachAvailability(targets, slot));
+  }, [slotValid, selectedCoaches, allCoaches, slot]);
 
   return {
     open,
     handleOpenChange,
     openWith,
     selectedIds,
-    togglePlayer,
+    toggleCoach,
     slot,
     updateSlot,
     slotValid,

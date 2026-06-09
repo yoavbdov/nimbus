@@ -7,8 +7,10 @@ import { CoachesActions } from "@/components/coaches/CoachesActions";
 import { FilterBar } from "@/components/coaches/filters/FilterBar";
 import { CoachesTable } from "@/components/coaches/CoachesTable";
 import { DeleteCoachModal } from "@/components/coaches/DeleteCoachModal";
+import { AvailabilityModal } from "@/components/coaches/AvailabilityModal";
 import { useCoachesPanel } from "@/hooks/coaches/useCoachesPanel";
 import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
+import { useCoachAvailabilityCheck } from "@/hooks/coaches/useCoachAvailabilityCheck";
 
 export function CoachesPanel() {
   const {
@@ -26,16 +28,21 @@ export function CoachesPanel() {
   } = useCoachesPanel();
 
   const deleteCoach = useDeleteCoach();
+  const availability = useCoachAvailabilityCheck(coaches);
 
   function handleCoachAction(actionId: string, coachId: string | null) {
-    if (actionId === "delete") {
+    if (actionId === "availability") {
+      availability.openWith(coachId ? [coachId] : []);
+    } else if (actionId === "delete") {
       const coach = coaches.find((c) => c.id === coachId);
       if (coach) deleteCoach.openFor([coach.name]);
     }
   }
 
   function handleBulkAction(actionId: string, coachIds: string[]) {
-    if (actionId === "delete") {
+    if (actionId === "availability") {
+      availability.openWith(coachIds);
+    } else if (actionId === "delete") {
       const names = coachIds
         .map((id) => coaches.find((c) => c.id === id)?.name)
         .filter((name): name is string => name != null);
@@ -56,7 +63,9 @@ export function CoachesPanel() {
               {filtered.length} מתוך {coaches.length} מדריכים
             </p>
           </div>
-          <CoachesActions />
+          <CoachesActions
+            onCheckAvailability={() => availability.openWith([])}
+          />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -90,6 +99,27 @@ export function CoachesPanel() {
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <AvailabilityModal
+        open={availability.open}
+        onOpenChange={availability.handleOpenChange}
+        coaches={coaches}
+        selectedIds={availability.selectedIds}
+        onToggleCoach={availability.toggleCoach}
+        slot={availability.slot}
+        onSlotChange={availability.updateSlot}
+        slotValid={availability.slotValid}
+        result={availability.result}
+        onConfirm={availability.confirm}
+        checkingAll={availability.checkingAll}
+        pickerOpen={availability.pickerOpen}
+        onPickerOpenChange={availability.setPickerOpen}
+        pickerQuery={availability.pickerQuery}
+        onPickerQueryChange={availability.setPickerQuery}
+        pickerMatches={availability.pickerMatches}
+        container={availability.container}
+        onContainerChange={availability.setContainer}
+      />
 
       <DeleteCoachModal
         open={deleteCoach.open}

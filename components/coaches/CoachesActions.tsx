@@ -8,13 +8,15 @@ interface ActionButtonProps {
   icon: React.ElementType;
   label: string;
   variant?: "default" | "ghost";
+  onClick?: () => void;
   iconClassName?: string;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", onClick, iconClassName }: ActionButtonProps) {
   return (
     <Button
       type="button"
+      onClick={onClick}
       variant={variant}
       className={cn(
         "group/btn relative overflow-hidden tint-indigo",
@@ -29,11 +31,15 @@ function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: A
   );
 }
 
-export function CoachesActions() {
+interface CoachesActionsProps {
+  onCheckAvailability: () => void;
+}
+
+export function CoachesActions({ onCheckAvailability }: CoachesActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ActionButton icon={UserPlus} label="הוסף מדריך" variant="default" />
-      <ActionButton icon={CalendarCheck2} label="בדוק זמינות" />
+      <ActionButton icon={CalendarCheck2} label="בדוק זמינות" onClick={onCheckAvailability} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>
