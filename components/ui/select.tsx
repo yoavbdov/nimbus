@@ -7,10 +7,12 @@ import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 function Select({
-  modal = false,
+  // Accepted for API compatibility; the installed radix-ui Select.Root no
+  // longer takes a `modal` prop, so it is intentionally not forwarded.
+  modal: _modal = false,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root> & { modal?: boolean }) {
-  return <SelectPrimitive.Root data-slot="select" modal={modal} {...props} />
+  return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
 function SelectGroup({
