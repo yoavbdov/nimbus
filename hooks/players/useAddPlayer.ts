@@ -8,6 +8,10 @@ import {
   type BirthDateParts,
   type PlayerFormValues,
 } from "@/lib/player-form";
+import { birthPartsFromIso } from "@/lib/player-details";
+
+/** "add" shows the empty add-player flow; "edit" prefills an existing player. */
+export type PlayerModalMode = "add" | "edit";
 
 /**
  * Owns all state for the "add player" modal. The birth date is collected as
@@ -17,6 +21,7 @@ import {
  */
 export function useAddPlayer() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<PlayerModalMode>("add");
   const [values, setValues] = useState<PlayerFormValues>(EMPTY_PLAYER_FORM);
   const [birthParts, setBirthParts] = useState<BirthDateParts>(EMPTY_BIRTH_PARTS);
   const [gradeManual, setGradeManual] = useState(false);
@@ -52,9 +57,20 @@ export function useAddPlayer() {
   }, []);
 
   const openModal = useCallback(() => {
+    setMode("add");
     setValues(EMPTY_PLAYER_FORM);
     setBirthParts(EMPTY_BIRTH_PARTS);
     setGradeManual(false);
+    setOpen(true);
+  }, []);
+
+  // Opens the modal in edit mode prefilled with an existing player. The grade
+  // is pinned so the birth-date-driven auto-fill doesn't overwrite it.
+  const openForEdit = useCallback((next: PlayerFormValues) => {
+    setMode("edit");
+    setValues(next);
+    setBirthParts(birthPartsFromIso(next.birthDate));
+    setGradeManual(true);
     setOpen(true);
   }, []);
 
@@ -69,7 +85,9 @@ export function useAddPlayer() {
 
   return {
     open,
+    mode,
     openModal,
+    openForEdit,
     handleOpenChange,
     values,
     updateField,

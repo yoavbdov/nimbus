@@ -1,6 +1,9 @@
-﻿export type PlayerStatus = "פעיל" | "ליגה בלבד" | "לא פעיל";
+﻿import { deriveDetails, type PlayerDetails } from "@/lib/player-details";
 
-export interface Player {
+export type PlayerStatus = "פעיל" | "ליגה בלבד" | "לא פעיל";
+
+/** The roster columns held directly in the sample data. */
+export interface PlayerBase {
   id: string;
   name: string;
   age: number;
@@ -15,7 +18,10 @@ export interface Player {
   status: PlayerStatus;
 }
 
-export const players: Player[] = [
+/** A full player record: roster columns plus the (invented) detail fields. */
+export type Player = PlayerBase & PlayerDetails;
+
+const basePlayers: PlayerBase[] = [
   {
     id: "p-1",
     name: "אורי גולן",
@@ -857,6 +863,12 @@ export const players: Player[] = [
     status: "פעיל",
   },
 ];
+
+/** The roster as full player records, each enriched with invented details. */
+export const players: Player[] = basePlayers.map((p) => ({
+  ...p,
+  ...deriveDetails(p),
+}));
 
 export const allClubs = Array.from(
   new Set(players.flatMap((p) => p.clubs)),

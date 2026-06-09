@@ -13,8 +13,11 @@ import { Pencil, Check, X } from "lucide-react";
 import { RatingPlayersTable } from "@/components/dashboard/RatingPlayersTable";
 import { DeletePlayerModal } from "@/components/players/DeletePlayerModal";
 import { AvailabilityModal } from "@/components/players/AvailabilityModal";
+import { AddPlayerModal } from "@/components/players/AddPlayerModal";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
+import { useAddPlayer } from "@/hooks/players/useAddPlayer";
+import { playerFormValuesFor } from "@/lib/player-details";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
 import { useTierNavigation } from "@/hooks/dashboard/useTierNavigation";
@@ -248,9 +251,13 @@ export function RatingDistribution({
   const total = tiers.reduce((sum, t) => sum + t.count, 0);
   const deletePlayer = useDeletePlayer();
   const availability = useAvailabilityCheck(ratingPlayersAsPlayers);
+  const addPlayer = useAddPlayer();
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
-    if (actionId === "availability") {
+    if (actionId === "details") {
+      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      if (player) addPlayer.openForEdit(playerFormValuesFor(player));
+    } else if (actionId === "availability") {
       availability.openWith(playerName ? [playerName] : []);
     } else if (actionId === "delete" && playerName) {
       deletePlayer.openFor([playerName]);
@@ -309,6 +316,19 @@ export function RatingDistribution({
         onConfirmTextChange={deletePlayer.setConfirmText}
         valid={deletePlayer.valid}
         onConfirm={deletePlayer.confirm}
+      />
+
+      <AddPlayerModal
+        open={addPlayer.open}
+        mode={addPlayer.mode}
+        onOpenChange={addPlayer.handleOpenChange}
+        values={addPlayer.values}
+        onFieldChange={addPlayer.updateField}
+        birthParts={addPlayer.birthParts}
+        onBirthPartChange={addPlayer.setBirthPart}
+        onGradeChange={addPlayer.setGrade}
+        valid={addPlayer.valid}
+        onConfirm={addPlayer.confirm}
       />
 
       <AvailabilityModal

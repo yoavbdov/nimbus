@@ -118,6 +118,8 @@ function Field({
 
 interface AddPlayerModalProps {
   open: boolean;
+  /** "add" shows the empty add flow; "edit" reframes it for an existing player. */
+  mode?: "add" | "edit";
   onOpenChange: (open: boolean) => void;
   values: PlayerFormValues;
   onFieldChange: <K extends keyof PlayerFormValues>(
@@ -133,6 +135,7 @@ interface AddPlayerModalProps {
 
 export function AddPlayerModal({
   open,
+  mode = "add",
   onOpenChange,
   values,
   onFieldChange,
@@ -144,12 +147,13 @@ export function AddPlayerModal({
 }: AddPlayerModalProps) {
   const [tab, setTab] = useState("personal");
   const dayCount = daysInMonth(birthParts.year, birthParts.month);
+  const isEdit = mode === "edit";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="top-[7vh] max-w-lg translate-y-0">
         <DialogHeader>
-          <DialogTitle>הוספת שחקן</DialogTitle>
+          <DialogTitle>{isEdit ? "עריכת שחקן" : "הוספת שחקן"}</DialogTitle>
           <DialogDescription>
             מלאו את הפרטים. שדות המסומנים ב־
             <span className="text-destructive">*</span> הם שדות חובה.
@@ -528,7 +532,7 @@ export function AddPlayerModal({
             onClick={onConfirm}
             className="rounded-xl"
           >
-            אישור
+            {isEdit ? "עדכון" : "אישור"}
           </Button>
           <Button
             type="button"

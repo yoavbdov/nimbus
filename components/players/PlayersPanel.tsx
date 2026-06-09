@@ -14,6 +14,7 @@ import { useAvailabilityCheck } from "@/hooks/players/useAvailabilityCheck";
 import { useAddPlayer } from "@/hooks/players/useAddPlayer";
 import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { players as allPlayers } from "@/lib/players-data";
+import { playerFormValuesFor } from "@/lib/player-details";
 
 export function PlayersPanel() {
   const {
@@ -33,7 +34,10 @@ export function PlayersPanel() {
   const deletePlayer = useDeletePlayer();
 
   function handlePlayerAction(actionId: string, playerId: string | null) {
-    if (actionId === "availability") {
+    if (actionId === "details") {
+      const player = allPlayers.find((p) => p.id === playerId);
+      if (player) addPlayer.openForEdit(playerFormValuesFor(player));
+    } else if (actionId === "availability") {
       availability.openWith(playerId ? [playerId] : []);
     } else if (actionId === "delete") {
       const player = allPlayers.find((p) => p.id === playerId);
@@ -118,6 +122,7 @@ export function PlayersPanel() {
 
       <AddPlayerModal
         open={addPlayer.open}
+        mode={addPlayer.mode}
         onOpenChange={addPlayer.handleOpenChange}
         values={addPlayer.values}
         onFieldChange={addPlayer.updateField}

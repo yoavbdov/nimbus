@@ -1,5 +1,6 @@
 import type { RatingPlayer } from "@/hooks/dashboard/useRatingPlayersTable";
 import type { Player } from "@/lib/players-data";
+import { deriveDetails } from "@/lib/player-details";
 
 /** Sample roster shown in the rating-distribution panel on the dashboard. */
 export const ratingPlayers: RatingPlayer[] = [
@@ -42,17 +43,20 @@ const CURRENT_YEAR = new Date().getFullYear();
  * can reuse the players availability modal. Only id/name drive that flow; the
  * rest is filled from the rating data for completeness.
  */
-export const ratingPlayersAsPlayers: Player[] = ratingPlayers.map((p) => ({
-  id: p.name,
-  name: p.name,
-  age: CURRENT_YEAR - p.birthYear,
-  grade: "",
-  israeliRating: p.rating,
-  fideRating: null,
-  ratingUpdatedRecently: false,
-  phone: "",
-  clubs: [],
-  tournaments: [],
-  leagueTeam: null,
-  status: "פעיל",
-}));
+export const ratingPlayersAsPlayers: Player[] = ratingPlayers.map((p) => {
+  const base = {
+    id: p.name,
+    name: p.name,
+    age: CURRENT_YEAR - p.birthYear,
+    grade: "",
+    israeliRating: p.rating,
+    fideRating: null,
+    ratingUpdatedRecently: false,
+    phone: "",
+    clubs: [],
+    tournaments: [],
+    leagueTeam: null,
+    status: "פעיל" as const,
+  };
+  return { ...base, ...deriveDetails(base) };
+});
