@@ -18,7 +18,7 @@ import { CoachStatusBadge } from "@/components/coaches/CoachStatusBadge";
 import { CoachActionsMenuContent } from "@/components/coaches/CoachActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
-import { coachActions } from "@/lib/coach-actions";
+import { coachActions, type CoachAction } from "@/lib/coach-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
 import { useCoachesTable } from "@/hooks/coaches/useCoachesTable";
@@ -121,9 +121,11 @@ function CoachRow({
 
 interface CoachesTableProps {
   coaches: Coach[];
+  onAction?: (actionId: string, coachId: string | null) => void;
+  onBulkAction?: (actionId: string, coachIds: string[]) => void;
 }
 
-export function CoachesTable({ coaches }: CoachesTableProps) {
+export function CoachesTable({ coaches, onAction, onBulkAction }: CoachesTableProps) {
   const {
     sortKey,
     sortDir,
@@ -135,11 +137,11 @@ export function CoachesTable({ coaches }: CoachesTableProps) {
     activeId,
     handleRowClick,
     handleMenuOpenChange,
-  } = useCoachesTable(coaches);
+  } = useCoachesTable(coaches, { onAction });
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((c) => c.id),
     activeId,
-    onAction: onSelectAction,
+    onAction: (action: CoachAction, ids) => onBulkAction?.(action.id, ids),
   });
 
   if (coaches.length === 0) {

@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { CoachesActions } from "@/components/coaches/CoachesActions";
 import { FilterBar } from "@/components/coaches/filters/FilterBar";
 import { CoachesTable } from "@/components/coaches/CoachesTable";
+import { DeleteCoachModal } from "@/components/coaches/DeleteCoachModal";
 import { useCoachesPanel } from "@/hooks/coaches/useCoachesPanel";
+import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
 import { coaches as allCoaches } from "@/lib/coaches-data";
 
 export function CoachesPanel() {
@@ -21,6 +23,24 @@ export function CoachesPanel() {
     filtered,
     filterKey,
   } = useCoachesPanel();
+
+  const deleteCoach = useDeleteCoach();
+
+  function handleCoachAction(actionId: string, coachId: string | null) {
+    if (actionId === "delete") {
+      const coach = allCoaches.find((c) => c.id === coachId);
+      if (coach) deleteCoach.openFor([coach.name]);
+    }
+  }
+
+  function handleBulkAction(actionId: string, coachIds: string[]) {
+    if (actionId === "delete") {
+      const names = coachIds
+        .map((id) => allCoaches.find((c) => c.id === id)?.name)
+        .filter((name): name is string => name != null);
+      deleteCoach.openFor(names);
+    }
+  }
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -59,11 +79,26 @@ export function CoachesPanel() {
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <CoachesTable coaches={filtered} />
+              <CoachesTable
+                coaches={filtered}
+                onAction={handleCoachAction}
+                onBulkAction={handleBulkAction}
+              />
             </motion.div>
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <DeleteCoachModal
+        open={deleteCoach.open}
+        onOpenChange={deleteCoach.handleOpenChange}
+        coachNames={deleteCoach.names}
+        expectedPhrase={deleteCoach.expectedPhrase}
+        confirmText={deleteCoach.confirmText}
+        onConfirmTextChange={deleteCoach.setConfirmText}
+        valid={deleteCoach.valid}
+        onConfirm={deleteCoach.confirm}
+      />
     </Card>
   );
 }
