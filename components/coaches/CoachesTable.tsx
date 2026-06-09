@@ -78,12 +78,14 @@ function CoachRow({
   index: i,
   isActive,
   onOpen,
+  onToggleStatus,
   selection,
 }: {
   coach: Coach;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
+  onToggleStatus?: (id: string) => void;
   selection: RowSelection;
 }) {
   return (
@@ -115,7 +117,10 @@ function CoachRow({
         <CountPill value={c.competitions} />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <CoachStatusBadge status={c.status} />
+        <CoachStatusBadge
+          status={c.status}
+          onToggle={onToggleStatus ? () => onToggleStatus(c.id) : undefined}
+        />
       </TableCell>
       <SelectionCell id={c.id} selection={selection} />
     </MotionTableRow>
@@ -126,9 +131,15 @@ interface CoachesTableProps {
   coaches: Coach[];
   onAction?: (actionId: string, coachId: string | null) => void;
   onBulkAction?: (actionId: string, coachIds: string[]) => void;
+  onToggleStatus?: (id: string) => void;
 }
 
-export function CoachesTable({ coaches, onAction, onBulkAction }: CoachesTableProps) {
+export function CoachesTable({
+  coaches,
+  onAction,
+  onBulkAction,
+  onToggleStatus,
+}: CoachesTableProps) {
   const {
     sortKey,
     sortDir,
@@ -191,6 +202,7 @@ export function CoachesTable({ coaches, onAction, onBulkAction }: CoachesTablePr
                   index={i}
                   isActive={activeId === c.id}
                   onOpen={handleRowClick}
+                  onToggleStatus={onToggleStatus}
                   selection={selection}
                 />
               ))}

@@ -1,4 +1,4 @@
-import { coaches, allCoachClubs, allCoachStatuses, type Coach } from "@/lib/coaches-data";
+import { allCoachClubs, allCoachStatuses, type Coach } from "@/lib/coaches-data";
 
 export type FilterField = "name" | "phone" | "status" | "club" | "clubCount";
 
@@ -138,7 +138,11 @@ function matchesSearch(c: Coach, query: string): boolean {
   return c.name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q);
 }
 
-export function filterCoaches(query: string, filters: CoachFilter[]): Coach[] {
+export function filterCoaches(
+  coaches: Coach[],
+  query: string,
+  filters: CoachFilter[],
+): Coach[] {
   return coaches.filter(
     (c) => matchesSearch(c, query) && filters.every((f) => applyFilter(c, f)),
   );

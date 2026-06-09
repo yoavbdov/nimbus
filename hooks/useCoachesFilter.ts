@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { filterCoaches, type CoachFilter } from "@/lib/coaches-filters";
+import type { Coach } from "@/lib/coaches-data";
 
-export function useCoachesFilter() {
+export function useCoachesFilter(coaches: Coach[]) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<CoachFilter[]>([]);
 
@@ -23,8 +24,8 @@ export function useCoachesFilter() {
   }
 
   const filtered = useMemo(
-    () => filterCoaches(search, filters),
-    [search, filters],
+    () => filterCoaches(coaches, search, filters),
+    [coaches, search, filters],
   );
 
   return {

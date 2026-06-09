@@ -9,7 +9,6 @@ import { CoachesTable } from "@/components/coaches/CoachesTable";
 import { DeleteCoachModal } from "@/components/coaches/DeleteCoachModal";
 import { useCoachesPanel } from "@/hooks/coaches/useCoachesPanel";
 import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
-import { coaches as allCoaches } from "@/lib/coaches-data";
 
 export function CoachesPanel() {
   const {
@@ -22,13 +21,15 @@ export function CoachesPanel() {
     clearAll,
     filtered,
     filterKey,
+    coaches,
+    toggleStatus,
   } = useCoachesPanel();
 
   const deleteCoach = useDeleteCoach();
 
   function handleCoachAction(actionId: string, coachId: string | null) {
     if (actionId === "delete") {
-      const coach = allCoaches.find((c) => c.id === coachId);
+      const coach = coaches.find((c) => c.id === coachId);
       if (coach) deleteCoach.openFor([coach.name]);
     }
   }
@@ -36,7 +37,7 @@ export function CoachesPanel() {
   function handleBulkAction(actionId: string, coachIds: string[]) {
     if (actionId === "delete") {
       const names = coachIds
-        .map((id) => allCoaches.find((c) => c.id === id)?.name)
+        .map((id) => coaches.find((c) => c.id === id)?.name)
         .filter((name): name is string => name != null);
       deleteCoach.openFor(names);
     }
@@ -52,7 +53,7 @@ export function CoachesPanel() {
               ניהול מדריכים
             </h1>
             <p className="text-xs text-muted-foreground/80 num">
-              {filtered.length} מתוך {allCoaches.length} מדריכים
+              {filtered.length} מתוך {coaches.length} מדריכים
             </p>
           </div>
           <CoachesActions />
@@ -83,6 +84,7 @@ export function CoachesPanel() {
                 coaches={filtered}
                 onAction={handleCoachAction}
                 onBulkAction={handleBulkAction}
+                onToggleStatus={toggleStatus}
               />
             </motion.div>
           </AnimatePresence>
