@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Coach } from "@/lib/coaches-data";
 
-export type SortKey = "name" | "phone" | "clubs" | "status";
+export type SortKey = "name" | "phone" | "clubs" | "competitions" | "status";
 export type SortDir = "asc" | "desc";
 
 const statusOrder: Record<Coach["status"], number> = {
@@ -18,6 +18,8 @@ function getSortValue(c: Coach, key: SortKey): string | number {
       return c.phone;
     case "clubs":
       return c.clubs.length;
+    case "competitions":
+      return c.competitions;
     case "status":
       return statusOrder[c.status];
   }

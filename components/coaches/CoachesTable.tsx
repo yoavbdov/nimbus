@@ -111,6 +111,9 @@ function CoachRow({
       <TableCell className="px-4 py-3 text-sm text-center">
         <CountPill value={c.clubs.length} />
       </TableCell>
+      <TableCell className="px-4 py-3 text-sm text-center">
+        <CountPill value={c.competitions} />
+      </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <CoachStatusBadge status={c.status} />
       </TableCell>
@@ -175,6 +178,7 @@ export function CoachesTable({ coaches, onAction, onBulkAction }: CoachesTablePr
                 <SortableHeader {...headerProps("name")}>שם מלא</SortableHeader>
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
                 <SortableHeader {...headerProps("clubs")}>חוגים פעילים</SortableHeader>
+                <SortableHeader {...headerProps("competitions")}>תחרויות פעילות</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
                 <SelectionHead selection={selection} />
               </TableRow>
