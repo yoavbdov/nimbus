@@ -35,6 +35,7 @@ export interface FieldDef {
   label: string;
   operators: OperatorDef[];
   options?: string[];
+  basic?: boolean;
 }
 
 export interface ActivityFilter {
@@ -56,6 +57,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
     label: "שם החוג",
+    basic: true,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "text" },
       { op: "contains", label: "מכיל בתוכו", valueMode: "text" },
@@ -64,6 +66,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "coach",
     label: "מדריך",
+    basic: true,
     options: allActivityCoaches,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
@@ -72,15 +75,16 @@ export const FIELD_DEFS: FieldDef[] = [
       { op: "not_in", label: "הוא לא אחד מהבאים", valueMode: "multi-enum" },
     ],
   },
-  { field: "ageMin", label: "גיל מינימלי", operators: numericOps },
+  { field: "ageMin", label: "גיל מינימלי", basic: true, operators: numericOps },
   { field: "ageMax", label: "גיל מקסימלי", operators: numericOps },
-  { field: "fitnessMin", label: "מד כושר מינימלי", operators: numericOps },
+  { field: "fitnessMin", label: "מד כושר מינימלי", basic: true, operators: numericOps },
   { field: "fitnessMax", label: "מד כושר מקסימלי", operators: numericOps },
-  { field: "enrolled", label: "רשומים", operators: numericOps },
+  { field: "enrolled", label: "רשומים", basic: true, operators: numericOps },
   { field: "capacity", label: "קיבולת", operators: numericOps },
   {
     field: "days",
     label: "ימי פעילות",
+    basic: true,
     options: [...ACTIVITY_DAYS],
     operators: [
       { op: "any", label: "מתקיים באחד הימים", valueMode: "multi-enum" },
@@ -92,6 +96,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "status",
     label: "סטטוס",
+    basic: true,
     options: allActivityStatuses,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
@@ -112,6 +117,8 @@ export const FIELD_DEFS: FieldDef[] = [
     ],
   },
 ];
+
+export const BASIC_FIELD_DEFS: FieldDef[] = FIELD_DEFS.filter((f) => f.basic);
 
 export const FIELD_BY_KEY: Record<FilterField, FieldDef> = Object.fromEntries(
   FIELD_DEFS.map((f) => [f.field, f]),
