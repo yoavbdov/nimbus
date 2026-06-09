@@ -500,9 +500,7 @@ export function AddPlayerModal({
                       onFieldChange("title", v as PlayerFormValues["title"])
                     }
                   >
-                    <SelectTrigger
-                      className={cn(selectTriggerClass, "flex-row-reverse")}
-                    >
+                    <SelectTrigger className={selectTriggerClass}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent
