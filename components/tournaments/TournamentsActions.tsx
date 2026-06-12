@@ -7,13 +7,15 @@ interface ActionButtonProps {
   label: string;
   variant?: "default" | "ghost";
   iconClassName?: string;
+  onClick?: () => void;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName, onClick }: ActionButtonProps) {
   return (
     <Button
       type="button"
       variant={variant}
+      onClick={onClick}
       className={cn(
         "group/btn relative overflow-hidden tint-indigo",
         "h-9 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
@@ -27,10 +29,14 @@ function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: A
   );
 }
 
-export function TournamentsActions() {
+interface TournamentsActionsProps {
+  onAddTournament: () => void;
+}
+
+export function TournamentsActions({ onAddTournament }: TournamentsActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ActionButton icon={Trophy} label="הוסף תחרות" variant="default" />
+      <ActionButton icon={Trophy} label="הוסף תחרות" variant="default" onClick={onAddTournament} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>

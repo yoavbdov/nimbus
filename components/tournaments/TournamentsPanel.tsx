@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { TournamentsActions } from "@/components/tournaments/TournamentsActions";
 import { FilterBar } from "@/components/tournaments/filters/FilterBar";
 import { TournamentsTable } from "@/components/tournaments/TournamentsTable";
+import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
 import { useTournamentsPanel } from "@/hooks/tournaments/useTournamentsPanel";
+import { useAddTournament } from "@/hooks/tournaments/useAddTournament";
 import { tournaments as allTournaments } from "@/lib/tournaments-data";
 
 export function TournamentsPanel() {
@@ -24,6 +26,8 @@ export function TournamentsPanel() {
     filterKey,
   } = useTournamentsPanel();
 
+  const addTournament = useAddTournament();
+
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
       <div className="h-1 tint-bar" />
@@ -37,7 +41,7 @@ export function TournamentsPanel() {
               {filtered.length} מתוך {allTournaments.length} תחרויות
             </p>
           </div>
-          <TournamentsActions />
+          <TournamentsActions onAddTournament={addTournament.openModal} />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -68,6 +72,8 @@ export function TournamentsPanel() {
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <TournamentFormModal addTournament={addTournament} />
     </Card>
   );
 }
