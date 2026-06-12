@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { EventsActions } from "@/components/events/EventsActions";
 import { FilterBar } from "@/components/events/filters/FilterBar";
 import { EventsTable } from "@/components/events/EventsTable";
+import { EventFormModal } from "@/components/events/EventFormModal";
 import { useEventsPanel } from "@/hooks/events/useEventsPanel";
+import { useAddEvent } from "@/hooks/events/useAddEvent";
 import { events as allEvents } from "@/lib/events-data";
 
 export function EventsPanel() {
@@ -24,6 +26,8 @@ export function EventsPanel() {
     filterKey,
   } = useEventsPanel();
 
+  const addEvent = useAddEvent();
+
   return (
     <CardContent className="p-6 space-y-5">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -35,7 +39,7 @@ export function EventsPanel() {
             {filtered.length} מתוך {allEvents.length} אירועים
           </p>
         </div>
-        <EventsActions />
+        <EventsActions onAddEvent={addEvent.openModal} />
       </div>
 
       <Separator className="bg-foreground/8" />
@@ -65,6 +69,8 @@ export function EventsPanel() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <EventFormModal addEvent={addEvent} />
     </CardContent>
   );
 }
