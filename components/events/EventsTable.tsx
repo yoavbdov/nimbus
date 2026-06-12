@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { EventStatusBadge } from "@/components/events/EventStatusBadge";
+import { EventFormModal } from "@/components/events/EventFormModal";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
 import { eventActions } from "@/lib/row-actions";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
@@ -151,6 +152,8 @@ export function EventsTable({ events }: EventsTableProps) {
     menuOpen,
     virtualRef,
     onSelectAction,
+    onRowAction,
+    eventEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
@@ -179,6 +182,7 @@ export function EventsTable({ events }: EventsTableProps) {
   });
 
   return (
+    <>
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
       <div
@@ -219,8 +223,10 @@ export function EventsTable({ events }: EventsTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <RowActionsMenuContent actions={eventActions} onSelect={onSelectAction} />
+        <RowActionsMenuContent actions={eventActions} onSelect={onRowAction} />
       )}
     </Popover>
+    <EventFormModal addEvent={eventEdit} />
+    </>
   );
 }
