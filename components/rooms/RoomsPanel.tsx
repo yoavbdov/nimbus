@@ -12,6 +12,7 @@ import { useRoomsPanel } from "@/hooks/rooms/useRoomsPanel";
 import { useRoomAvailabilityCheck } from "@/hooks/rooms/useRoomAvailabilityCheck";
 import { useAddRoom } from "@/hooks/rooms/useAddRoom";
 import { rooms as allRooms } from "@/lib/rooms-data";
+import { roomFormValuesFor } from "@/lib/room-form";
 
 export function RoomsPanel() {
   const {
@@ -30,7 +31,10 @@ export function RoomsPanel() {
   const addRoom = useAddRoom();
 
   function handleRoomAction(actionId: string, roomId: string | null) {
-    if (actionId === "availability") {
+    if (actionId === "details") {
+      const room = allRooms.find((r) => r.id === roomId);
+      if (room) addRoom.openForEdit(roomFormValuesFor(room));
+    } else if (actionId === "availability") {
       availability.openWith(roomId ? [roomId] : []);
     }
   }
