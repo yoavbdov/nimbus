@@ -17,6 +17,8 @@ import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { TournamentStatusBadge } from "@/components/tournaments/TournamentStatusBadge";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
 import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
+import { PossibleEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { tournamentActions } from "@/lib/tournament-actions";
@@ -175,6 +177,8 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     onSelectAction,
     onRowAction,
     tournamentEdit,
+    enrollments,
+    coachEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
@@ -252,6 +256,22 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       )}
     </Popover>
     <TournamentFormModal addTournament={tournamentEdit} />
+    <PossibleEnrollmentsModal
+      open={enrollments.open}
+      onOpenChange={enrollments.onOpenChange}
+      tournament={enrollments.tournament}
+      candidates={enrollments.candidates}
+      onExport={() => {}}
+    />
+    <AddCoachModal
+      open={coachEdit.open}
+      mode={coachEdit.mode}
+      onOpenChange={coachEdit.handleOpenChange}
+      values={coachEdit.values}
+      onFieldChange={coachEdit.updateField}
+      valid={coachEdit.valid}
+      onConfirm={coachEdit.confirm}
+    />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { players } from "@/lib/players-data";
 import type { Activity } from "@/lib/activities-data";
+import type { Tournament } from "@/lib/tournaments-data";
 
 /** A student who could join an activity: free at its day/time and within its criteria. */
 export interface EnrollmentCandidate {
@@ -27,6 +28,32 @@ export function possibleEnrollments(activity: Activity): EnrollmentCandidate[] {
         p.israeliRating >= activity.fitnessMin &&
         p.israeliRating <= activity.fitnessMax &&
         !p.clubs.includes(activity.name),
+    )
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      age: p.age,
+      grade: p.grade,
+      israeliRating: p.israeliRating,
+      phone: p.phone,
+    }));
+}
+
+/**
+ * Returns the players who could be registered to the given tournament.
+ *
+ * NOTE: placeholder data — it filters the roster by the tournament's rating
+ * range (and drops players already registered) so the table looks plausible.
+ */
+export function possibleTournamentEnrollments(
+  tournament: Tournament,
+): EnrollmentCandidate[] {
+  return players
+    .filter(
+      (p) =>
+        p.israeliRating >= tournament.ratingMin &&
+        p.israeliRating <= tournament.ratingMax &&
+        !p.tournaments.includes(tournament.name),
     )
     .map((p) => ({
       id: p.id,
