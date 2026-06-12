@@ -144,13 +144,13 @@ export function AttendanceActions({ classes }: AttendanceActionsProps) {
                   {classes.map((cls) => (
                     <Label
                       key={cls.id}
-                      className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-indigo-500/10"
+                      className="flex flex-row-reverse items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-indigo-500/10"
                     >
                       <Checkbox
                         checked={!!selected[cls.id]}
                         onCheckedChange={() => toggle(cls.id)}
                       />
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1 text-right">
                         <span className="block truncate font-medium">
                           {cls.name}
                         </span>
