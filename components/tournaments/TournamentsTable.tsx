@@ -16,6 +16,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { TournamentStatusBadge } from "@/components/tournaments/TournamentStatusBadge";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { tournamentActions } from "@/lib/tournament-actions";
@@ -172,6 +173,8 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     menuOpen,
     virtualRef,
     onSelectAction,
+    onRowAction,
+    tournamentEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
@@ -200,6 +203,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
   });
 
   return (
+    <>
     <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
       <div
@@ -244,8 +248,10 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <TournamentActionsMenuContent onSelect={onSelectAction} />
+        <TournamentActionsMenuContent onSelect={onRowAction} />
       )}
     </Popover>
+    <TournamentFormModal addTournament={tournamentEdit} />
+    </>
   );
 }
