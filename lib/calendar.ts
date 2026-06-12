@@ -88,11 +88,14 @@ export function formatMonthTitle(date: Date): string {
   return `${HEBREW_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+/** "6 ביוני" — a single day, no year. */
+export function formatDayShort(date: Date): string {
+  return `${date.getDate()} ב${HEBREW_MONTHS[date.getMonth()]}`;
+}
+
 /** "31 במאי – 6 ביוני" — the selected day range, smallest first. */
 export function formatDayRange(start: Date, end: Date): string {
-  const startLabel = `${start.getDate()} ב${HEBREW_MONTHS[start.getMonth()]}`;
-  const endLabel = `${end.getDate()} ב${HEBREW_MONTHS[end.getMonth()]}`;
-  return `${startLabel} – ${endLabel}`;
+  return `${formatDayShort(start)} – ${formatDayShort(end)}`;
 }
 
 export function formatDayLong(date: Date): string {

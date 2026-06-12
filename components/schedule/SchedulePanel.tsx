@@ -7,6 +7,7 @@ import { MonthNav } from "@/components/schedule/MonthNav";
 import { CategoryFilter } from "@/components/schedule/CategoryFilter";
 import { ScheduleFilters } from "@/components/schedule/ScheduleFilters";
 import { CalendarGrid } from "@/components/schedule/CalendarGrid";
+import { ScheduleAgenda } from "@/components/schedule/ScheduleAgenda";
 import { TimeGridView } from "@/components/schedule/TimeGridView";
 import { useScheduleCalendar } from "@/hooks/schedule/useScheduleCalendar";
 
@@ -34,11 +35,11 @@ export function SchedulePanel() {
 
         <Separator className="bg-foreground/8" />
 
-        <div className="grid gap-5 xl:grid-cols-[12.5rem_minmax(0,1fr)]">
-          {/* Picker column: month nav, calendar, then category filters below it
-              so the time-grid column can use the full height. Nudged toward the
-              right border. */}
-          <div className="-ms-4 space-y-3">
+        <div className="grid gap-5 xl:h-[calc(100vh-12rem)] xl:min-h-0 xl:grid-cols-[12.5rem_minmax(0,1fr)]">
+          {/* Picker column: month nav + mini calendar, with the agenda growing
+              to fill the rest of the column down to the time-grid's bottom.
+              Nudged toward the right border. */}
+          <div className="-ms-4 flex min-h-0 flex-col">
             <div className="space-y-2">
               <MonthNav
                 viewMonth={calendar.viewMonth}
@@ -57,25 +58,36 @@ export function SchedulePanel() {
                 onSelectEnter={calendar.extendSelection}
               />
             </div>
-            <CategoryFilter
-              categories={calendar.categories}
-              hiddenCategories={calendar.hiddenCategories}
-              onToggleCategory={calendar.toggleCategory}
-            />
-            <ScheduleFilters
-              facets={calendar.facets}
-              facetOptions={calendar.facetOptions}
-              facetFilters={calendar.facetFilters}
-              onToggleValue={calendar.toggleFacetValue}
-              onClearFacet={calendar.clearFacet}
-              onClearAll={calendar.clearAllFacets}
-              activeCount={calendar.activeFacetCount}
+            <ScheduleAgenda
+              events={calendar.eventsInRange}
+              today={calendar.today}
+              rangeStart={calendar.rangeStart}
+              rangeEnd={calendar.rangeEnd}
             />
           </div>
 
-          {/* View column: the time-grid now owns the full column height. */}
-          <div>
-            <TimeGridView days={calendar.selectedDays} today={calendar.today} />
+          {/* View column: a horizontal filter toolbar above the time-grid, which
+              fills the rest of the column height. */}
+          <div className="flex min-h-0 flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <CategoryFilter
+                categories={calendar.categories}
+                hiddenCategories={calendar.hiddenCategories}
+                onToggleCategory={calendar.toggleCategory}
+              />
+              <ScheduleFilters
+                facets={calendar.facets}
+                facetOptions={calendar.facetOptions}
+                facetFilters={calendar.facetFilters}
+                onToggleValue={calendar.toggleFacetValue}
+                onClearFacet={calendar.clearFacet}
+                onClearAll={calendar.clearAllFacets}
+                activeCount={calendar.activeFacetCount}
+              />
+            </div>
+            <div className="min-h-0 flex-1">
+              <TimeGridView days={calendar.selectedDays} today={calendar.today} />
+            </div>
           </div>
         </div>
       </CardContent>

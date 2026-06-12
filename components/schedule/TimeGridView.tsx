@@ -25,15 +25,14 @@ interface TimeGridViewProps {
 }
 
 export function TimeGridView({ days, today }: TimeGridViewProps) {
-  const { hours, bodyHeight, scrollRef, gridCols, startHour } = useTimeGrid(
-    days.length,
-  );
+  const { hours, bodyHeight, scrollRef, gridCols, startHour, nowMinutes } =
+    useTimeGrid(days.length);
 
   return (
-    <div className="neu-inset overflow-hidden rounded-2xl">
+    <div className="neu-inset h-full overflow-hidden rounded-2xl">
       <div
         ref={scrollRef}
-        className="players-scroll h-[calc(100vh-12rem)] min-h-96 overflow-y-auto"
+        className="players-scroll h-full min-h-96 overflow-y-auto"
       >
         <div>
           {/* Sticky day header */}
@@ -47,9 +46,19 @@ export function TimeGridView({ days, today }: TimeGridViewProps) {
               return (
                 <div
                   key={day.iso}
-                  className="flex flex-col items-center gap-0.5 border-s border-foreground/8 py-2"
+                  className={cn(
+                    "flex flex-col items-center gap-0.5 border-s border-foreground/8 py-2",
+                    isToday && "bg-primary/4",
+                  )}
                 >
-                  <span className="text-[0.65rem] text-muted-foreground/70">
+                  <span
+                    className={cn(
+                      "text-[0.65rem]",
+                      isToday
+                        ? "font-medium text-primary/80"
+                        : "text-muted-foreground/70",
+                    )}
+                  >
                     {HEBREW_WEEKDAYS_SHORT[day.date.getDay()]}
                   </span>
                   <span
@@ -92,6 +101,8 @@ export function TimeGridView({ days, today }: TimeGridViewProps) {
                 events={day.events}
                 hours={hours}
                 startHour={startHour}
+                isToday={isSameDay(day.date, today)}
+                nowMinutes={nowMinutes}
               />
             ))}
           </div>
@@ -105,25 +116,49 @@ function DayColumnBody({
   events,
   hours,
   startHour,
+  isToday,
+  nowMinutes,
 }: {
   events: ScheduleEvent[];
   hours: number[];
   startHour: number;
+  isToday: boolean;
+  nowMinutes: number;
 }) {
   const positioned = useDayLayout(events);
+  const nowTop = ((nowMinutes - startHour * 60) / 60) * HOUR_HEIGHT;
 
   return (
-    <div className="relative border-s border-foreground/8">
-      {/* Hour gridlines */}
+    <div
+      className={cn(
+        "relative border-s border-foreground/8",
+        isToday && "bg-primary/4",
+      )}
+    >
+      {/* Hour gridlines — full hour solid, half hour as a faint dashed line. */}
       {hours.map((h) => (
         <div
           key={h}
-          className="border-t border-foreground/6"
+          className="relative border-t border-foreground/8"
           style={{ height: HOUR_HEIGHT }}
-        />
+        >
+          <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-foreground/5" />
+        </div>
       ))}
 
-      {/* Event blocks */}
+      {/* Current-time indicator — only on today's column. */}
+      {isToday && (
+        <div
+          className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
+          style={{ top: nowTop }}
+        >
+          <span className="size-1.5 rounded-full bg-rose-500 shadow-sm" />
+          <span className="h-px flex-1 bg-rose-500/70" />
+        </div>
+      )}
+
+      {/* Event blocks — light tinted fill with a coloured accent bar and dark
+          text, for high readability against the neumorphic surface. */}
       {positioned.map(({ event, lane, lanes }) => {
         const meta = CATEGORY_META[event.category];
         const startMin = timeToMinutes(event.start);
@@ -135,26 +170,30 @@ function DayColumnBody({
         return (
           <div
             key={event.id}
-            className="absolute flex flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1.5 text-[0.65rem] leading-tight text-white shadow-sm"
+            className="group/event absolute flex flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
             style={{
               top: top + 1,
               height: height - 2,
               insetInlineStart: `calc(${lane * widthPct}% + 2px)`,
               width: `calc(${widthPct}% - 4px)`,
-              backgroundColor: meta.color,
+              backgroundColor: meta.soft,
+              borderTop: `3px solid ${meta.color}`,
+              borderBottom: `3px solid ${meta.color}`,
             }}
             title={`${event.start}–${event.end} · ${event.title}`}
           >
-            <p className="truncate font-semibold text-white">{event.title}</p>
+            <p className="truncate font-semibold text-foreground">
+              {event.title}
+            </p>
             {/* dir=ltr keeps the range as start–end inside the RTL layout */}
-            <p dir="ltr" className="num text-white/90">
+            <p dir="ltr" className="num text-foreground/70">
               {event.start}–{event.end}
             </p>
             {height > 56 && (
-              <p className="truncate text-white/85">{event.coach}</p>
+              <p className="truncate text-foreground/70">{event.coach}</p>
             )}
             {height > 74 && (
-              <p className="truncate text-white/75">{event.location}</p>
+              <p className="truncate text-foreground/55">{event.location}</p>
             )}
           </div>
         );

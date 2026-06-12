@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { layoutDayEvents, type ScheduleEvent } from "@/lib/schedule-data";
 
 export const HOUR_HEIGHT = 64; // px per hour — taller rows so event boxes breathe
@@ -30,7 +30,20 @@ export function useTimeGrid(dayCount: number) {
   // so every selected day stays visible without horizontal scrolling.
   const gridCols = `${GUTTER} repeat(${dayCount}, minmax(0, 1fr))`;
 
-  return { hours, bodyHeight, scrollRef, gridCols, startHour: START_HOUR };
+  // Current time in minutes-from-midnight, refreshed each minute so the "now"
+  // line drifts down the grid in real time.
+  const [nowMinutes, setNowMinutes] = useState(() => minutesNow());
+  useEffect(() => {
+    const id = setInterval(() => setNowMinutes(minutesNow()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return { hours, bodyHeight, scrollRef, gridCols, startHour: START_HOUR, nowMinutes };
+}
+
+function minutesNow() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
 }
 
 /** Resolves overlapping events in a single day column into positioned lanes. */
