@@ -1,0 +1,62 @@
+import { useCallback, useState } from "react";
+import {
+  EMPTY_ROOM_FORM,
+  isRoomFormValid,
+  type RoomFormValues,
+} from "@/lib/room-form";
+
+/** "add" shows the empty add-room flow; "edit" prefills an existing room. */
+export type RoomModalMode = "add" | "edit";
+
+/**
+ * Owns all state for the "add room" modal. The modal stays presentational and
+ * receives everything from here.
+ */
+export function useAddRoom() {
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<RoomModalMode>("add");
+  const [values, setValues] = useState<RoomFormValues>(EMPTY_ROOM_FORM);
+
+  const valid = isRoomFormValid(values);
+
+  const updateField = useCallback(
+    <K extends keyof RoomFormValues>(field: K, value: RoomFormValues[K]) => {
+      setValues((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
+
+  const openModal = useCallback(() => {
+    setMode("add");
+    setValues(EMPTY_ROOM_FORM);
+    setOpen(true);
+  }, []);
+
+  // Opens the modal in edit mode prefilled with an existing room.
+  const openForEdit = useCallback((next: RoomFormValues) => {
+    setMode("edit");
+    setValues(next);
+    setOpen(true);
+  }, []);
+
+  const handleOpenChange = useCallback((next: boolean) => {
+    setOpen(next);
+  }, []);
+
+  const confirm = useCallback(() => {
+    if (!valid) return;
+    // UI only for now — submitting is wired up elsewhere later.
+  }, [valid]);
+
+  return {
+    open,
+    mode,
+    openModal,
+    openForEdit,
+    handleOpenChange,
+    values,
+    updateField,
+    valid,
+    confirm,
+  };
+}

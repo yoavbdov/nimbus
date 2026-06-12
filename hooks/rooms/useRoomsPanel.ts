@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { rooms as allRooms, filterRooms } from "@/lib/rooms-data";
+import { useMemo } from "react";
+import { rooms as allRooms } from "@/lib/rooms-data";
+import { useRoomsFilter } from "@/hooks/rooms/useRoomsFilter";
 
-/** Owns the rooms search state and derives the filtered list + counts. */
+/** Owns the rooms search + filter state and derives the filtered list + counts. */
 export function useRoomsPanel() {
-  const [search, setSearch] = useState("");
-  const filtered = filterRooms(search);
-
-  return { search, setSearch, filtered, total: allRooms.length };
+  const filter = useRoomsFilter();
+  const filterKey = useMemo(
+    () => JSON.stringify({ search: filter.search, filters: filter.filters }),
+    [filter.search, filter.filters],
+  );
+  return { ...filter, total: allRooms.length, filterKey };
 }

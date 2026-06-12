@@ -30,13 +30,14 @@ function ActionButton({ icon: Icon, label, variant = "ghost", onClick, iconClass
 }
 
 interface RoomsActionsProps {
+  onAddRoom: () => void;
   onCheckAvailability: () => void;
 }
 
-export function RoomsActions({ onCheckAvailability }: RoomsActionsProps) {
+export function RoomsActions({ onAddRoom, onCheckAvailability }: RoomsActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ActionButton icon={DoorOpen} label="הוסף חדר" variant="default" />
+      <ActionButton icon={DoorOpen} label="הוסף חדר" variant="default" onClick={onAddRoom} />
       <ActionButton icon={CalendarCheck2} label="בדוק זמינות" onClick={onCheckAvailability} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />

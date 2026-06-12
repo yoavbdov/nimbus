@@ -7,13 +7,27 @@ import { RoomsActions } from "@/components/rooms/RoomsActions";
 import { RoomsFilterBar } from "@/components/rooms/RoomsFilterBar";
 import { RoomsTable } from "@/components/rooms/RoomsTable";
 import { RoomAvailabilityModal } from "@/components/rooms/RoomAvailabilityModal";
+import { AddRoomModal } from "@/components/rooms/AddRoomModal";
 import { useRoomsPanel } from "@/hooks/rooms/useRoomsPanel";
 import { useRoomAvailabilityCheck } from "@/hooks/rooms/useRoomAvailabilityCheck";
+import { useAddRoom } from "@/hooks/rooms/useAddRoom";
 import { rooms as allRooms } from "@/lib/rooms-data";
 
 export function RoomsPanel() {
-  const { search, setSearch, filtered, total } = useRoomsPanel();
+  const {
+    search,
+    setSearch,
+    filters,
+    addFilter,
+    updateFilter,
+    removeFilter,
+    clearAll,
+    filtered,
+    total,
+    filterKey,
+  } = useRoomsPanel();
   const availability = useRoomAvailabilityCheck(allRooms);
+  const addRoom = useAddRoom();
 
   function handleRoomAction(actionId: string, roomId: string | null) {
     if (actionId === "availability") {
@@ -40,7 +54,10 @@ export function RoomsPanel() {
               {filtered.length} מתוך {total} חדרים
             </p>
           </div>
-          <RoomsActions onCheckAvailability={() => availability.openWith([])} />
+          <RoomsActions
+            onAddRoom={addRoom.openModal}
+            onCheckAvailability={() => availability.openWith([])}
+          />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -48,13 +65,18 @@ export function RoomsPanel() {
         <RoomsFilterBar
           search={search}
           placeholder="חיפוש לפי שם חדר או ציוד…"
+          filters={filters}
           onSearchChange={setSearch}
+          onAdd={addFilter}
+          onUpdate={updateFilter}
+          onRemove={removeFilter}
+          onClearAll={clearAll}
         />
 
         <div className="neu-inset rounded-2xl p-3">
           <AnimatePresence mode="wait">
             <motion.div
-              key={search}
+              key={filterKey}
               initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
@@ -69,6 +91,16 @@ export function RoomsPanel() {
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <AddRoomModal
+        open={addRoom.open}
+        mode={addRoom.mode}
+        onOpenChange={addRoom.handleOpenChange}
+        values={addRoom.values}
+        onFieldChange={addRoom.updateField}
+        valid={addRoom.valid}
+        onConfirm={addRoom.confirm}
+      />
 
       <RoomAvailabilityModal
         open={availability.open}
