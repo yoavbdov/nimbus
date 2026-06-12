@@ -129,7 +129,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
       <StepShell>
         <StepLabel>שדה</StepLabel>
         <Select
-          value={field || undefined}
+          value={field}
           onValueChange={(v) => handleFieldChange(v as FilterField)}
         >
           <SelectTrigger className={triggerClass}>
@@ -164,7 +164,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
         {hasOpStep && field && (
           <StepShell key="op">
             <StepLabel>תנאי</StepLabel>
-            <Select value={op || undefined} onValueChange={handleOpChange}>
+            <Select value={op} onValueChange={handleOpChange}>
               <SelectTrigger className={triggerClass}>
                 <SelectValue placeholder="בחר תנאי" />
               </SelectTrigger>
