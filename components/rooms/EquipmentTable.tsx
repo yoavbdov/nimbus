@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { RowActionsMenuContent, type RowAction } from "@/components/shared/RowActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
@@ -48,16 +48,24 @@ function QuantityPill({ value }: { value: number }) {
 
 interface EquipmentTableProps {
   equipment: Equipment[];
+  onAction?: (actionId: string, equipmentId: string | null) => void;
+  onBulkAction?: (actionId: string, equipmentIds: string[]) => void;
 }
 
-export function EquipmentTable({ equipment }: EquipmentTableProps) {
-  const { open, activeId, virtualRef, openAt, handleOpenChange, onSelect } =
+export function EquipmentTable({ equipment, onAction, onBulkAction }: EquipmentTableProps) {
+  const { open, activeId, virtualRef, openAt, handleOpenChange } =
     useRowActionsMenu();
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: equipment.map((e) => e.id),
     activeId,
-    onAction: onSelect,
+    onAction: (action: RowAction, ids) => onBulkAction?.(action.id, ids),
   });
+
+  function handleSelectAction(action: RowAction) {
+    const equipmentId = activeId;
+    handleOpenChange(false);
+    onAction?.(action.id, equipmentId);
+  }
 
   if (equipment.length === 0) {
     return (
@@ -127,7 +135,7 @@ export function EquipmentTable({ equipment }: EquipmentTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <RowActionsMenuContent actions={equipmentActions} onSelect={onSelect} />
+        <RowActionsMenuContent actions={equipmentActions} onSelect={handleSelectAction} />
       )}
     </Popover>
   );

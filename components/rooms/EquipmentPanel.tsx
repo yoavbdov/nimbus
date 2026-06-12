@@ -6,10 +6,34 @@ import { Separator } from "@/components/ui/separator";
 import { EquipmentActions } from "@/components/rooms/EquipmentActions";
 import { RoomsFilterBar } from "@/components/rooms/RoomsFilterBar";
 import { EquipmentTable } from "@/components/rooms/EquipmentTable";
+import { AddEquipmentModal } from "@/components/rooms/AddEquipmentModal";
+import { EquipmentAvailabilityModal } from "@/components/rooms/EquipmentAvailabilityModal";
+import { EquipmentUsageModal } from "@/components/rooms/EquipmentUsageModal";
 import { useEquipmentPanel } from "@/hooks/rooms/useEquipmentPanel";
+import { useAddEquipment } from "@/hooks/rooms/useAddEquipment";
+import { useEquipmentAvailabilityCheck } from "@/hooks/rooms/useEquipmentAvailabilityCheck";
+import { equipment as allEquipment } from "@/lib/rooms-data";
+import { equipmentFormValuesFor } from "@/lib/equipment-form";
 
 export function EquipmentPanel() {
   const { search, setSearch, filtered, total } = useEquipmentPanel();
+  const addEquipment = useAddEquipment();
+  const availability = useEquipmentAvailabilityCheck(allEquipment);
+
+  function handleEquipmentAction(actionId: string, equipmentId: string | null) {
+    if (actionId === "details") {
+      const item = allEquipment.find((e) => e.id === equipmentId);
+      if (item) addEquipment.openForEdit(equipmentFormValuesFor(item));
+    } else if (actionId === "availability") {
+      availability.openWith(equipmentId ? [equipmentId] : []);
+    }
+  }
+
+  function handleBulkAction(actionId: string, equipmentIds: string[]) {
+    if (actionId === "availability") {
+      availability.openWith(equipmentIds);
+    }
+  }
 
   return (
     <CardContent className="p-6 space-y-5">
@@ -22,7 +46,10 @@ export function EquipmentPanel() {
             {filtered.length} מתוך {total} פריטי ציוד
           </p>
         </div>
-        <EquipmentActions />
+        <EquipmentActions
+          onAddEquipment={addEquipment.openModal}
+          onCheckAvailability={() => availability.openWith([])}
+        />
       </div>
 
       <Separator className="bg-foreground/8" />
@@ -42,10 +69,51 @@ export function EquipmentPanel() {
             exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
-            <EquipmentTable equipment={filtered} />
+            <EquipmentTable
+              equipment={filtered}
+              onAction={handleEquipmentAction}
+              onBulkAction={handleBulkAction}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <AddEquipmentModal
+        open={addEquipment.open}
+        mode={addEquipment.mode}
+        onOpenChange={addEquipment.handleOpenChange}
+        values={addEquipment.values}
+        onFieldChange={addEquipment.updateField}
+        valid={addEquipment.valid}
+        onConfirm={addEquipment.confirm}
+      />
+
+      <EquipmentAvailabilityModal
+        open={availability.open}
+        onOpenChange={availability.handleOpenChange}
+        equipment={allEquipment}
+        selectedIds={availability.selectedIds}
+        onToggleEquipment={availability.toggleEquipment}
+        slot={availability.slot}
+        onSlotChange={availability.updateSlot}
+        slotValid={availability.slotValid}
+        result={availability.result}
+        onConfirm={availability.confirm}
+        checkingAll={availability.checkingAll}
+        pickerOpen={availability.pickerOpen}
+        onPickerOpenChange={availability.setPickerOpen}
+        pickerQuery={availability.pickerQuery}
+        onPickerQueryChange={availability.setPickerQuery}
+        pickerMatches={availability.pickerMatches}
+        container={availability.container}
+        onContainerChange={availability.setContainer}
+        onShowUsage={availability.showUsage}
+      />
+
+      <EquipmentUsageModal
+        usage={availability.usage}
+        onOpenChange={availability.handleUsageOpenChange}
+      />
     </CardContent>
   );
 }
