@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
+  BASIC_FIELD_DEFS,
   FIELD_BY_KEY,
+  FIELD_DEFS,
   getOperator,
   type TournamentFilter,
   type FilterField,
@@ -57,6 +59,10 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
   });
   const [textValue, setTextValue] = useState(initialText);
   const [multiValue, setMultiValue] = useState<string[]>(initialMulti);
+  const initialIsAdvanced = !!initial?.field && !FIELD_BY_KEY[initial.field].basic;
+  const [showAdvanced, setShowAdvanced] = useState(initialIsAdvanced);
+
+  const visibleFields = showAdvanced ? FIELD_DEFS : BASIC_FIELD_DEFS;
 
   function handleFieldChange(next: FilterField) {
     setField(next);
@@ -100,6 +106,9 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
     op,
     textValue,
     multiValue,
+    visibleFields,
+    showAdvanced,
+    toggleAdvanced: () => setShowAdvanced((v) => !v),
     fieldDef,
     opDef,
     mode,

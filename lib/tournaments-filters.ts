@@ -35,6 +35,7 @@ export interface FieldDef {
   label: string;
   operators: OperatorDef[];
   options?: string[];
+  basic?: boolean;
 }
 
 export interface TournamentFilter {
@@ -63,6 +64,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
     label: "שם תחרות",
+    basic: true,
     operators: [
       { op: "equals", label: "שווה ל", valueMode: "text" },
       { op: "contains", label: "מכיל בתוכו", valueMode: "text" },
@@ -71,12 +73,14 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "judge",
     label: "שופט",
+    basic: true,
     options: allTournamentJudges,
     operators: enumOps,
   },
   {
     field: "status",
     label: "סטטוס",
+    basic: true,
     options: allTournamentStatuses,
     operators: enumOps,
   },
@@ -84,6 +88,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "days",
     label: "ימי פעילות",
+    basic: true,
     options: [...ACTIVITY_DAYS],
     operators: [
       { op: "any", label: "מתקיים באחד הימים", valueMode: "multi-enum" },
@@ -92,7 +97,7 @@ export const FIELD_DEFS: FieldDef[] = [
       { op: "is", label: "מתקיים ביום", valueMode: "single-enum" },
     ],
   },
-  { field: "participants", label: "משתתפים", operators: numericOps },
+  { field: "participants", label: "משתתפים", basic: true, operators: numericOps },
   { field: "ratingMin", label: "דירוג מינימלי", operators: numericOps },
   { field: "ratingMax", label: "דירוג מקסימלי", operators: numericOps },
   {
@@ -102,6 +107,8 @@ export const FIELD_DEFS: FieldDef[] = [
     operators: enumOps,
   },
 ];
+
+export const BASIC_FIELD_DEFS: FieldDef[] = FIELD_DEFS.filter((f) => f.basic);
 
 export const FIELD_BY_KEY: Record<FilterField, FieldDef> = Object.fromEntries(
   FIELD_DEFS.map((f) => [f.field, f]),

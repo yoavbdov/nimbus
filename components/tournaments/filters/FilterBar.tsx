@@ -56,8 +56,7 @@ export function FilterBar({
           aria-pressed={todayOnly}
           className={cn(
             "group/btn relative overflow-hidden tint-indigo h-9 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
-            todayOnly &&
-              "bg-(--tint-soft) text-foreground ring-1 ring-[color-mix(in_oklab,var(--tint)_35%,transparent)]",
+            todayOnly && "tint-glow bg-(--tint-soft) text-foreground",
           )}
         >
           <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
