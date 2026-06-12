@@ -138,7 +138,7 @@ export function DeleteCoachModal({
           </motion.div>
         </motion.div>
 
-        <DialogFooter className="gap-2 sm:justify-start">
+        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
           <Button
             type="button"
             variant="destructive"

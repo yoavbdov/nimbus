@@ -6,10 +6,26 @@ import { Separator } from "@/components/ui/separator";
 import { RoomsActions } from "@/components/rooms/RoomsActions";
 import { RoomsFilterBar } from "@/components/rooms/RoomsFilterBar";
 import { RoomsTable } from "@/components/rooms/RoomsTable";
+import { RoomAvailabilityModal } from "@/components/rooms/RoomAvailabilityModal";
 import { useRoomsPanel } from "@/hooks/rooms/useRoomsPanel";
+import { useRoomAvailabilityCheck } from "@/hooks/rooms/useRoomAvailabilityCheck";
+import { rooms as allRooms } from "@/lib/rooms-data";
 
 export function RoomsPanel() {
   const { search, setSearch, filtered, total } = useRoomsPanel();
+  const availability = useRoomAvailabilityCheck(allRooms);
+
+  function handleRoomAction(actionId: string, roomId: string | null) {
+    if (actionId === "availability") {
+      availability.openWith(roomId ? [roomId] : []);
+    }
+  }
+
+  function handleBulkAction(actionId: string, roomIds: string[]) {
+    if (actionId === "availability") {
+      availability.openWith(roomIds);
+    }
+  }
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -24,7 +40,7 @@ export function RoomsPanel() {
               {filtered.length} מתוך {total} חדרים
             </p>
           </div>
-          <RoomsActions />
+          <RoomsActions onCheckAvailability={() => availability.openWith([])} />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -44,11 +60,36 @@ export function RoomsPanel() {
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <RoomsTable rooms={filtered} />
+              <RoomsTable
+                rooms={filtered}
+                onAction={handleRoomAction}
+                onBulkAction={handleBulkAction}
+              />
             </motion.div>
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <RoomAvailabilityModal
+        open={availability.open}
+        onOpenChange={availability.handleOpenChange}
+        rooms={allRooms}
+        selectedIds={availability.selectedIds}
+        onToggleRoom={availability.toggleRoom}
+        slot={availability.slot}
+        onSlotChange={availability.updateSlot}
+        slotValid={availability.slotValid}
+        result={availability.result}
+        onConfirm={availability.confirm}
+        checkingAll={availability.checkingAll}
+        pickerOpen={availability.pickerOpen}
+        onPickerOpenChange={availability.setPickerOpen}
+        pickerQuery={availability.pickerQuery}
+        onPickerQueryChange={availability.setPickerQuery}
+        pickerMatches={availability.pickerMatches}
+        container={availability.container}
+        onContainerChange={availability.setContainer}
+      />
     </Card>
   );
 }

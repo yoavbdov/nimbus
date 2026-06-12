@@ -1,4 +1,4 @@
-import { DoorOpen, FileDown, FileUp } from "lucide-react";
+import { CalendarCheck2, DoorOpen, FileDown, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -6,13 +6,15 @@ interface ActionButtonProps {
   icon: React.ElementType;
   label: string;
   variant?: "default" | "ghost";
+  onClick?: () => void;
   iconClassName?: string;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", onClick, iconClassName }: ActionButtonProps) {
   return (
     <Button
       type="button"
+      onClick={onClick}
       variant={variant}
       className={cn(
         "group/btn relative overflow-hidden tint-indigo",
@@ -27,10 +29,15 @@ function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: A
   );
 }
 
-export function RoomsActions() {
+interface RoomsActionsProps {
+  onCheckAvailability: () => void;
+}
+
+export function RoomsActions({ onCheckAvailability }: RoomsActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ActionButton icon={DoorOpen} label="הוסף חדר" variant="default" />
+      <ActionButton icon={CalendarCheck2} label="בדוק זמינות" onClick={onCheckAvailability} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>

@@ -382,7 +382,7 @@ function PlayerPickerDialog({
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:justify-start">
+        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
           <Button
             type="button"
             disabled={checkedIds.length === 0}
@@ -1233,7 +1233,7 @@ export function AddTournamentModal({
           </div>
         </Tabs>
 
-        <DialogFooter className="gap-2 sm:justify-start">
+        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
           <Button
             type="button"
             disabled={!valid}

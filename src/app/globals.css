@@ -444,4 +444,25 @@
     background: color-mix(in oklch, var(--primary) 90%, transparent);
     background-clip: padding-box;
   }
+  /* Native date/time inputs render their value in an internal webkit element
+     that text-align can't reach. Make the input a flex container so the value
+     block is centred, and centre the picker indicator's surrounding space. */
+  .native-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .native-center::-webkit-datetime-edit {
+    text-align: center;
+  }
+  /* Same idea, but pin the value to the right. The native control forces its
+     own content to LTR, so flex-end (not flex-start) is the right edge. */
+  .native-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .native-right::-webkit-datetime-edit {
+    text-align: right;
+  }
 }

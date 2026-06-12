@@ -70,7 +70,7 @@ function DialogContent({
             <Button
               variant="ghost"
               size="icon-sm"
-              className="absolute top-3 left-3"
+              className="absolute top-3 right-3"
             >
               <XIcon />
               <span className="sr-only">סגור</span>
@@ -86,7 +86,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-1 text-center sm:text-start", className)}
+      className={cn("flex flex-col items-center gap-1 text-center", className)}
       {...props}
     />
   )

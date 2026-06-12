@@ -525,7 +525,7 @@ export function AddPlayerModal({
           </div>
         </Tabs>
 
-        <DialogFooter className="gap-2 sm:justify-start">
+        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
           <Button
             type="button"
             disabled={!valid}

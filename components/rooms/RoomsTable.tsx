@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
+import { RowActionsMenuContent, type RowAction } from "@/components/shared/RowActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
@@ -66,16 +66,24 @@ function CapacityPill({ value }: { value: number }) {
 
 interface RoomsTableProps {
   rooms: Room[];
+  onAction?: (actionId: string, roomId: string | null) => void;
+  onBulkAction?: (actionId: string, roomIds: string[]) => void;
 }
 
-export function RoomsTable({ rooms }: RoomsTableProps) {
-  const { open, activeId, virtualRef, openAt, handleOpenChange, onSelect } =
+export function RoomsTable({ rooms, onAction, onBulkAction }: RoomsTableProps) {
+  const { open, activeId, virtualRef, openAt, handleOpenChange } =
     useRowActionsMenu();
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: rooms.map((r) => r.id),
     activeId,
-    onAction: onSelect,
+    onAction: (action: RowAction, ids) => onBulkAction?.(action.id, ids),
   });
+
+  function handleSelectAction(action: RowAction) {
+    const roomId = activeId;
+    handleOpenChange(false);
+    onAction?.(action.id, roomId);
+  }
 
   if (rooms.length === 0) {
     return (
@@ -145,7 +153,7 @@ export function RoomsTable({ rooms }: RoomsTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <RowActionsMenuContent actions={roomActions} onSelect={onSelect} />
+        <RowActionsMenuContent actions={roomActions} onSelect={handleSelectAction} />
       )}
     </Popover>
   );

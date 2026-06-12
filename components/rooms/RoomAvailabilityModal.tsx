@@ -21,11 +21,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type {
-  AvailabilitySlot,
-  CoachAvailability,
-} from "@/lib/coach-availability";
-import type { Coach } from "@/lib/coaches-data";
+import type { RoomAvailability, RoomSlot } from "@/lib/room-availability";
+import type { Room } from "@/lib/rooms-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -36,16 +33,11 @@ const bodyVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.32, ease },
-  },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.32, ease } },
 };
 
-interface CoachMultiSelectProps {
-  matches: Coach[];
+interface RoomMultiSelectProps {
+  matches: Room[];
   selectedIds: string[];
   onToggle: (id: string) => void;
   open: boolean;
@@ -55,7 +47,7 @@ interface CoachMultiSelectProps {
   container: HTMLElement | null;
 }
 
-function CoachMultiSelect({
+function RoomMultiSelect({
   matches,
   selectedIds,
   onToggle,
@@ -64,18 +56,18 @@ function CoachMultiSelect({
   query,
   onQueryChange,
   container,
-}: CoachMultiSelectProps) {
+}: RoomMultiSelectProps) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
           variant="ghost"
-          className="h-9 w-full justify-center rounded-xl px-3 text-sm font-normal neu-raised-xs neu-interactive"
+          className="h-8 w-full justify-center rounded-xl px-3 text-sm font-normal neu-raised-xs neu-interactive"
         >
           <span className="flex items-center gap-2 text-foreground/80">
             <Plus className="size-4 text-primary/70" />
-            הוסף מדריך
+            הוסף חדר
           </span>
         </Button>
       </PopoverTrigger>
@@ -93,24 +85,24 @@ function CoachMultiSelect({
           autoFocus
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="חיפוש מדריך…"
+          placeholder="חיפוש חדר…"
           className="h-8 shrink-0 rounded-lg"
         />
         <div className="players-scroll min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-0.5 pe-1">
             {matches.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-                לא נמצאו מדריכים
+                לא נמצאו חדרים
               </p>
             ) : (
-              matches.map((c) => {
-                const checked = selectedIds.includes(c.id);
+              matches.map((r) => {
+                const checked = selectedIds.includes(r.id);
                 return (
                   <Button
-                    key={c.id}
+                    key={r.id}
                     type="button"
                     variant="ghost"
-                    onClick={() => onToggle(c.id)}
+                    onClick={() => onToggle(r.id)}
                     className={cn(
                       "h-auto w-full justify-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
                       checked
@@ -118,7 +110,7 @@ function CoachMultiSelect({
                         : "font-normal text-foreground/80 hover:bg-primary/30 hover:text-foreground dark:hover:bg-primary/40",
                     )}
                   >
-                    <span className="flex-1 text-center">{c.name}</span>
+                    <span className="flex-1 text-center">{r.name}</span>
                     {checked && <Check className="size-4 text-primary" />}
                   </Button>
                 );
@@ -131,33 +123,33 @@ function CoachMultiSelect({
   );
 }
 
-interface AvailabilityModalProps {
+interface RoomAvailabilityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  coaches: Coach[];
+  rooms: Room[];
   selectedIds: string[];
-  onToggleCoach: (id: string) => void;
-  slot: AvailabilitySlot;
-  onSlotChange: (patch: Partial<AvailabilitySlot>) => void;
+  onToggleRoom: (id: string) => void;
+  slot: RoomSlot;
+  onSlotChange: (patch: Partial<RoomSlot>) => void;
   slotValid: boolean;
-  result: CoachAvailability[] | null;
+  result: RoomAvailability[] | null;
   onConfirm: () => void;
   checkingAll: boolean;
   pickerOpen: boolean;
   onPickerOpenChange: (open: boolean) => void;
   pickerQuery: string;
   onPickerQueryChange: (value: string) => void;
-  pickerMatches: Coach[];
+  pickerMatches: Room[];
   container: HTMLElement | null;
   onContainerChange: (el: HTMLElement | null) => void;
 }
 
-export function AvailabilityModal({
+export function RoomAvailabilityModal({
   open,
   onOpenChange,
-  coaches,
+  rooms,
   selectedIds,
-  onToggleCoach,
+  onToggleRoom,
   slot,
   onSlotChange,
   slotValid,
@@ -171,18 +163,18 @@ export function AvailabilityModal({
   pickerMatches,
   container,
   onContainerChange,
-}: AvailabilityModalProps) {
-  const selected = coaches.filter((c) => selectedIds.includes(c.id));
+}: RoomAvailabilityModalProps) {
+  const selected = rooms.filter((r) => selectedIds.includes(r.id));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Portal the coach dropdown into the dialog so wheel-scroll isn't blocked
+      {/* Portal the room dropdown into the dialog so wheel-scroll isn't blocked
           by the dialog's scroll lock (which only allows scrolling inside itself). */}
       <DialogContent ref={onContainerChange} dir="rtl" className="max-w-md">
         <DialogHeader>
           <DialogTitle>בדיקת זמינות</DialogTitle>
           <DialogDescription>
-            בחרו מדריכים וטווח זמן כדי לבדוק מי פנוי.
+            בחרו חדרים וטווח זמן כדי לבדוק מה פנוי.
           </DialogDescription>
         </DialogHeader>
 
@@ -195,19 +187,19 @@ export function AvailabilityModal({
           <motion.div variants={itemVariants} className="space-y-1.5">
             {selected.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {selected.map((c) => (
+                {selected.map((r) => (
                   <Badge
-                    key={c.id}
+                    key={r.id}
                     variant="secondary"
                     className="gap-1 rounded-full bg-primary/15 py-1 ps-2.5 pe-1 text-foreground"
                   >
-                    <span className="text-center">{c.name}</span>
+                    <span className="text-center">{r.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => onToggleCoach(c.id)}
-                      aria-label={`הסר ${c.name}`}
+                      onClick={() => onToggleRoom(r.id)}
+                      aria-label={`הסר ${r.name}`}
                       className="size-auto rounded-full p-0.5 hover:bg-foreground/10"
                     >
                       <X className="size-3" />
@@ -218,11 +210,11 @@ export function AvailabilityModal({
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>מדריכים</Label>
-                <CoachMultiSelect
+                <Label>חדרים</Label>
+                <RoomMultiSelect
                   matches={pickerMatches}
                   selectedIds={selectedIds}
-                  onToggle={onToggleCoach}
+                  onToggle={onToggleRoom}
                   open={pickerOpen}
                   onOpenChange={onPickerOpenChange}
                   query={pickerQuery}
@@ -231,9 +223,9 @@ export function AvailabilityModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="coach-availability-date">תאריך</Label>
+                <Label htmlFor="room-availability-date">תאריך</Label>
                 <Input
-                  id="coach-availability-date"
+                  id="room-availability-date"
                   type="date"
                   value={slot.date}
                   onChange={(e) => onSlotChange({ date: e.target.value })}
@@ -243,19 +235,16 @@ export function AvailabilityModal({
             </div>
             {checkingAll && (
               <p className="text-xs text-muted-foreground">
-                לא נבחרו מדריכים — נציג מי מכלל המדריכים פנוי בטווח שנבחר.
+                לא נבחרו חדרים — נציג אילו חדרים פנויים בטווח שנבחר.
               </p>
             )}
           </motion.div>
 
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-2 gap-3"
-          >
+          <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="coach-availability-start">שעת התחלה</Label>
+              <Label htmlFor="room-availability-start">שעת התחלה</Label>
               <Input
-                id="coach-availability-start"
+                id="room-availability-start"
                 type="time"
                 value={slot.startTime}
                 onChange={(e) => onSlotChange({ startTime: e.target.value })}
@@ -263,9 +252,9 @@ export function AvailabilityModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="coach-availability-end">שעת סיום</Label>
+              <Label htmlFor="room-availability-end">שעת סיום</Label>
               <Input
-                id="coach-availability-end"
+                id="room-availability-end"
                 type="time"
                 value={slot.endTime}
                 onChange={(e) => onSlotChange({ endTime: e.target.value })}
@@ -277,7 +266,7 @@ export function AvailabilityModal({
           <AnimatePresence initial={false}>
             {result && (
               <motion.div
-                key="availability-result"
+                key="room-availability-result"
                 initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
                 animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
                 exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
@@ -285,7 +274,7 @@ export function AvailabilityModal({
                 className="space-y-4 overflow-hidden"
               >
                 <Separator className="bg-foreground/10" />
-                <AvailabilityResult result={result} checkingAll={checkingAll} />
+                <RoomAvailabilityResult result={result} checkingAll={checkingAll} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -342,11 +331,11 @@ export function AvailabilityModal({
   );
 }
 
-function AvailabilityResult({
+function RoomAvailabilityResult({
   result,
   checkingAll,
 }: {
-  result: CoachAvailability[];
+  result: RoomAvailability[];
   checkingAll: boolean;
 }) {
   const rows = checkingAll ? result.filter((r) => r.available) : result;
@@ -356,12 +345,12 @@ function AvailabilityResult({
     <div className="space-y-2">
       <p className="text-xs font-medium text-foreground/70">
         {checkingAll
-          ? `${freeCount} מדריכים פנויים בטווח שנבחר`
+          ? `${freeCount} חדרים פנויים בטווח שנבחר`
           : `${freeCount} מתוך ${result.length} פנויים`}
       </p>
       {rows.length === 0 ? (
         <p className="py-2 text-center text-xs text-muted-foreground">
-          אין מדריכים פנויים בטווח שנבחר
+          אין חדרים פנויים בטווח שנבחר
         </p>
       ) : (
         <div className="players-scroll max-h-40 overflow-y-auto">
@@ -373,7 +362,7 @@ function AvailabilityResult({
           >
             {rows.map((r) => (
               <motion.li
-                key={r.coachId}
+                key={r.roomId}
                 variants={itemVariants}
                 className="flex items-center justify-between gap-2 rounded-lg bg-foreground/5 px-3 py-2 text-sm"
               >

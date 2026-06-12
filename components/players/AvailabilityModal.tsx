@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, CircleCheck, CircleX, FileDown, Plus, X } from "lucide-react";
+import { Check, CircleCheck, CircleX, FileDown, Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,12 @@ const bodyVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.32, ease } },
+  show: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.32, ease },
+  },
 };
 
 interface PlayerMultiSelectProps {
@@ -63,13 +68,12 @@ function PlayerMultiSelect({
         <Button
           type="button"
           variant="ghost"
-          className="h-9 w-full justify-between rounded-xl px-3 text-sm font-normal neu-raised-xs neu-interactive"
+          className="h-9 w-full justify-center rounded-xl px-3 text-sm font-normal neu-raised-xs neu-interactive"
         >
           <span className="flex items-center gap-2 text-foreground/80">
             <Plus className="size-4 text-primary/70" />
             הוסף שחקן
           </span>
-          <ChevronDown className="size-4 text-foreground/50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -87,7 +91,7 @@ function PlayerMultiSelect({
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="חיפוש שחקן…"
-          className="h-8 shrink-0 rounded-lg"
+          className="h-9 shrink-0 rounded-lg"
         />
         <div className="players-scroll min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-0.5 pe-1">
@@ -105,13 +109,13 @@ function PlayerMultiSelect({
                     variant="ghost"
                     onClick={() => onToggle(p.id)}
                     className={cn(
-                      "h-auto w-full justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                      "h-auto w-full justify-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
                       checked
                         ? "bg-primary/20 font-medium text-primary hover:bg-primary/35 hover:text-primary dark:hover:bg-primary/45"
                         : "font-normal text-foreground/80 hover:bg-primary/30 hover:text-foreground dark:hover:bg-primary/40",
                     )}
                   >
-                    <span className="text-start">{p.name}</span>
+                    <span className="flex-1 text-center">{p.name}</span>
                     {checked && <Check className="size-4 text-primary" />}
                   </Button>
                 );
@@ -186,7 +190,6 @@ export function AvailabilityModal({
           animate="show"
         >
           <motion.div variants={itemVariants} className="space-y-1.5">
-            <Label>שחקנים</Label>
             {selected.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {selected.map((p) => (
@@ -195,7 +198,7 @@ export function AvailabilityModal({
                     variant="secondary"
                     className="gap-1 rounded-full bg-primary/15 py-1 ps-2.5 pe-1 text-foreground"
                   >
-                    {p.name}
+                    <span className="text-center">{p.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -210,16 +213,31 @@ export function AvailabilityModal({
                 ))}
               </div>
             )}
-            <PlayerMultiSelect
-              matches={pickerMatches}
-              selectedIds={selectedIds}
-              onToggle={onTogglePlayer}
-              open={pickerOpen}
-              onOpenChange={onPickerOpenChange}
-              query={pickerQuery}
-              onQueryChange={onPickerQueryChange}
-              container={container}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>שחקנים</Label>
+                <PlayerMultiSelect
+                  matches={pickerMatches}
+                  selectedIds={selectedIds}
+                  onToggle={onTogglePlayer}
+                  open={pickerOpen}
+                  onOpenChange={onPickerOpenChange}
+                  query={pickerQuery}
+                  onQueryChange={onPickerQueryChange}
+                  container={container}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="availability-date">תאריך</Label>
+                <Input
+                  id="availability-date"
+                  type="date"
+                  value={slot.date}
+                  onChange={(e) => onSlotChange({ date: e.target.value })}
+                  className="h-8 rounded-xl text-center native-center"
+                />
+              </div>
+            </div>
             {checkingAll && (
               <p className="text-xs text-muted-foreground">
                 לא נבחרו שחקנים — נציג מי מכלל השחקנים פנוי בטווח שנבחר.
@@ -227,18 +245,10 @@ export function AvailabilityModal({
             )}
           </motion.div>
 
-          <motion.div variants={itemVariants} className="space-y-1.5">
-            <Label htmlFor="availability-date">תאריך</Label>
-            <Input
-              id="availability-date"
-              type="date"
-              value={slot.date}
-              onChange={(e) => onSlotChange({ date: e.target.value })}
-              className="h-9 rounded-xl"
-            />
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-2 gap-3"
+          >
             <div className="space-y-1.5">
               <Label htmlFor="availability-start">שעת התחלה</Label>
               <Input
@@ -246,7 +256,7 @@ export function AvailabilityModal({
                 type="time"
                 value={slot.startTime}
                 onChange={(e) => onSlotChange({ startTime: e.target.value })}
-                className="h-9 rounded-xl"
+                className="h-8 w-28 mx-auto rounded-xl native-right"
               />
             </div>
             <div className="space-y-1.5">
@@ -256,7 +266,7 @@ export function AvailabilityModal({
                 type="time"
                 value={slot.endTime}
                 onChange={(e) => onSlotChange({ endTime: e.target.value })}
-                className="h-9 rounded-xl"
+                className="h-8 w-28 mx-auto rounded-xl native-right"
               />
             </div>
           </motion.div>
@@ -313,7 +323,7 @@ export function AvailabilityModal({
                   variant="ghost"
                   className={cn(
                     "group/btn relative overflow-hidden tint-indigo",
-                    "h-9 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
+                    "h-8 rounded-xl gap-1.5 px-3.5 text-xs font-medium neu-raised-xs neu-interactive",
                   )}
                 >
                   <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
