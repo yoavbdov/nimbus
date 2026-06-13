@@ -51,7 +51,7 @@ const navSections = [
     label: "מערכת",
     items: [
       { href: "/settings", label: "הגדרות", icon: Settings },
-      { href: "/support", label: "תמיכה", icon: LifeBuoy },
+      { href: "/support", label: "תמיכה ויצירת קשר", icon: LifeBuoy },
     ],
   },
 ];
