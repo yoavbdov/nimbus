@@ -13,6 +13,7 @@ import {
   ClipboardCheck,
   Swords,
   Settings,
+  LifeBuoy,
   LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,7 +49,10 @@ const navSections = [
   },
   {
     label: "מערכת",
-    items: [{ href: "/settings", label: "הגדרות", icon: Settings }],
+    items: [
+      { href: "/settings", label: "הגדרות", icon: Settings },
+      { href: "/support", label: "תמיכה", icon: LifeBuoy },
+    ],
   },
 ];
 
