@@ -69,7 +69,8 @@ export function SchedulePanel() {
           {/* View column: a horizontal filter toolbar above the time-grid, which
               fills the rest of the column height. */}
           <div className="flex min-h-0 flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="space-y-2">
+              {/* Category legend on its own row, above the facet filters. */}
               <CategoryFilter
                 categories={calendar.categories}
                 hiddenCategories={calendar.hiddenCategories}
@@ -81,8 +82,8 @@ export function SchedulePanel() {
                 facetFilters={calendar.facetFilters}
                 onToggleValue={calendar.toggleFacetValue}
                 onClearFacet={calendar.clearFacet}
-                onClearAll={calendar.clearAllFacets}
-                activeCount={calendar.activeFacetCount}
+                onClearAll={calendar.clearAllFilters}
+                activeCount={calendar.activeFilterCount}
               />
             </div>
             <div className="min-h-0 flex-1">

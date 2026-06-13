@@ -154,6 +154,8 @@ export function PlayersPanel() {
       />
 
       <AddPlayerModal
+        // Remount on each open so the tab always starts on "מידע אישי".
+        key={addPlayer.open ? "open" : "closed"}
         open={addPlayer.open}
         mode={addPlayer.mode}
         onOpenChange={addPlayer.handleOpenChange}

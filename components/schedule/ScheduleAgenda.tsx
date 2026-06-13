@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import {
   fromISODate,
   formatDayLong,
@@ -65,11 +66,18 @@ export function ScheduleAgenda({
               </p>
 
               <ul className="space-y-1">
-                {group.items.map((event) => {
+                {group.items.map((event, i) => {
                   const meta = CATEGORY_META[event.category];
                   return (
-                    <li
+                    <motion.li
                       key={event.id}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        duration: 0.25,
+                        delay: Math.min(i * 0.04, 0.4),
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
                       className="flex items-center gap-2 text-xs"
                     >
                       <span
@@ -85,7 +93,7 @@ export function ScheduleAgenda({
                       <span className="truncate text-foreground/85">
                         {event.title}
                       </span>
-                    </li>
+                    </motion.li>
                   );
                 })}
               </ul>

@@ -162,6 +162,13 @@ export function useScheduleCalendar() {
 
   const clearAllFacets = useCallback(() => setFacetFilters(emptyFacetState()), []);
 
+  // "Clear all" from the toolbar resets every filter — both the facet
+  // selections and the hidden categories (חוג / תחרות / אירוע / ליגה).
+  const clearAllFilters = useCallback(() => {
+    setFacetFilters(emptyFacetState());
+    setHiddenCategories(new Set());
+  }, []);
+
   // ── Derived event sets ────────────────────────────────────────────
   const visibleEvents = useMemo(
     () =>
@@ -179,6 +186,10 @@ export function useScheduleCalendar() {
     () => FACET_KEYS.reduce((sum, key) => sum + facetFilters[key].size, 0),
     [facetFilters],
   );
+
+  // Total active filters across facets + hidden categories — drives the
+  // "clear all" control so it appears whenever anything is filtered.
+  const activeFilterCount = activeFacetCount + hiddenCategories.size;
 
   // Events grouped per day for fast lookup.
   const eventsByDay = useMemo(() => {
@@ -244,7 +255,9 @@ export function useScheduleCalendar() {
     toggleFacetValue,
     clearFacet,
     clearAllFacets,
+    clearAllFilters,
     activeFacetCount,
+    activeFilterCount,
     eventsByDay,
     eventsInRange,
     selectedDays,

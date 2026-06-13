@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -106,34 +105,49 @@ function FacetDropdown({
         align="start"
         sideOffset={8}
         dir="rtl"
-        className="w-60 rounded-2xl p-0 bg-popover ring-1 ring-foreground/15 shadow-depth-xl"
+        className="w-64 overflow-hidden rounded-2xl p-0 bg-popover/95 backdrop-blur-xl ring-1 ring-foreground/10 shadow-depth-xl"
       >
-        {/* Search */}
-        <div className="flex items-center gap-2 border-b border-foreground/8 px-3 py-2">
-          <Search className="size-3.5 text-muted-foreground/60" />
-          <Input
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`חיפוש ${label}…`}
-            className="h-7 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0"
-          />
+        {/* Header: centered facet label + live count, with clear pinned to the side */}
+        <div className="relative flex items-center justify-center border-b border-foreground/8 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold tint-text">{label}</span>
+            {count > 0 && (
+              <span className="num flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[0.65rem] font-semibold text-primary-foreground">
+                {count}
+              </span>
+            )}
+          </div>
           {count > 0 && (
             <Button
               type="button"
               variant="ghost"
               onClick={onClear}
-              className="h-auto p-0 text-[0.65rem] text-muted-foreground/70 hover:bg-transparent hover:text-foreground"
+              className="absolute inset-s-2 h-auto gap-1 p-0 text-[0.7rem] text-muted-foreground/70 hover:bg-transparent hover:text-foreground"
             >
+              <X className="size-3" />
               נקה
             </Button>
           )}
         </div>
 
+        {/* Search */}
+        <div className="px-2.5 pt-2.5">
+          <div className="flex items-center gap-2 rounded-xl bg-foreground/5 px-2.5 py-1.5 ring-1 ring-transparent focus-within:ring-primary/30 focus-within:bg-foreground/8 transition-colors">
+            <Search className="size-3.5 shrink-0 text-muted-foreground/60" />
+            <Input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`חיפוש ${label}…`}
+              className="h-5 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+            />
+          </div>
+        </div>
+
         {/* Options */}
-        <div className="max-h-64 overflow-y-auto players-scroll p-1.5">
+        <div className="players-scroll max-h-64 overflow-y-auto p-1.5">
           {filtered.length === 0 ? (
-            <p className="px-2 py-4 text-center text-xs text-muted-foreground/60">
+            <p className="px-2 py-6 text-center text-xs text-muted-foreground/60">
               אין תוצאות
             </p>
           ) : (
@@ -146,17 +160,22 @@ function FacetDropdown({
                   aria-selected={checked}
                   onClick={() => onToggle(option)}
                   className={cn(
-                    "flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-start text-xs transition-colors",
+                    "group/opt flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-start text-sm transition-colors",
                     checked
-                      ? "bg-primary/10 text-foreground"
-                      : "hover:bg-foreground/5 text-foreground/80",
+                      ? "bg-primary/10 font-medium text-foreground"
+                      : "text-foreground/75 hover:bg-foreground/5",
                   )}
                 >
-                  <Checkbox
-                    checked={checked}
-                    className="pointer-events-none"
-                    tabIndex={-1}
-                  />
+                  <span
+                    className={cn(
+                      "flex size-4 shrink-0 items-center justify-center rounded-md border transition-colors",
+                      checked
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-foreground/25 group-hover/opt:border-foreground/40",
+                    )}
+                  >
+                    {checked && <Check className="size-3" strokeWidth={3} />}
+                  </span>
                   <span className="truncate">{option}</span>
                 </div>
               );

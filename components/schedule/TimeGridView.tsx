@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { HEBREW_WEEKDAYS_SHORT, isSameDay } from "@/lib/calendar";
 import {
   CATEGORY_META,
@@ -159,7 +160,7 @@ function DayColumnBody({
 
       {/* Event blocks — light tinted fill with a coloured accent bar and dark
           text, for high readability against the neumorphic surface. */}
-      {positioned.map(({ event, lane, lanes }) => {
+      {positioned.map(({ event, lane, lanes }, i) => {
         const meta = CATEGORY_META[event.category];
         const startMin = timeToMinutes(event.start);
         const endMin = timeToMinutes(event.end);
@@ -168,8 +169,15 @@ function DayColumnBody({
         const widthPct = 100 / lanes;
 
         return (
-          <div
+          <motion.div
             key={event.id}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.25,
+              delay: Math.min(i * 0.03, 0.3),
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className="group/event absolute flex flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
             style={{
               top: top + 1,
@@ -195,7 +203,7 @@ function DayColumnBody({
             {height > 74 && (
               <p className="truncate text-foreground/55">{event.location}</p>
             )}
-          </div>
+          </motion.div>
         );
       })}
     </div>
