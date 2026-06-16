@@ -41,7 +41,7 @@ const navSections = [
     ],
   },
   {
-    label: "אירועים",
+    label: "פעילויות",
     items: [
       { href: "/classes", label: "חוגים", icon: BookOpen },
       { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
@@ -140,9 +140,6 @@ function ToolsNav() {
         sideOffset={12}
         className="w-52 border-0 bg-popover p-2 shadow-depth-xl ring-1 ring-foreground/10"
       >
-        <p className="px-2 pb-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/50">
-          כלים
-        </p>
         <div className="space-y-1" onClick={close}>
           {toolNavItems.map((item) => (
             <NavItem key={item.href} {...item} />

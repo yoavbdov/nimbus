@@ -33,9 +33,17 @@ export const rosterActivities: RosterActivity[] = attendanceClasses.map(
 export interface SavedRoster {
   id: string;
   name: string;
-  sourceName: string;
+  /** Where the list originally came from (only on the pre-made examples). */
+  sourceName?: string;
   players: RosterPlayer[];
 }
+
+/** Every club member, shaped as roster players for the "add from club" picker. */
+export const clubPlayers: RosterPlayer[] = players.map((p) => ({
+  id: p.id,
+  name: p.name,
+  rating: p.israeliRating,
+}));
 
 // ── Example saved rosters ──────────────────────────────────────────
 // Pre-prepared player lists offered when adding people to an activity,

@@ -43,7 +43,7 @@ const navSections = [
     ],
   },
   {
-    label: "אירועים",
+    label: "פעילויות",
     items: [
       { href: "/classes", label: "חוגים", icon: BookOpen },
       { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
@@ -92,7 +92,10 @@ function ToolsNav({ onNavigate }: { onNavigate: () => void }) {
         )}
       >
         <Wrench
-          className={cn("size-4 shrink-0", onToolsRoute && "text-sidebar-primary")}
+          className={cn(
+            "size-4 shrink-0",
+            onToolsRoute && "text-sidebar-primary",
+          )}
         />
         <span>כלים</span>
         <ChevronDown
@@ -114,7 +117,8 @@ function ToolsNav({ onNavigate }: { onNavigate: () => void }) {
           >
             <div className="mt-0.5 ms-3 ps-2 border-s border-sidebar-border space-y-0.5">
               {toolNavItems.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href || pathname.startsWith(href + "/");
+                const active =
+                  pathname === href || pathname.startsWith(href + "/");
                 return (
                   <Link
                     key={href}
@@ -199,9 +203,7 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                     </Link>
                   );
                 })}
-                {section.label === "תפעול" && (
-                  <ToolsNav onNavigate={onClose} />
-                )}
+                {section.label === "תפעול" && <ToolsNav onNavigate={onClose} />}
               </div>
             </div>
           ))}
