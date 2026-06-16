@@ -14,8 +14,13 @@ import {
   Swords,
   Settings,
   LifeBuoy,
+  Wrench,
+  ChevronDown,
   LogOut,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { toolNavItems } from "@/lib/tools-data";
 import {
   Sheet,
   SheetContent,
@@ -65,6 +70,79 @@ const navSections = [
 interface MobileSidebarProps {
   open: boolean;
   onClose: () => void;
+}
+
+/** Expandable "כלים" item for the mobile sheet. */
+function ToolsNav({ onNavigate }: { onNavigate: () => void }) {
+  const pathname = usePathname();
+  const onToolsRoute = pathname.startsWith("/tools");
+  const { open, setOpen } = useDisclosure(onToolsRoute);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className={cn(
+          "flex w-full items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all duration-150",
+          onToolsRoute
+            ? "text-sidebar-primary font-medium"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+        )}
+      >
+        <Wrench
+          className={cn("size-4 shrink-0", onToolsRoute && "text-sidebar-primary")}
+        />
+        <span>כלים</span>
+        <ChevronDown
+          className={cn(
+            "ms-auto size-4 shrink-0 transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-0.5 ms-3 ps-2 border-s border-sidebar-border space-y-0.5">
+              {toolNavItems.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href || pathname.startsWith(href + "/");
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onNavigate}
+                    className={cn(
+                      "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all duration-150",
+                      active
+                        ? "bg-sidebar-primary/20 text-sidebar-primary font-medium"
+                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "size-4 shrink-0",
+                        active ? "text-sidebar-primary" : "",
+                      )}
+                    />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
@@ -121,6 +199,9 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                     </Link>
                   );
                 })}
+                {section.label === "תפעול" && (
+                  <ToolsNav onNavigate={onClose} />
+                )}
               </div>
             </div>
           ))}

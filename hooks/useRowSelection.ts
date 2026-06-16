@@ -4,8 +4,10 @@ import { useCallback, useState } from "react";
  * Manages a set of selected row ids for a table.
  * Keeps selection state out of the presentational table components.
  */
-export function useRowSelection(ids: string[]) {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+export function useRowSelection(ids: string[], initialSelected?: string[]) {
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialSelected),
+  );
 
   const isSelected = useCallback((id: string) => selected.has(id), [selected]);
 

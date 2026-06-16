@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ATTENDANCE_CYCLE,
   attendanceClasses,
@@ -37,6 +37,21 @@ export function useAttendancePanel() {
   const [sessionId, setSessionId] = useState<string>(
     attendanceClasses[0].sessions[0].id,
   );
+
+  // Deep link support: /attendance?class=…&session=… jumps straight to the
+  // missing session (used by the "נוכחות חסרה" tool). Applied once on mount —
+  // a deliberate one-time sync from the URL, not reactive state.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cls = attendanceClasses.find((c) => c.id === params.get("class"));
+    if (!cls) return;
+    const wanted = params.get("session");
+    const session = cls.sessions.find((s) => s.id === wanted);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time URL sync
+    setClassId(cls.id);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time URL sync
+    setSessionId(session ? session.id : cls.sessions[0].id);
+  }, []);
 
   const activeClass = useMemo(
     () => attendanceClasses.find((c) => c.id === classId) ?? attendanceClasses[0],

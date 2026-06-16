@@ -14,9 +14,18 @@ import {
   Swords,
   Settings,
   LifeBuoy,
+  Wrench,
+  ChevronLeft,
   LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { toolNavItems } from "@/lib/tools-data";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +105,54 @@ function NavItem({
   );
 }
 
+/** "כלים" item: opens a flyout panel of tools to the side (not downward). */
+function ToolsNav() {
+  const pathname = usePathname();
+  const onToolsRoute = pathname.startsWith("/tools");
+  const { open, setOpen, close } = useDisclosure();
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex w-full items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200",
+            onToolsRoute || open
+              ? "neu-pressed text-foreground font-medium"
+              : "text-foreground/70 hover:text-foreground hover:neu-raised-xs",
+          )}
+        >
+          <Wrench
+            className={cn(
+              "size-4 shrink-0 transition-colors duration-200",
+              (onToolsRoute || open) && "text-primary",
+            )}
+          />
+          <span>כלים</span>
+          <ChevronLeft className="ms-auto size-4 shrink-0 text-foreground/40" />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent
+        side="left"
+        align="start"
+        sideOffset={12}
+        className="w-52 border-0 bg-popover p-2 shadow-depth-xl ring-1 ring-foreground/10"
+      >
+        <p className="px-2 pb-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/50">
+          כלים
+        </p>
+        <div className="space-y-1" onClick={close}>
+          {toolNavItems.map((item) => (
+            <NavItem key={item.href} {...item} />
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 inset-s-0 z-40 w-56 flex flex-col glass border-none! ring-0 rounded-none shadow-none! bg-primary/12!">
@@ -122,6 +179,7 @@ export function Sidebar() {
               {section.items.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
+              {section.label === "תפעול" && <ToolsNav />}
             </div>
           </div>
         ))}
