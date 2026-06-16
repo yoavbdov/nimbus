@@ -589,7 +589,7 @@ export function AddEventModal({
               {tab === "players" && tabHighlight}
               <span className="relative z-10 flex items-center gap-1.5">
                 <Users className="size-4" />
-                שחקנים
+                משתתפים
               </span>
             </TabsTrigger>
             <TabsTrigger value="equipment" className="relative">
@@ -976,6 +976,18 @@ export function AddEventModal({
         </Tabs>
 
         <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
+          {tab === "players" && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {}}
+              className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
+            >
+              <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+              <FileDown className="size-4 text-[#217346]" />
+              ייצוא לאקסל
+            </Button>
+          )}
           <Button
             type="button"
             disabled={!valid}
@@ -992,18 +1004,6 @@ export function AddEventModal({
           >
             ביטול
           </Button>
-          {tab === "players" && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {}}
-              className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
-            >
-              <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-              <FileDown className="size-4 text-[#217346]" />
-              ייצוא לאקסל
-            </Button>
-          )}
         </DialogFooter>
       </DialogContent>
 
