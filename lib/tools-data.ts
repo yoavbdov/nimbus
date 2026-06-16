@@ -1,6 +1,7 @@
 import {
   Archive,
   ClipboardX,
+  Gauge,
   MessageCircle,
   Users,
   type LucideIcon,
@@ -22,6 +23,7 @@ export const toolNavItems: { href: string; label: string; icon: LucideIcon }[] =
   { href: "/tools/missing-attendance", label: "נוכחות חסרה", icon: ClipboardX },
   { href: "/tools/whatsapp", label: "שליחת וואטסאפ", icon: MessageCircle },
   { href: "/tools/rosters", label: "רשימות שחקנים", icon: Users },
+  { href: "/tools/fitness", label: "עדכון מד כושר", icon: Gauge },
 ];
 
 export const toolCards: ToolCard[] = [
@@ -52,5 +54,12 @@ export const toolCards: ToolCard[] = [
     description:
       "שמירת רשימת שחקנים מפעילות אחת וייצוא או העתקה שלה אל פעילות אחרת.",
     icon: Users,
+  },
+  {
+    href: "/tools/fitness",
+    title: "עדכון מד כושר מרוכז",
+    description:
+      "עדכון מד כושר לכמה שחקנים בבת אחת — ישירות בטבלה או דרך ייצוא וייבוא של קובץ אקסל.",
+    icon: Gauge,
   },
 ];

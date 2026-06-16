@@ -8,16 +8,26 @@ const styles = {
     "bg-rose-500/15 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500/30",
 };
 
-export function RatingUpdatedBadge({ updated }: { updated: boolean }) {
+/**
+ * Shows when the rating was last updated. Green when updated within the last
+ * month, red when over a month has passed.
+ */
+export function RatingUpdatedBadge({
+  updated,
+  date,
+}: {
+  updated: boolean;
+  date: string;
+}) {
   return (
     <Badge
       variant="secondary"
       className={cn(
-        "rounded-full px-2.5 py-0.5 text-[0.7rem] font-medium border-0",
+        "rounded-full px-2.5 py-0.5 text-[0.7rem] font-medium border-0 num",
         updated ? styles.updated : styles.notUpdated,
       )}
     >
-      {updated ? "עודכן" : "לא עודכן"}
+      <span dir="ltr">{date}</span>
     </Badge>
   );
 }

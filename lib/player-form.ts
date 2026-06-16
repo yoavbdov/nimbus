@@ -43,6 +43,8 @@ export interface PlayerFormValues {
   fidePlayerId: string;
   fideRating: string;
   title: ChessTitle | "";
+  /** Read-only — when the rating was last updated (dd.MM.yyyy). "" for new players. */
+  ratingUpdatedAt: string;
 }
 
 export const EMPTY_PLAYER_FORM: PlayerFormValues = {
@@ -61,6 +63,7 @@ export const EMPTY_PLAYER_FORM: PlayerFormValues = {
   fidePlayerId: "",
   fideRating: "",
   title: "",
+  ratingUpdatedAt: "",
 };
 
 const GRADE_LETTERS = [

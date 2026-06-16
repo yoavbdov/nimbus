@@ -58,5 +58,5 @@ export const ratingPlayersAsPlayers: Player[] = ratingPlayers.map((p) => {
     leagueTeam: null,
     status: "פעיל" as const,
   };
-  return { ...base, ...deriveDetails(base) };
+  return { ...base, ...deriveDetails(base), ratingUpdatedAt: "" };
 });

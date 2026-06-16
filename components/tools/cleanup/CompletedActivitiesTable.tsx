@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { CleanupKindBadge } from "@/components/tools/cleanup/CleanupKindBadge";
 import { type CompletedActivity } from "@/lib/cleanup-data";
 import { type RowSelection } from "@/hooks/useRowSelection";
@@ -33,31 +33,16 @@ export function CompletedActivitiesTable({
     <Table>
       <TableHeader className="[&_tr]:border-b-2 [&_tr]:border-border">
         <TableRow className="hover:bg-transparent">
-          <TableHead className={cn(headClass, "w-10")}>
-            <div className="flex justify-center">
-              <Checkbox
-                checked={
-                  selection.allSelected
-                    ? true
-                    : selection.someSelected
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={selection.toggleAll}
-                aria-label="בחירת הכל"
-              />
-            </div>
-          </TableHead>
           <TableHead className={headClass}>סוג</TableHead>
           <TableHead className={cn(headClass, "text-start")}>שם</TableHead>
           <TableHead className={headClass}>אחראי</TableHead>
           <TableHead className={headClass}>מועד אחרון</TableHead>
           <TableHead className={headClass}>חדר</TableHead>
+          <SelectionHead selection={selection} />
         </TableRow>
       </TableHeader>
       <TableBody>
         {items.map((item, i) => {
-          const checked = selection.isSelected(item.id);
           return (
             <TableRow
               key={item.id}
@@ -67,16 +52,6 @@ export function CompletedActivitiesTable({
                 i % 2 === 1 && "bg-primary/15",
               )}
             >
-              <TableCell className={cellClass}>
-                <div className="flex justify-center">
-                  <Checkbox
-                    checked={checked}
-                    onClick={(e) => e.stopPropagation()}
-                    onCheckedChange={() => selection.toggle(item.id)}
-                    aria-label={`בחירת ${item.name}`}
-                  />
-                </div>
-              </TableCell>
               <TableCell className={cellClass}>
                 <div className="flex justify-center">
                   <CleanupKindBadge kind={item.kind} />
@@ -92,6 +67,7 @@ export function CompletedActivitiesTable({
                 {item.date}
               </TableCell>
               <TableCell className={cellClass}>{item.room}</TableCell>
+              <SelectionCell id={item.id} selection={selection} />
             </TableRow>
           );
         })}

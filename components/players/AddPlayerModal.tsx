@@ -520,6 +520,21 @@ export function AddPlayerModal({
                     </SelectContent>
                   </Select>
                 </Field>
+
+                <Field>
+                  <FieldLabel>עודכן לאחרונה בתאריך</FieldLabel>
+                  <Input
+                    value={values.ratingUpdatedAt || "—"}
+                    readOnly
+                    dir="ltr"
+                    tabIndex={-1}
+                    aria-readonly
+                    className={cn(
+                      fieldClass,
+                      "num cursor-default text-center text-muted-foreground",
+                    )}
+                  />
+                </Field>
               </motion.div>
             </motion.div>
           </div>

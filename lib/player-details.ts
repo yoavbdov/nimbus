@@ -114,7 +114,8 @@ export function deriveDetails(seed: PlayerSeed): PlayerDetails {
 }
 
 /** Anything carrying the roster columns plus the invented detail fields. */
-type PlayerLike = PlayerSeed & PlayerDetails & { grade: string; phone: string };
+type PlayerLike = PlayerSeed &
+  PlayerDetails & { grade: string; phone: string; ratingUpdatedAt?: string };
 
 /** Build the modal's form values from a fully-detailed player record. */
 export function playerFormValuesFor(p: PlayerLike): PlayerFormValues {
@@ -134,6 +135,7 @@ export function playerFormValuesFor(p: PlayerLike): PlayerFormValues {
     fidePlayerId: p.fidePlayerId,
     fideRating: p.fideRating != null ? String(p.fideRating) : "",
     title: p.title,
+    ratingUpdatedAt: p.ratingUpdatedAt ?? "",
   };
 }
 

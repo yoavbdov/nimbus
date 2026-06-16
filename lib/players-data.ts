@@ -19,7 +19,25 @@ export interface PlayerBase {
 }
 
 /** A full player record: roster columns plus the (invented) detail fields. */
-export type Player = PlayerBase & PlayerDetails;
+export type Player = PlayerBase & PlayerDetails & { ratingUpdatedAt: string };
+
+// "Today" for the mock data, used to place the rating-update dates relative to now.
+const RATING_TODAY = new Date(2026, 5, 16);
+
+/**
+ * Mock "rating last updated" date per player (dd.MM.yyyy). Players flagged as
+ * recently updated land within the last month (shown green); the rest land
+ * over a month ago (shown red) — deterministic so the table stays stable.
+ */
+function ratingUpdatedDate(p: PlayerBase): string {
+  const hash = [...p.id].reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const daysAgo = p.ratingUpdatedRecently ? 1 + (hash % 25) : 40 + (hash % 160);
+  const d = new Date(RATING_TODAY);
+  d.setDate(d.getDate() - daysAgo);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
 
 const basePlayers: PlayerBase[] = [
   {
@@ -880,6 +898,7 @@ const basePlayers: PlayerBase[] = [
 export const players: Player[] = basePlayers.map((p) => ({
   ...p,
   ...deriveDetails(p),
+  ratingUpdatedAt: ratingUpdatedDate(p),
 }));
 
 export const allClubs = Array.from(

@@ -127,7 +127,10 @@ function PlayerRow({
         {p.leagueTeam ?? <span className="text-foreground/40 num">—</span>}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <RatingUpdatedBadge updated={p.ratingUpdatedRecently} />
+        <RatingUpdatedBadge
+          updated={p.ratingUpdatedRecently}
+          date={p.ratingUpdatedAt}
+        />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <PlayerStatusBadge status={p.status} />

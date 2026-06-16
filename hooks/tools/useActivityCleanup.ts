@@ -21,12 +21,9 @@ export function useActivityCleanup() {
     [deletedIds],
   );
 
-  // Everything is selected by default, per the requested behaviour.
+  // Nothing is selected by default — the user picks what to delete.
   const itemIds = useMemo(() => items.map((a) => a.id), [items]);
-  const selection = useRowSelection(
-    itemIds,
-    completedActivities.map((a) => a.id),
-  );
+  const selection = useRowSelection(itemIds);
 
   const requestDelete = () => setConfirming(true);
   const cancelDelete = () => setConfirming(false);
