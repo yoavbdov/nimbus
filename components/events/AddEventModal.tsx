@@ -50,6 +50,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import {
+  AddSourceChoiceDialog,
+  RosterChoiceDialog,
+  type RosterOption,
+} from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
 import { rooms, equipment } from "@/lib/rooms-data";
 import { equipmentAvailableNow } from "@/lib/activity-form";
@@ -249,6 +254,7 @@ function PlayerPickerDialog({
   onOpenChange,
   players,
   checkedIds,
+  disabledIds,
   onToggle,
   onConfirm,
 }: {
@@ -256,6 +262,8 @@ function PlayerPickerDialog({
   onOpenChange: (open: boolean) => void;
   players: Player[];
   checkedIds: string[];
+  /** Already-enrolled players: shown greyed out and not selectable. */
+  disabledIds: string[];
   onToggle: (id: string) => void;
   onConfirm: () => void;
 }) {
@@ -268,9 +276,9 @@ function PlayerPickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>הוספת שחקנים</DialogTitle>
+          <DialogTitle>הוספת משתתפים</DialogTitle>
           <DialogDescription>
-            סמנו את השחקנים שברצונכם להוסיף בריבוע משמאל, ובסיום לחצו הוסף.
+            סמנו את המשתתפים שברצונכם להוסיף בריבוע משמאל, ובסיום לחצו הוסף.
           </DialogDescription>
         </DialogHeader>
 
@@ -279,7 +287,7 @@ function PlayerPickerDialog({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="חיפוש שחקן…"
+            placeholder="חיפוש משתתף…"
             className="h-9 ps-9 rounded-xl"
           />
         </div>
@@ -308,19 +316,32 @@ function PlayerPickerDialog({
                   </TableHeader>
                   <TableBody>
                     {filtered.map((p, i) => {
-                      const checked = checkedIds.includes(p.id);
+                      const disabled = disabledIds.includes(p.id);
+                      const checked = disabled || checkedIds.includes(p.id);
                       return (
                         <TableRow
                           key={p.id}
-                          onClick={() => onToggle(p.id)}
+                          onClick={() => !disabled && onToggle(p.id)}
                           className={cn(
-                            "cursor-pointer border-b-2 border-foreground/10 transition-colors duration-150 hover:bg-primary/25",
+                            "border-b-2 border-foreground/10 transition-colors duration-150",
                             i % 2 === 1 && "bg-primary/15",
-                            checked && "bg-primary/20",
+                            disabled
+                              ? "cursor-default opacity-45"
+                              : cn(
+                                  "cursor-pointer hover:bg-primary/25",
+                                  checked && "bg-primary/20",
+                                ),
                           )}
                         >
                           <TableCell className="px-3 py-2.5 text-center text-sm font-medium text-foreground">
-                            {p.name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {p.name}
+                              {disabled && (
+                                <span className="text-[0.7rem] font-normal text-muted-foreground">
+                                  (כבר נוסף)
+                                </span>
+                              )}
+                            </span>
                           </TableCell>
                           <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
                             {p.age}
@@ -332,7 +353,10 @@ function PlayerPickerDialog({
                             <div className="flex justify-center">
                               <SelectCheckbox
                                 checked={checked}
-                                onCheckedChange={() => onToggle(p.id)}
+                                disabled={disabled}
+                                onCheckedChange={() =>
+                                  !disabled && onToggle(p.id)
+                                }
                                 ariaLabel={`בחר ${p.name}`}
                               />
                             </div>
@@ -513,6 +537,16 @@ interface AddEventModalProps {
   playerPickerOpen: boolean;
   onPlayerPickerOpenChange: (open: boolean) => void;
   onOpenPlayerPicker: () => void;
+  sourceChoiceOpen: boolean;
+  onSourceChoiceOpenChange: (open: boolean) => void;
+  rosterChoiceOpen: boolean;
+  onRosterChoiceOpenChange: (open: boolean) => void;
+  playerRosters: RosterOption[];
+  onChoosePlayersFromAll: () => void;
+  onChoosePlayersFromRoster: () => void;
+  onBackToSourceChoice: () => void;
+  onSelectPlayerRoster: (rosterId: string) => void;
+  pickerDisabledIds: string[];
   checkedPlayerIds: string[];
   onToggleCheckedPlayer: (id: string) => void;
   onConfirmPlayers: () => void;
@@ -538,6 +572,16 @@ export function AddEventModal({
   playerPickerOpen,
   onPlayerPickerOpenChange,
   onOpenPlayerPicker,
+  sourceChoiceOpen,
+  onSourceChoiceOpenChange,
+  rosterChoiceOpen,
+  onRosterChoiceOpenChange,
+  playerRosters,
+  onChoosePlayersFromAll,
+  onChoosePlayersFromRoster,
+  onBackToSourceChoice,
+  onSelectPlayerRoster,
+  pickerDisabledIds,
   checkedPlayerIds,
   onToggleCheckedPlayer,
   onConfirmPlayers,
@@ -899,7 +943,7 @@ export function AddEventModal({
                         className="h-9 w-fit justify-center gap-1.5 rounded-xl px-3.5 text-sm font-normal neu-raised-xs neu-interactive"
                       >
                         <Plus className="size-4 text-primary/70" />
-                        הוסף שחקנים
+                        הוסף משתתפים
                       </Button>
                     </Field>
 
@@ -908,7 +952,7 @@ export function AddEventModal({
                         variants={itemVariants}
                         className="py-8 text-center text-sm text-muted-foreground"
                       >
-                        אין שחקנים רשומים עדיין.
+                        אין משתתפים רשומים עדיין.
                       </motion.p>
                     ) : (
                       <motion.div
@@ -1007,11 +1051,29 @@ export function AddEventModal({
         </DialogFooter>
       </DialogContent>
 
+      <AddSourceChoiceDialog
+        open={sourceChoiceOpen}
+        onOpenChange={onSourceChoiceOpenChange}
+        noun="משתתפים"
+        onChooseRoster={onChoosePlayersFromRoster}
+        onChooseAll={onChoosePlayersFromAll}
+      />
+
+      <RosterChoiceDialog
+        open={rosterChoiceOpen}
+        onOpenChange={onRosterChoiceOpenChange}
+        noun="משתתפים"
+        rosters={playerRosters}
+        onSelect={onSelectPlayerRoster}
+        onBack={onBackToSourceChoice}
+      />
+
       <PlayerPickerDialog
         open={playerPickerOpen}
         onOpenChange={onPlayerPickerOpenChange}
         players={availablePlayers}
         checkedIds={checkedPlayerIds}
+        disabledIds={pickerDisabledIds}
         onToggle={onToggleCheckedPlayer}
         onConfirm={onConfirmPlayers}
       />

@@ -9,7 +9,8 @@ import {
   type EquipmentLineValues,
   type MeetingValues,
 } from "@/lib/activity-form";
-import { players } from "@/lib/players-data";
+import { players, type Player } from "@/lib/players-data";
+import { exampleRosters } from "@/lib/rosters-data";
 
 /**
  * Owns all state for the "add activity" modal: the scalar fields plus the three
@@ -81,10 +82,72 @@ export function useAddActivity() {
   const [studentPickerOpen, setStudentPickerOpen] = useState(false);
   const [checkedStudentIds, setCheckedStudentIds] = useState<string[]>([]);
 
+  // The "add students" flow first asks the source (a saved roster, or the whole
+  // club) before opening the picker.
+  const [sourceChoiceOpen, setSourceChoiceOpen] = useState(false);
+  const [rosterChoiceOpen, setRosterChoiceOpen] = useState(false);
+  // The exact rows the picker shows: the whole club for the "all" branch, or a
+  // roster's full member list for the roster branch. Members already enrolled
+  // are listed in `pickerDisabledIds` so the picker greys them out.
+  const [pickerStudents, setPickerStudents] = useState<Player[]>([]);
+  const [pickerDisabledIds, setPickerDisabledIds] = useState<string[]>([]);
+
+  const studentRosters = useMemo(
+    () =>
+      exampleRosters.map((r) => ({
+        id: r.id,
+        name: r.name,
+        count: r.players.length,
+      })),
+    [],
+  );
+
+  // Opens the source question; the picker opens only after a branch is chosen.
   const openStudentPicker = useCallback(() => {
+    setSourceChoiceOpen(true);
+  }, []);
+
+  const chooseStudentsFromAll = useCallback(() => {
+    setPickerStudents(players.filter((p) => !values.studentIds.includes(p.id)));
+    setPickerDisabledIds([]);
+    setSourceChoiceOpen(false);
     setCheckedStudentIds([]);
     setStudentPickerOpen(true);
+  }, [values.studentIds]);
+
+  const chooseStudentsFromRoster = useCallback(() => {
+    setSourceChoiceOpen(false);
+    setRosterChoiceOpen(true);
   }, []);
+
+  const backToSourceChoice = useCallback(() => {
+    setRosterChoiceOpen(false);
+    setSourceChoiceOpen(true);
+  }, []);
+
+  // Picking a roster pre-checks its members (matched by name) among the players
+  // not yet enrolled, then opens the picker for review and confirmation.
+  const selectStudentRoster = useCallback(
+    (rosterId: string) => {
+      const roster = exampleRosters.find((r) => r.id === rosterId);
+      const names = new Set(roster?.players.map((p) => p.name) ?? []);
+      const members = players.filter((p) => names.has(p.name));
+      setPickerStudents(members);
+      // Already-enrolled members stay visible but greyed out; only the new ones
+      // are pre-checked.
+      setPickerDisabledIds(
+        members.filter((p) => values.studentIds.includes(p.id)).map((p) => p.id),
+      );
+      setCheckedStudentIds(
+        members
+          .filter((p) => !values.studentIds.includes(p.id))
+          .map((p) => p.id),
+      );
+      setRosterChoiceOpen(false);
+      setStudentPickerOpen(true);
+    },
+    [values.studentIds],
+  );
 
   const toggleCheckedStudent = useCallback((id: string) => {
     setCheckedStudentIds((prev) =>
@@ -192,6 +255,17 @@ export function useAddActivity() {
     studentPickerOpen,
     setStudentPickerOpen,
     openStudentPicker,
+    sourceChoiceOpen,
+    setSourceChoiceOpen,
+    rosterChoiceOpen,
+    setRosterChoiceOpen,
+    pickerStudents,
+    pickerDisabledIds,
+    studentRosters,
+    chooseStudentsFromAll,
+    chooseStudentsFromRoster,
+    backToSourceChoice,
+    selectStudentRoster,
     checkedStudentIds,
     toggleCheckedStudent,
     confirmStudents,

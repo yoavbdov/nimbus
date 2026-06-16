@@ -12,4 +12,4 @@ These rules are mandatory and apply to every change in this project.
 3. **The code has to be very clear.** No spaghetti code. Write readable,
    easy-to-follow code with clear names and a simple, obvious structure.
 
-4. **If you write an answer with both hebrew and english, make sure to use RTL in the answer.**
+4. **If you write an answer with both hebrew and english, make sure to answer in proper RTL manner so if you write both English and Hebrew it will be easy to read.**

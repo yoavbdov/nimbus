@@ -11,6 +11,7 @@ interface SelectCheckboxProps {
   onCheckedChange: (checked: boolean) => void;
   ariaLabel: string;
   className?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ export function SelectCheckbox({
   onCheckedChange,
   ariaLabel,
   className,
+  disabled,
 }: SelectCheckboxProps) {
   const isChecked = checked === true;
 
@@ -36,6 +38,7 @@ export function SelectCheckbox({
     >
       <Checkbox
         checked={checked}
+        disabled={disabled}
         onCheckedChange={(value) => onCheckedChange(value === true)}
         aria-label={ariaLabel}
         className={cn(

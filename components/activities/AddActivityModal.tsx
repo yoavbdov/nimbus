@@ -51,6 +51,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import {
+  AddSourceChoiceDialog,
+  RosterChoiceDialog,
+  type RosterOption,
+} from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
 import { ACTIVITY_DAYS, allActivityCoaches } from "@/lib/activities-data";
 import { rooms, equipment } from "@/lib/rooms-data";
@@ -281,6 +286,7 @@ function StudentPickerDialog({
   onOpenChange,
   students,
   checkedIds,
+  disabledIds,
   onToggle,
   onConfirm,
 }: {
@@ -288,6 +294,8 @@ function StudentPickerDialog({
   onOpenChange: (open: boolean) => void;
   students: Player[];
   checkedIds: string[];
+  /** Already-enrolled students: shown greyed out and not selectable. */
+  disabledIds: string[];
   onToggle: (id: string) => void;
   onConfirm: () => void;
 }) {
@@ -344,19 +352,32 @@ function StudentPickerDialog({
                   </TableHeader>
                   <TableBody>
                     {filtered.map((p, i) => {
-                      const checked = checkedIds.includes(p.id);
+                      const disabled = disabledIds.includes(p.id);
+                      const checked = disabled || checkedIds.includes(p.id);
                       return (
                         <TableRow
                           key={p.id}
-                          onClick={() => onToggle(p.id)}
+                          onClick={() => !disabled && onToggle(p.id)}
                           className={cn(
-                            "cursor-pointer border-b-2 border-foreground/10 transition-colors duration-150 hover:bg-primary/25",
+                            "border-b-2 border-foreground/10 transition-colors duration-150",
                             i % 2 === 1 && "bg-primary/15",
-                            checked && "bg-primary/20",
+                            disabled
+                              ? "cursor-default opacity-45"
+                              : cn(
+                                  "cursor-pointer hover:bg-primary/25",
+                                  checked && "bg-primary/20",
+                                ),
                           )}
                         >
                           <TableCell className="px-3 py-2.5 text-center text-sm font-medium text-foreground">
-                            {p.name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {p.name}
+                              {disabled && (
+                                <span className="text-[0.7rem] font-normal text-muted-foreground">
+                                  (כבר נוסף)
+                                </span>
+                              )}
+                            </span>
                           </TableCell>
                           <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
                             {p.age}
@@ -368,7 +389,8 @@ function StudentPickerDialog({
                             <div className="flex justify-center">
                               <SelectCheckbox
                                 checked={checked}
-                                onCheckedChange={() => onToggle(p.id)}
+                                disabled={disabled}
+                                onCheckedChange={() => !disabled && onToggle(p.id)}
                                 ariaLabel={`בחר ${p.name}`}
                               />
                             </div>
@@ -682,6 +704,16 @@ interface AddActivityModalProps {
   studentPickerOpen: boolean;
   onStudentPickerOpenChange: (open: boolean) => void;
   onOpenStudentPicker: () => void;
+  sourceChoiceOpen: boolean;
+  onSourceChoiceOpenChange: (open: boolean) => void;
+  rosterChoiceOpen: boolean;
+  onRosterChoiceOpenChange: (open: boolean) => void;
+  studentRosters: RosterOption[];
+  onChooseStudentsFromAll: () => void;
+  onChooseStudentsFromRoster: () => void;
+  onBackToSourceChoice: () => void;
+  onSelectStudentRoster: (rosterId: string) => void;
+  pickerDisabledIds: string[];
   checkedStudentIds: string[];
   onToggleCheckedStudent: (id: string) => void;
   onConfirmStudents: () => void;
@@ -712,6 +744,16 @@ export function AddActivityModal({
   studentPickerOpen,
   onStudentPickerOpenChange,
   onOpenStudentPicker,
+  sourceChoiceOpen,
+  onSourceChoiceOpenChange,
+  rosterChoiceOpen,
+  onRosterChoiceOpenChange,
+  studentRosters,
+  onChooseStudentsFromAll,
+  onChooseStudentsFromRoster,
+  onBackToSourceChoice,
+  onSelectStudentRoster,
+  pickerDisabledIds,
   checkedStudentIds,
   onToggleCheckedStudent,
   onConfirmStudents,
@@ -1100,11 +1142,29 @@ export function AddActivityModal({
         </DialogFooter>
       </DialogContent>
 
+      <AddSourceChoiceDialog
+        open={sourceChoiceOpen}
+        onOpenChange={onSourceChoiceOpenChange}
+        noun="תלמידים"
+        onChooseRoster={onChooseStudentsFromRoster}
+        onChooseAll={onChooseStudentsFromAll}
+      />
+
+      <RosterChoiceDialog
+        open={rosterChoiceOpen}
+        onOpenChange={onRosterChoiceOpenChange}
+        noun="תלמידים"
+        rosters={studentRosters}
+        onSelect={onSelectStudentRoster}
+        onBack={onBackToSourceChoice}
+      />
+
       <StudentPickerDialog
         open={studentPickerOpen}
         onOpenChange={onStudentPickerOpenChange}
         students={availableStudents}
         checkedIds={checkedStudentIds}
+        disabledIds={pickerDisabledIds}
         onToggle={onToggleCheckedStudent}
         onConfirm={onConfirmStudents}
       />

@@ -10,7 +10,8 @@ import {
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
-import { players } from "@/lib/players-data";
+import { players, type Player } from "@/lib/players-data";
+import { exampleRosters } from "@/lib/rosters-data";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -100,10 +101,70 @@ export function useAddTournament() {
   const [playerPickerOpen, setPlayerPickerOpen] = useState(false);
   const [checkedPlayerIds, setCheckedPlayerIds] = useState<string[]>([]);
 
+  // The "add players" flow first asks the source (a saved roster, or the whole
+  // club) before opening the picker.
+  const [sourceChoiceOpen, setSourceChoiceOpen] = useState(false);
+  const [rosterChoiceOpen, setRosterChoiceOpen] = useState(false);
+  // The exact rows the picker shows: the whole club for the "all" branch, or a
+  // roster's full member list for the roster branch. Members already enrolled
+  // are listed in `pickerDisabledIds` so the picker greys them out.
+  const [pickerPlayers, setPickerPlayers] = useState<Player[]>([]);
+  const [pickerDisabledIds, setPickerDisabledIds] = useState<string[]>([]);
+
+  const playerRosters = useMemo(
+    () =>
+      exampleRosters.map((r) => ({
+        id: r.id,
+        name: r.name,
+        count: r.players.length,
+      })),
+    [],
+  );
+
+  // Opens the source question; the picker opens only after a branch is chosen.
   const openPlayerPicker = useCallback(() => {
+    setSourceChoiceOpen(true);
+  }, []);
+
+  const choosePlayersFromAll = useCallback(() => {
+    setPickerPlayers(players.filter((p) => !values.playerIds.includes(p.id)));
+    setPickerDisabledIds([]);
+    setSourceChoiceOpen(false);
     setCheckedPlayerIds([]);
     setPlayerPickerOpen(true);
+  }, [values.playerIds]);
+
+  const choosePlayersFromRoster = useCallback(() => {
+    setSourceChoiceOpen(false);
+    setRosterChoiceOpen(true);
   }, []);
+
+  const backToSourceChoice = useCallback(() => {
+    setRosterChoiceOpen(false);
+    setSourceChoiceOpen(true);
+  }, []);
+
+  // Picking a roster pre-checks its members (matched by name) among the players
+  // not yet enrolled, then opens the picker for review and confirmation.
+  const selectPlayerRoster = useCallback(
+    (rosterId: string) => {
+      const roster = exampleRosters.find((r) => r.id === rosterId);
+      const names = new Set(roster?.players.map((p) => p.name) ?? []);
+      const members = players.filter((p) => names.has(p.name));
+      setPickerPlayers(members);
+      // Already-enrolled members stay visible but greyed out; only the new ones
+      // are pre-checked.
+      setPickerDisabledIds(
+        members.filter((p) => values.playerIds.includes(p.id)).map((p) => p.id),
+      );
+      setCheckedPlayerIds(
+        members.filter((p) => !values.playerIds.includes(p.id)).map((p) => p.id),
+      );
+      setRosterChoiceOpen(false);
+      setPlayerPickerOpen(true);
+    },
+    [values.playerIds],
+  );
 
   const toggleCheckedPlayer = useCallback((id: string) => {
     setCheckedPlayerIds((prev) =>
@@ -211,6 +272,17 @@ export function useAddTournament() {
     playerPickerOpen,
     setPlayerPickerOpen,
     openPlayerPicker,
+    sourceChoiceOpen,
+    setSourceChoiceOpen,
+    rosterChoiceOpen,
+    setRosterChoiceOpen,
+    pickerPlayers,
+    pickerDisabledIds,
+    playerRosters,
+    choosePlayersFromAll,
+    choosePlayersFromRoster,
+    backToSourceChoice,
+    selectPlayerRoster,
     checkedPlayerIds,
     toggleCheckedPlayer,
     confirmPlayers,
