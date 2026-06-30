@@ -9,10 +9,28 @@ import { ScheduleFilters } from "@/components/schedule/ScheduleFilters";
 import { CalendarGrid } from "@/components/schedule/CalendarGrid";
 import { ScheduleAgenda } from "@/components/schedule/ScheduleAgenda";
 import { TimeGridView } from "@/components/schedule/TimeGridView";
+import { ScheduleEventMenu } from "@/components/schedule/ScheduleEventMenu";
+import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
+import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
+import { EventFormModal } from "@/components/events/EventFormModal";
+import { EditLeagueTeamModal } from "@/components/leagues/EditLeagueTeamModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { PossibleEnrollmentsModal as ActivityEnrollmentsModal } from "@/components/activities/PossibleEnrollmentsModal";
+import { PossibleEnrollmentsModal as TournamentEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { useScheduleCalendar } from "@/hooks/schedule/useScheduleCalendar";
+import { useScheduleEventMenu } from "@/hooks/schedule/useScheduleEventMenu";
+import { useScheduleEventActions } from "@/hooks/schedule/useScheduleEventActions";
 
 export function SchedulePanel() {
   const calendar = useScheduleCalendar();
+  const menu = useScheduleEventMenu();
+  const actions = useScheduleEventActions();
+
+  function handleSelect(action: { id: string }) {
+    if (menu.activeEvent) actions.dispatch(menu.activeEvent, action.id);
+    menu.onSelect();
+  }
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -87,11 +105,79 @@ export function SchedulePanel() {
               />
             </div>
             <div className="min-h-0 flex-1">
-              <TimeGridView days={calendar.selectedDays} today={calendar.today} />
+              <TimeGridView
+                days={calendar.selectedDays}
+                today={calendar.today}
+                onEventClick={menu.openAt}
+              />
             </div>
           </div>
         </div>
       </CardContent>
+
+      <ScheduleEventMenu
+        open={menu.open}
+        onOpenChange={menu.handleOpenChange}
+        virtualRef={menu.virtualRef}
+        category={menu.activeEvent?.category}
+        onSelect={handleSelect}
+      />
+
+      {/* The same modals the management modules open from their row dropdowns. */}
+      <ActivityFormModal addActivity={actions.activityEdit} />
+      <TournamentFormModal addTournament={actions.tournamentEdit} />
+      <EventFormModal addEvent={actions.eventEdit} />
+      <EditLeagueTeamModal
+        open={actions.leagueDetails.open}
+        tab={actions.leagueDetails.tab}
+        onTabChange={actions.leagueDetails.setTab}
+        onOpenChange={actions.leagueDetails.handleOpenChange}
+        values={actions.leagueDetails.values}
+        onFieldChange={actions.leagueDetails.updateField}
+        members={actions.leagueDetails.members}
+        onRemovePlayer={actions.leagueDetails.removePlayer}
+        valid={actions.leagueDetails.valid}
+        onConfirm={actions.leagueDetails.confirm}
+        pickerOpen={actions.leagueDetails.pickerOpen}
+        onOpenPicker={actions.leagueDetails.openPicker}
+        onPickerOpenChange={actions.leagueDetails.handlePickerOpenChange}
+        query={actions.leagueDetails.query}
+        onQueryChange={actions.leagueDetails.setQuery}
+        pickerRows={actions.leagueDetails.pickerRows}
+        checkedCount={actions.leagueDetails.checkedCount}
+        onToggleChecked={actions.leagueDetails.toggleChecked}
+        onConfirmAddPlayers={actions.leagueDetails.confirmAddPlayers}
+      />
+      <AddCoachModal
+        open={actions.coachEdit.open}
+        mode={actions.coachEdit.mode}
+        onOpenChange={actions.coachEdit.handleOpenChange}
+        values={actions.coachEdit.values}
+        onFieldChange={actions.coachEdit.updateField}
+        valid={actions.coachEdit.valid}
+        onConfirm={actions.coachEdit.confirm}
+      />
+      <ActivityEnrollmentsModal
+        open={actions.activityEnrollments.open}
+        onOpenChange={actions.activityEnrollments.onOpenChange}
+        activity={actions.activityEnrollments.activity}
+        candidates={actions.activityEnrollments.candidates}
+        onExport={() => {}}
+      />
+      <TournamentEnrollmentsModal
+        open={actions.tournamentEnrollments.open}
+        onOpenChange={actions.tournamentEnrollments.onOpenChange}
+        tournament={actions.tournamentEnrollments.tournament}
+        candidates={actions.tournamentEnrollments.candidates}
+        onExport={() => {}}
+      />
+      <ArchiveConfirmDialog
+        open={actions.archive.open}
+        count={actions.archive.count}
+        noun={actions.archiveNoun}
+        onCancel={actions.archive.cancel}
+        onConfirm={actions.archive.confirm}
+      />
     </Card>
   );
 }

@@ -23,9 +23,10 @@ interface DayColumn {
 interface TimeGridViewProps {
   days: DayColumn[];
   today: Date;
+  onEventClick: (event: ScheduleEvent, e: React.MouseEvent) => void;
 }
 
-export function TimeGridView({ days, today }: TimeGridViewProps) {
+export function TimeGridView({ days, today, onEventClick }: TimeGridViewProps) {
   const { hours, bodyHeight, scrollRef, gridCols, startHour, nowMinutes } =
     useTimeGrid(days.length);
 
@@ -104,6 +105,7 @@ export function TimeGridView({ days, today }: TimeGridViewProps) {
                 startHour={startHour}
                 isToday={isSameDay(day.date, today)}
                 nowMinutes={nowMinutes}
+                onEventClick={onEventClick}
               />
             ))}
           </div>
@@ -119,12 +121,14 @@ function DayColumnBody({
   startHour,
   isToday,
   nowMinutes,
+  onEventClick,
 }: {
   events: ScheduleEvent[];
   hours: number[];
   startHour: number;
   isToday: boolean;
   nowMinutes: number;
+  onEventClick: (event: ScheduleEvent, e: React.MouseEvent) => void;
 }) {
   const positioned = useDayLayout(events);
   const nowTop = ((nowMinutes - startHour * 60) / 60) * HOUR_HEIGHT;
@@ -178,7 +182,8 @@ function DayColumnBody({
               delay: Math.min(i * 0.03, 0.3),
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="group/event absolute flex flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
+            onClick={(ev) => onEventClick(event, ev)}
+            className="group/event absolute flex cursor-pointer flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
             style={{
               top: top + 1,
               height: height - 2,
