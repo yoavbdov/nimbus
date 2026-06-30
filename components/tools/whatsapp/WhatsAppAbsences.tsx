@@ -55,20 +55,20 @@ export function WhatsAppAbsences({
   return (
     <div className="space-y-5">
       {/* Message composer */}
+      <div className="rounded-xl bg-foreground/3 px-3 py-2.5">
+        <PlaceholderLegend entries={legend} />
+      </div>
       <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground/80">
           תוכן ההודעה להורים
         </Label>
-        <EmojiBar onPick={insertEmoji} />
         <Textarea
           ref={bodyRef}
           value={absenceBody}
           onChange={(e) => onAbsenceBodyChange(e.target.value)}
           className="min-h-28 rounded-xl neu-inset border-0 px-3.5 py-3 text-sm leading-relaxed text-foreground"
         />
-        <div className="rounded-xl bg-foreground/3 px-3 py-2.5">
-          <PlaceholderLegend entries={legend} />
-        </div>
+        <EmojiBar onPick={insertEmoji} />
       </div>
 
       {/* Compact threshold setting */}

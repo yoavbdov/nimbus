@@ -187,13 +187,13 @@ export function WhatsAppInvite({
         <Label className="text-sm font-medium text-foreground/80">
           תוכן ההודעה
         </Label>
-        <EmojiBar onPick={insertEmoji} />
         <Textarea
           ref={bodyRef}
           value={body}
           onChange={(e) => onBodyChange(e.target.value)}
           className="min-h-32 rounded-xl neu-inset border-0 px-3.5 py-3 text-sm leading-relaxed text-foreground"
         />
+        <EmojiBar onPick={insertEmoji} />
       </div>
 
       {/* Preview + send */}
