@@ -1,22 +1,22 @@
 import { useState, type MouseEvent } from "react";
-import { useActivitiesSort } from "@/hooks/activities/useActivitiesSort";
-import { useActivityActionsMenu } from "@/hooks/useActivityActionsMenu";
-import { usePossibleEnrollments } from "@/hooks/activities/usePossibleEnrollments";
+import { useCoursesSort } from "@/hooks/courses/useCoursesSort";
+import { useCourseActionsMenu } from "@/hooks/useCourseActionsMenu";
+import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
-import { useAddActivity } from "@/hooks/activities/useAddActivity";
+import { useAddCourse } from "@/hooks/courses/useAddCourse";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
-import { activityFormValuesFor } from "@/lib/activity-details";
-import type { ActivityAction } from "@/lib/activity-actions";
-import type { Activity } from "@/lib/activities-data";
+import { courseFormValuesFor } from "@/lib/course-details";
+import type { CourseAction } from "@/lib/course-actions";
+import type { Course } from "@/lib/courses-data";
 
-export function useActivitiesTable(activities: Activity[]) {
-  const sort = useActivitiesSort(activities);
-  const menu = useActivityActionsMenu();
+export function useCoursesTable(courses: Course[]) {
+  const sort = useCoursesSort(courses);
+  const menu = useCourseActionsMenu();
   const enrollments = usePossibleEnrollments();
   const coachEdit = useAddCoach();
-  const activityEdit = useAddActivity();
+  const courseEdit = useAddCourse();
   const archive = useArchiveConfirm();
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -30,22 +30,22 @@ export function useActivitiesTable(activities: Activity[]) {
     if (!next) setActiveId(null);
   }
 
-  function handleRowAction(action: ActivityAction) {
-    const activity = activities.find((a) => a.id === activeId);
+  function handleRowAction(action: CourseAction) {
+    const course = courses.find((a) => a.id === activeId);
     if (action.id === "enrollments") {
-      if (activity) enrollments.openFor(activity);
+      if (course) enrollments.openFor(course);
     } else if (action.id === "coach") {
-      const coach = activity && coaches.find((c) => c.name === activity.coach);
+      const coach = course && coaches.find((c) => c.name === course.coach);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
     } else if (action.id === "details") {
-      if (activity) activityEdit.openForEdit(activityFormValuesFor(activity));
+      if (course) courseEdit.openForEdit(courseFormValuesFor(course));
     } else if (action.id === "archive") {
       archive.openFor(1);
     }
     menu.onSelect(action);
   }
 
-  function handleSelectAction(action: ActivityAction, selectedIds: string[]) {
+  function handleSelectAction(action: CourseAction, selectedIds: string[]) {
     if (action.id === "archive") archive.openFor(selectedIds.length);
     menu.onSelect(action);
   }
@@ -59,7 +59,7 @@ export function useActivitiesTable(activities: Activity[]) {
     archive,
     enrollments,
     coachEdit,
-    activityEdit,
+    courseEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,

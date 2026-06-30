@@ -3,21 +3,21 @@
 import { useMemo, useState } from "react";
 import { useRowSelection } from "@/hooks/useRowSelection";
 import {
-  completedActivities,
-  type CompletedActivity,
+  completedCourses,
+  type CompletedCourse,
 } from "@/lib/cleanup-data";
 
 /**
- * Drives the archive tool: a single list of the activities that already ended
- * (חוגים, אירועים, תחרויות). The only action is deleting activities from the
+ * Drives the archive tool: a single list of the courses that already ended
+ * (חוגים, אירועים, תחרויות). The only action is deleting courses from the
  * archive. All deletion is in-memory (mock data).
  */
-export function useActivityCleanup() {
+export function useCourseCleanup() {
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
 
   const items = useMemo(
-    () => completedActivities.filter((a) => !deletedIds.has(a.id)),
+    () => completedCourses.filter((a) => !deletedIds.has(a.id)),
     [deletedIds],
   );
 
@@ -48,4 +48,4 @@ export function useActivityCleanup() {
   };
 }
 
-export type { CompletedActivity };
+export type { CompletedCourse };

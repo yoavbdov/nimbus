@@ -1,17 +1,17 @@
 import { useCallback, useState } from "react";
-import { useAddActivity } from "@/hooks/activities/useAddActivity";
-import { usePossibleEnrollments } from "@/hooks/activities/usePossibleEnrollments";
+import { useAddCourse } from "@/hooks/courses/useAddCourse";
+import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
 import { useAddTournament } from "@/hooks/tournaments/useAddTournament";
 import { usePossibleTournamentEnrollments } from "@/hooks/tournaments/usePossibleTournamentEnrollments";
 import { useAddEvent } from "@/hooks/events/useAddEvent";
 import { useLeagueTeamDetails } from "@/hooks/leagues/useLeagueTeamDetails";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
-import { activityFormValuesFor } from "@/lib/activity-details";
+import { courseFormValuesFor } from "@/lib/course-details";
 import { tournamentFormValuesFor } from "@/lib/tournament-details";
 import { eventFormValuesFor } from "@/lib/event-details";
 import { coachFormValuesFor } from "@/lib/coach-details";
-import { activities } from "@/lib/activities-data";
+import { courses } from "@/lib/courses-data";
 import { tournaments } from "@/lib/tournaments-data";
 import { events as clubEvents } from "@/lib/events-data";
 import { leagueTeams } from "@/lib/leagues-data";
@@ -36,8 +36,8 @@ function pickByTitle<T extends { name: string }>(list: T[], title: string): T {
  * record (by name), then the chosen action opens the matching flow.
  */
 export function useScheduleEventActions() {
-  const activityEdit = useAddActivity();
-  const activityEnrollments = usePossibleEnrollments();
+  const courseEdit = useAddCourse();
+  const courseEnrollments = usePossibleEnrollments();
   const tournamentEdit = useAddTournament();
   const tournamentEnrollments = usePossibleTournamentEnrollments();
   const eventEdit = useAddEvent();
@@ -50,14 +50,14 @@ export function useScheduleEventActions() {
     (event: ScheduleEvent, actionId: string) => {
       switch (event.category) {
         case "חוג": {
-          const activity = pickByTitle(activities, event.title);
+          const course = pickByTitle(courses, event.title);
           if (actionId === "details") {
-            activityEdit.openForEdit(activityFormValuesFor(activity));
+            courseEdit.openForEdit(courseFormValuesFor(course));
           } else if (actionId === "coach") {
-            const coach = coaches.find((c) => c.name === activity.coach);
+            const coach = coaches.find((c) => c.name === course.coach);
             if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
           } else if (actionId === "enrollments") {
-            activityEnrollments.openFor(activity);
+            courseEnrollments.openFor(course);
           } else if (actionId === "archive") {
             setArchiveNoun("חוגים");
             archive.openFor(1);
@@ -98,8 +98,8 @@ export function useScheduleEventActions() {
       }
     },
     [
-      activityEdit,
-      activityEnrollments,
+      courseEdit,
+      courseEnrollments,
       tournamentEdit,
       tournamentEnrollments,
       eventEdit,
@@ -111,8 +111,8 @@ export function useScheduleEventActions() {
 
   return {
     dispatch,
-    activityEdit,
-    activityEnrollments,
+    courseEdit,
+    courseEnrollments,
     tournamentEdit,
     tournamentEnrollments,
     eventEdit,

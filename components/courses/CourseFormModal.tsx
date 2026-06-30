@@ -1,57 +1,57 @@
 "use client";
 
-import { AddActivityModal } from "@/components/activities/AddActivityModal";
-import type { useAddActivity } from "@/hooks/activities/useAddActivity";
+import { AddCourseModal } from "@/components/courses/AddCourseModal";
+import type { useAddCourse } from "@/hooks/courses/useAddCourse";
 
 /**
- * Connects a {@link useAddActivity} instance to {@link AddActivityModal} so the
+ * Connects a {@link useAddCourse} instance to {@link AddCourseModal} so the
  * long prop list lives in one place and both the "add" (panel) and "edit"
  * (row action) flows can reuse the same modal.
  */
-export function ActivityFormModal({
-  addActivity,
+export function CourseFormModal({
+  addCourse,
 }: {
-  addActivity: ReturnType<typeof useAddActivity>;
+  addCourse: ReturnType<typeof useAddCourse>;
 }) {
   return (
-    <AddActivityModal
-      open={addActivity.open}
-      mode={addActivity.mode}
-      onOpenChange={addActivity.handleOpenChange}
-      tab={addActivity.tab}
-      onTabChange={addActivity.setTab}
-      values={addActivity.values}
-      onFieldChange={addActivity.updateField}
-      valid={addActivity.valid}
-      onConfirm={addActivity.confirm}
-      onAddMeeting={addActivity.addMeeting}
-      onUpdateMeeting={addActivity.updateMeeting}
-      onRemoveMeeting={addActivity.removeMeeting}
-      students={addActivity.students}
-      availableStudents={addActivity.pickerStudents}
-      onRemoveStudent={addActivity.removeStudent}
-      studentPickerOpen={addActivity.studentPickerOpen}
-      onStudentPickerOpenChange={addActivity.setStudentPickerOpen}
-      onOpenStudentPicker={addActivity.openStudentPicker}
-      sourceChoiceOpen={addActivity.sourceChoiceOpen}
-      onSourceChoiceOpenChange={addActivity.setSourceChoiceOpen}
-      rosterChoiceOpen={addActivity.rosterChoiceOpen}
-      onRosterChoiceOpenChange={addActivity.setRosterChoiceOpen}
-      studentRosters={addActivity.studentRosters}
-      onChooseStudentsFromAll={addActivity.chooseStudentsFromAll}
-      onChooseStudentsFromRoster={addActivity.chooseStudentsFromRoster}
-      onBackToSourceChoice={addActivity.backToSourceChoice}
-      onSelectStudentRoster={addActivity.selectStudentRoster}
-      pickerDisabledIds={addActivity.pickerDisabledIds}
-      checkedStudentIds={addActivity.checkedStudentIds}
-      onToggleCheckedStudent={addActivity.toggleCheckedStudent}
-      onConfirmStudents={addActivity.confirmStudents}
-      onAddEquipment={addActivity.addEquipmentLine}
-      onUpdateEquipment={addActivity.updateEquipmentLine}
-      onRemoveEquipment={addActivity.removeEquipmentLine}
-      coachWarning={addActivity.coachWarning}
-      capacityWarning={addActivity.capacityWarning}
-      criteriaMismatch={addActivity.criteriaMismatch}
+    <AddCourseModal
+      open={addCourse.open}
+      mode={addCourse.mode}
+      onOpenChange={addCourse.handleOpenChange}
+      tab={addCourse.tab}
+      onTabChange={addCourse.setTab}
+      values={addCourse.values}
+      onFieldChange={addCourse.updateField}
+      valid={addCourse.valid}
+      onConfirm={addCourse.confirm}
+      onAddMeeting={addCourse.addMeeting}
+      onUpdateMeeting={addCourse.updateMeeting}
+      onRemoveMeeting={addCourse.removeMeeting}
+      students={addCourse.students}
+      availableStudents={addCourse.pickerStudents}
+      onRemoveStudent={addCourse.removeStudent}
+      studentPickerOpen={addCourse.studentPickerOpen}
+      onStudentPickerOpenChange={addCourse.setStudentPickerOpen}
+      onOpenStudentPicker={addCourse.openStudentPicker}
+      sourceChoiceOpen={addCourse.sourceChoiceOpen}
+      onSourceChoiceOpenChange={addCourse.setSourceChoiceOpen}
+      rosterChoiceOpen={addCourse.rosterChoiceOpen}
+      onRosterChoiceOpenChange={addCourse.setRosterChoiceOpen}
+      studentRosters={addCourse.studentRosters}
+      onChooseStudentsFromAll={addCourse.chooseStudentsFromAll}
+      onChooseStudentsFromRoster={addCourse.chooseStudentsFromRoster}
+      onBackToSourceChoice={addCourse.backToSourceChoice}
+      onSelectStudentRoster={addCourse.selectStudentRoster}
+      pickerDisabledIds={addCourse.pickerDisabledIds}
+      checkedStudentIds={addCourse.checkedStudentIds}
+      onToggleCheckedStudent={addCourse.toggleCheckedStudent}
+      onConfirmStudents={addCourse.confirmStudents}
+      onAddEquipment={addCourse.addEquipmentLine}
+      onUpdateEquipment={addCourse.updateEquipmentLine}
+      onRemoveEquipment={addCourse.removeEquipmentLine}
+      coachWarning={addCourse.coachWarning}
+      capacityWarning={addCourse.capacityWarning}
+      criteriaMismatch={addCourse.criteriaMismatch}
     />
   );
 }

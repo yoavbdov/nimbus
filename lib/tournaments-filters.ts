@@ -6,10 +6,10 @@ import {
   type Tournament,
 } from "@/lib/tournaments-data";
 import {
-  ACTIVITY_DAYS,
+  COURSE_DAYS,
   todayHebrewDay,
-  type ActivityDay,
-} from "@/lib/activities-data";
+  type CourseDay,
+} from "@/lib/courses-data";
 
 export type FilterField =
   | "name"
@@ -89,7 +89,7 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "days",
     label: "ימי פעילות",
     basic: true,
-    options: [...ACTIVITY_DAYS],
+    options: [...COURSE_DAYS],
     operators: [
       { op: "any", label: "מתקיים באחד הימים", valueMode: "multi-enum" },
       { op: "all", label: "מתקיים בכל הימים", valueMode: "multi-enum" },
@@ -141,11 +141,11 @@ function applyEnumFilter(value: string, f: TournamentFilter): boolean {
   return f.op === "in" ? has : !has;
 }
 
-function applyDaysFilter(days: ActivityDay[], f: TournamentFilter): boolean {
+function applyDaysFilter(days: CourseDay[], f: TournamentFilter): boolean {
   if (f.op === "is") {
-    return days.includes(String(f.value ?? "") as ActivityDay);
+    return days.includes(String(f.value ?? "") as CourseDay);
   }
-  const arr = Array.isArray(f.value) ? (f.value as ActivityDay[]) : [];
+  const arr = Array.isArray(f.value) ? (f.value as CourseDay[]) : [];
   if (arr.length === 0) return true;
   if (f.op === "any") return days.some((d) => arr.includes(d));
   if (f.op === "all") return arr.every((d) => days.includes(d));

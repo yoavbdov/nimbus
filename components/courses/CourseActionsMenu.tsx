@@ -3,18 +3,18 @@
 import { PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { activityActions, type ActivityAction } from "@/lib/activity-actions";
+import { courseActions, type CourseAction } from "@/lib/course-actions";
 import { cn } from "@/lib/utils";
 
-interface ActivityActionsMenuContentProps {
-  onSelect: (action: ActivityAction) => void;
+interface CourseActionsMenuContentProps {
+  onSelect: (action: CourseAction) => void;
 }
 
-export function ActivityActionsMenuContent({
+export function CourseActionsMenuContent({
   onSelect,
-}: ActivityActionsMenuContentProps) {
-  const regular = activityActions.filter((a) => a.variant === "default");
-  const destructive = activityActions.filter((a) => a.variant === "destructive");
+}: CourseActionsMenuContentProps) {
+  const regular = courseActions.filter((a) => a.variant === "default");
+  const destructive = courseActions.filter((a) => a.variant === "destructive");
 
   return (
     <PopoverContent

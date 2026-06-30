@@ -57,7 +57,7 @@ import {
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
 import { rooms, equipment } from "@/lib/rooms-data";
-import { equipmentAvailableNow } from "@/lib/activity-form";
+import { equipmentAvailableNow } from "@/lib/course-form";
 import {
   EVENT_FREQUENCY_OPTIONS,
   type EventFormValues,

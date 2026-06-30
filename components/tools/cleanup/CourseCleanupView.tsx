@@ -6,17 +6,17 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ToolBackLink } from "@/components/tools/ToolBackLink";
-import { CompletedActivitiesTable } from "@/components/tools/cleanup/CompletedActivitiesTable";
+import { CompletedCoursesTable } from "@/components/tools/cleanup/CompletedCoursesTable";
 import { DeleteConfirmDialog } from "@/components/tools/cleanup/DeleteConfirmDialog";
-import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
 import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
 import { EventFormModal } from "@/components/events/EventFormModal";
-import { useActivityCleanup } from "@/hooks/tools/useActivityCleanup";
+import { useCourseCleanup } from "@/hooks/tools/useCourseCleanup";
 import { useCleanupDetails } from "@/hooks/tools/useCleanupDetails";
 
-export function ActivityCleanupView() {
+export function CourseCleanupView() {
   const { items, selection, confirming, requestDelete, cancelDelete, confirmDelete } =
-    useActivityCleanup();
+    useCourseCleanup();
 
   const details = useCleanupDetails();
 
@@ -56,7 +56,7 @@ export function ActivityCleanupView() {
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <CompletedActivitiesTable
+              <CompletedCoursesTable
                 items={items}
                 selection={selection}
                 onOpenDetails={details.open}
@@ -74,7 +74,7 @@ export function ActivityCleanupView() {
       />
 
       {/* Real details views, reusing the app's own form modals. */}
-      <ActivityFormModal addActivity={details.activityForm} />
+      <CourseFormModal addCourse={details.courseForm} />
       <TournamentFormModal addTournament={details.tournamentForm} />
       <EventFormModal addEvent={details.eventForm} />
     </div>

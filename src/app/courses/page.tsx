@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { PageShell } from "@/components/layout/PageShell";
-import { ActivitiesPanel } from "@/components/activities/ActivitiesPanel";
+import { CoursesPanel } from "@/components/courses/CoursesPanel";
 
-export default function ClassesPage() {
+export default function CoursesPage() {
   return (
     <PageShell title="חוגים">
       <motion.div
@@ -13,7 +13,7 @@ export default function ClassesPage() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="bloom bloom-indigo rounded-3xl"
       >
-        <ActivitiesPanel />
+        <CoursesPanel />
       </motion.div>
     </PageShell>
   );

@@ -2,8 +2,8 @@ import { attendanceClasses } from "@/lib/attendance-data";
 import { players } from "@/lib/players-data";
 
 // ── Rosters ────────────────────────────────────────────────────────
-// A roster is the list of players belonging to an activity. We reuse the
-// attendance classes as the activities that carry player lists.
+// A roster is the list of players belonging to an course. We reuse the
+// attendance classes as the courses that carry player lists.
 
 export interface RosterPlayer {
   id: string;
@@ -11,13 +11,13 @@ export interface RosterPlayer {
   rating: number;
 }
 
-export interface RosterActivity {
+export interface RosterCourse {
   id: string;
   name: string;
   players: RosterPlayer[];
 }
 
-export const rosterActivities: RosterActivity[] = attendanceClasses.map(
+export const rosterCourses: RosterCourse[] = attendanceClasses.map(
   (cls) => ({
     id: cls.id,
     name: cls.name,
@@ -46,7 +46,7 @@ export const clubPlayers: RosterPlayer[] = players.map((p) => ({
 }));
 
 // ── Example saved rosters ──────────────────────────────────────────
-// Pre-prepared player lists offered when adding people to an activity,
+// Pre-prepared player lists offered when adding people to an course,
 // event or tournament. Built from real players (matched by name) so the
 // ids line up with the rest of the app.
 

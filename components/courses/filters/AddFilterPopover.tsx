@@ -7,18 +7,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FilterBuilder } from "@/components/activities/filters/FilterBuilder";
+import { FilterBuilder } from "@/components/courses/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import type { ActivityFilter } from "@/lib/activities-filters";
+import type { CourseFilter } from "@/lib/courses-filters";
 
 interface AddFilterPopoverProps {
-  onAdd: (filter: ActivityFilter) => void;
+  onAdd: (filter: CourseFilter) => void;
 }
 
 export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
   const { open, setOpen, close } = useDisclosure();
 
-  function handleSubmit(filter: ActivityFilter) {
+  function handleSubmit(filter: CourseFilter) {
     onAdd(filter);
     close();
   }

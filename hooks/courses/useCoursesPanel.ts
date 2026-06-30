@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { useActivitiesFilter } from "@/hooks/useActivitiesFilter";
+import { useCoursesFilter } from "@/hooks/useCoursesFilter";
 
-export function useActivitiesPanel() {
-  const filter = useActivitiesFilter();
+export function useCoursesPanel() {
+  const filter = useCoursesFilter();
   const filterKey = useMemo(
     () =>
       JSON.stringify({

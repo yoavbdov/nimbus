@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { PageShell } from "@/components/layout/PageShell";
-import { ActivityCleanupView } from "@/components/tools/cleanup/ActivityCleanupView";
+import { CourseCleanupView } from "@/components/tools/cleanup/CourseCleanupView";
 
 export default function CleanupPage() {
   return (
@@ -13,7 +13,7 @@ export default function CleanupPage() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="bloom bloom-indigo rounded-3xl"
       >
-        <ActivityCleanupView />
+        <CourseCleanupView />
       </motion.div>
     </PageShell>
   );

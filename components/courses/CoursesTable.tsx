@@ -14,24 +14,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge";
-import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
-import { PossibleEnrollmentsModal } from "@/components/activities/PossibleEnrollmentsModal";
+import { CourseStatusBadge } from "@/components/courses/CourseStatusBadge";
+import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
+import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
-import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
-import { activityActions } from "@/lib/activity-actions";
+import { courseActions } from "@/lib/course-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
-import { useActivitiesTable } from "@/hooks/activities/useActivitiesTable";
-import type { SortDir, SortKey } from "@/hooks/activities/useActivitiesSort";
+import { useCoursesTable } from "@/hooks/courses/useCoursesTable";
+import type { SortDir, SortKey } from "@/hooks/courses/useCoursesSort";
 import { cn } from "@/lib/utils";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 
-/** "רישומים אפשריים" is a per-activity action, so it never appears in the bulk menu. */
-const bulkActions = activityActions.filter((a) => a.id !== "enrollments");
+/** "רישומים אפשריים" is a per-course action, so it never appears in the bulk menu. */
+const bulkActions = courseActions.filter((a) => a.id !== "enrollments");
 
 function RangePill({ from, to }: { from: number; to: number }) {
   return (
@@ -106,14 +106,14 @@ function SortableHeader({
 
 const MotionTableRow = motion.create(TableRow);
 
-function ActivityRow({
-  activity: a,
+function CourseRow({
+  course: a,
   index: i,
   isActive,
   onOpen,
   selection,
 }: {
-  activity: Activity;
+  course: Course;
   index: number;
   isActive: boolean;
   onOpen: (id: string, e: React.MouseEvent) => void;
@@ -163,18 +163,18 @@ function ActivityRow({
         {a.room}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <ActivityStatusBadge status={a.status} />
+        <CourseStatusBadge status={a.status} />
       </TableCell>
       <SelectionCell id={a.id} selection={selection} />
     </MotionTableRow>
   );
 }
 
-interface ActivitiesTableProps {
-  activities: Activity[];
+interface CoursesTableProps {
+  courses: Course[];
 }
 
-export function ActivitiesTable({ activities }: ActivitiesTableProps) {
+export function CoursesTable({ courses }: CoursesTableProps) {
   const {
     sortKey,
     sortDir,
@@ -187,18 +187,18 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
     archive,
     enrollments,
     coachEdit,
-    activityEdit,
+    courseEdit,
     activeId,
     handleRowClick,
     handleMenuOpenChange,
-  } = useActivitiesTable(activities);
+  } = useCoursesTable(courses);
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((a) => a.id),
     activeId,
     onAction: onSelectAction,
   });
 
-  if (activities.length === 0) {
+  if (courses.length === 0) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
@@ -242,9 +242,9 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
             </TableHeader>
             <TableBody>
               {sorted.map((a, i) => (
-                <ActivityRow
+                <CourseRow
                   key={a.id}
-                  activity={a}
+                  course={a}
                   index={i}
                   isActive={activeId === a.id}
                   onOpen={handleRowClick}
@@ -262,13 +262,13 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <ActivityActionsMenuContent onSelect={onRowAction} />
+        <CourseActionsMenuContent onSelect={onRowAction} />
       )}
     </Popover>
     <PossibleEnrollmentsModal
       open={enrollments.open}
       onOpenChange={enrollments.onOpenChange}
-      activity={enrollments.activity}
+      course={enrollments.course}
       candidates={enrollments.candidates}
       onExport={() => {}}
     />
@@ -281,7 +281,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
       valid={coachEdit.valid}
       onConfirm={coachEdit.confirm}
     />
-    <ActivityFormModal addActivity={activityEdit} />
+    <CourseFormModal addCourse={courseEdit} />
     <ArchiveConfirmDialog
       open={archive.open}
       count={archive.count}

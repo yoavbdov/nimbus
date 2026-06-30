@@ -1,7 +1,7 @@
 "use client";
 
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
 import { LeagueActionsMenuContent } from "@/components/leagues/LeagueActionsMenu";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
@@ -32,7 +32,7 @@ export function ScheduleEventMenu({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverAnchor virtualRef={virtualRef} />
-      {category === "חוג" && <ActivityActionsMenuContent onSelect={onSelect} />}
+      {category === "חוג" && <CourseActionsMenuContent onSelect={onSelect} />}
       {category === "תחרות" && <TournamentActionsMenuContent onSelect={onSelect} />}
       {category === "ליגה" && <LeagueActionsMenuContent onSelect={onSelect} />}
       {category === "אירוע" && (

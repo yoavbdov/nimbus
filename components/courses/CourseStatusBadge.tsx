@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ActivityStatus } from "@/lib/activities-data";
+import type { CourseStatus } from "@/lib/courses-data";
 
-const styles: Record<ActivityStatus, string> = {
+const styles: Record<CourseStatus, string> = {
   "פעיל":
     "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30",
   "מלא":
@@ -11,7 +11,7 @@ const styles: Record<ActivityStatus, string> = {
     "bg-rose-500/15 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500/30",
 };
 
-export function ActivityStatusBadge({ status }: { status: ActivityStatus }) {
+export function CourseStatusBadge({ status }: { status: CourseStatus }) {
   return (
     <Badge
       variant="secondary"

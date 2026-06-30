@@ -4,10 +4,10 @@ import {
   FIELD_BY_KEY,
   FIELD_DEFS,
   getOperator,
-  type ActivityFilter,
+  type CourseFilter,
   type FilterField,
   type ValueMode,
-} from "@/lib/activities-filters";
+} from "@/lib/courses-filters";
 
 function isValueComplete(mode: ValueMode, value: string | string[]): boolean {
   if (mode === "none") return true;
@@ -25,7 +25,7 @@ function buildFilter(
   mode: ValueMode,
   value: string | string[],
   id?: string,
-): ActivityFilter {
+): CourseFilter {
   const finalId = id ?? makeFilterId(field, op);
   if (mode === "none") return { id: finalId, field, op, value: null };
   if (mode === "multi-enum")
@@ -36,8 +36,8 @@ function buildFilter(
 }
 
 interface UseFilterBuilderProps {
-  initial?: ActivityFilter;
-  onSubmit: (filter: ActivityFilter) => void;
+  initial?: CourseFilter;
+  onSubmit: (filter: CourseFilter) => void;
 }
 
 export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {

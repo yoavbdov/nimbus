@@ -1,13 +1,13 @@
 import {
-  activities,
-  allActivityCoaches,
-  allActivityStatuses,
-  allActivityRooms,
-  ACTIVITY_DAYS,
+  courses,
+  allCourseCoaches,
+  allCourseStatuses,
+  allCourseRooms,
+  COURSE_DAYS,
   todayHebrewDay,
-  type Activity,
-  type ActivityDay,
-} from "@/lib/activities-data";
+  type Course,
+  type CourseDay,
+} from "@/lib/courses-data";
 
 export type FilterField =
   | "name"
@@ -38,7 +38,7 @@ export interface FieldDef {
   basic?: boolean;
 }
 
-export interface ActivityFilter {
+export interface CourseFilter {
   id: string;
   field: FilterField;
   op: string;
@@ -67,7 +67,7 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "coach",
     label: "מדריך",
     basic: true,
-    options: allActivityCoaches,
+    options: allCourseCoaches,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
@@ -85,7 +85,7 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "days",
     label: "ימי פעילות",
     basic: true,
-    options: [...ACTIVITY_DAYS],
+    options: [...COURSE_DAYS],
     operators: [
       { op: "any", label: "מתקיים באחד הימים", valueMode: "multi-enum" },
       { op: "all", label: "מתקיים בכל הימים", valueMode: "multi-enum" },
@@ -97,7 +97,7 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "status",
     label: "סטטוס",
     basic: true,
-    options: allActivityStatuses,
+    options: allCourseStatuses,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
@@ -108,7 +108,7 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "room",
     label: "חדר",
-    options: allActivityRooms,
+    options: allCourseRooms,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
@@ -128,7 +128,7 @@ export function getOperator(field: FilterField, op: string): OperatorDef | undef
   return FIELD_BY_KEY[field].operators.find((o) => o.op === op);
 }
 
-export function formatValue(filter: ActivityFilter): string {
+export function formatValue(filter: CourseFilter): string {
   if (filter.value == null) return "";
   if (Array.isArray(filter.value)) return filter.value.join(", ");
   return String(filter.value);
@@ -143,11 +143,11 @@ function compareNumber(a: number, op: string, b: number): boolean {
   return false;
 }
 
-function applyDaysFilter(days: ActivityDay[], f: ActivityFilter): boolean {
+function applyDaysFilter(days: CourseDay[], f: CourseFilter): boolean {
   if (f.op === "is") {
-    return days.includes(String(f.value ?? "") as ActivityDay);
+    return days.includes(String(f.value ?? "") as CourseDay);
   }
-  const arr = Array.isArray(f.value) ? (f.value as ActivityDay[]) : [];
+  const arr = Array.isArray(f.value) ? (f.value as CourseDay[]) : [];
   if (arr.length === 0) return true;
   if (f.op === "any") return days.some((d) => arr.includes(d));
   if (f.op === "all") return arr.every((d) => days.includes(d));
@@ -155,7 +155,7 @@ function applyDaysFilter(days: ActivityDay[], f: ActivityFilter): boolean {
   return false;
 }
 
-function applyFilter(a: Activity, f: ActivityFilter): boolean {
+function applyFilter(a: Course, f: CourseFilter): boolean {
   switch (f.field) {
     case "name": {
       const v = a.name.toLowerCase();
@@ -200,7 +200,7 @@ function applyFilter(a: Activity, f: ActivityFilter): boolean {
   }
 }
 
-function matchesSearch(a: Activity, query: string): boolean {
+function matchesSearch(a: Course, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return (
@@ -208,13 +208,13 @@ function matchesSearch(a: Activity, query: string): boolean {
   );
 }
 
-export function filterActivities(
+export function filterCourses(
   query: string,
-  filters: ActivityFilter[],
+  filters: CourseFilter[],
   todayOnly: boolean,
-): Activity[] {
+): Course[] {
   const today = todayOnly ? todayHebrewDay() : null;
-  return activities.filter(
+  return courses.filter(
     (a) =>
       matchesSearch(a, query) &&
       filters.every((f) => applyFilter(a, f)) &&

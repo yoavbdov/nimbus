@@ -45,7 +45,7 @@ const navSections = [
   {
     label: "פעילויות",
     items: [
-      { href: "/classes", label: "חוגים", icon: BookOpen },
+      { href: "/courses", label: "חוגים", icon: BookOpen },
       { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
       { href: "/schedule", label: "לוח זמנים", icon: CalendarDays },
     ],

@@ -31,14 +31,14 @@ function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName, onC
   );
 }
 
-interface ActivitiesActionsProps {
-  onAddActivity: () => void;
+interface CoursesActionsProps {
+  onAddCourse: () => void;
 }
 
-export function ActivitiesActions({ onAddActivity }: ActivitiesActionsProps) {
+export function CoursesActions({ onAddCourse }: CoursesActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ActionButton icon={BookPlus} label="הוסף חוג" variant="default" onClick={onAddActivity} />
+      <ActionButton icon={BookPlus} label="הוסף חוג" variant="default" onClick={onAddCourse} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>

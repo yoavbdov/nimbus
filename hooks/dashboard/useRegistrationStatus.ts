@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { useActivityActionsMenu } from "@/hooks/useActivityActionsMenu";
+import { useCourseActionsMenu } from "@/hooks/useCourseActionsMenu";
 
 export interface RegistrationClass {
   name: string;
@@ -16,7 +16,7 @@ const classes: RegistrationClass[] = [
 ];
 
 export function useRegistrationStatus() {
-  const menu = useActivityActionsMenu();
+  const menu = useCourseActionsMenu();
   const [activeName, setActiveName] = useState<string | null>(null);
 
   function handleRowClick(name: string, e: MouseEvent) {

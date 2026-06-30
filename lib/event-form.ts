@@ -1,7 +1,7 @@
 import {
   makeEquipmentLine,
   type EquipmentLineValues,
-} from "@/lib/activity-form";
+} from "@/lib/course-form";
 import {
   TOURNAMENT_FREQUENCY_OPTIONS,
   type TournamentFrequency,

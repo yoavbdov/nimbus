@@ -1,5 +1,5 @@
 import { useCallback, useState, type MouseEvent } from "react";
-import type { ActivityAction } from "@/lib/activity-actions";
+import type { CourseAction } from "@/lib/course-actions";
 
 function makeVirtualRef(x: number, y: number) {
   return {
@@ -19,7 +19,7 @@ function makeVirtualRef(x: number, y: number) {
   };
 }
 
-export function useActivityActionsMenu() {
+export function useCourseActionsMenu() {
   const [open, setOpen] = useState(false);
   const [virtualRef, setVirtualRef] = useState(() => makeVirtualRef(0, 0));
 
@@ -30,7 +30,7 @@ export function useActivityActionsMenu() {
 
   const close = useCallback(() => setOpen(false), []);
 
-  const onSelect = useCallback((_action: ActivityAction) => {
+  const onSelect = useCallback((_action: CourseAction) => {
     setOpen(false);
   }, []);
 

@@ -1,14 +1,14 @@
-import { allActivityCoaches } from "@/lib/activities-data";
+import { allCourseCoaches } from "@/lib/courses-data";
 import {
   makeEquipmentLine,
   type EquipmentLineValues,
-} from "@/lib/activity-form";
+} from "@/lib/course-form";
 import type { Player } from "@/lib/players-data";
 
 export { makeEquipmentLine, type EquipmentLineValues };
 
-/** The judge dropdown reuses the same coach list as the activities modal. */
-export const allTournamentJudgeOptions = allActivityCoaches;
+/** The judge dropdown reuses the same coach list as the courses modal. */
+export const allTournamentJudgeOptions = allCourseCoaches;
 
 /**
  * A tournament is either split into discrete rounds (each with its own room,

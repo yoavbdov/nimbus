@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 
 export type SortKey =
   | "name"
@@ -14,13 +14,13 @@ export type SortKey =
   | "room";
 export type SortDir = "asc" | "desc";
 
-const statusOrder: Record<Activity["status"], number> = {
+const statusOrder: Record<Course["status"], number> = {
   "פעיל": 0,
   "מלא": 1,
   "לא פעיל": 2,
 };
 
-function getSortValue(a: Activity, key: SortKey): string | number {
+function getSortValue(a: Course, key: SortKey): string | number {
   switch (key) {
     case "name":
       return a.name;
@@ -45,7 +45,7 @@ function getSortValue(a: Activity, key: SortKey): string | number {
   }
 }
 
-export function useActivitiesSort(activities: Activity[]) {
+export function useCoursesSort(courses: Course[]) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -59,7 +59,7 @@ export function useActivitiesSort(activities: Activity[]) {
   }
 
   const sorted = useMemo(() => {
-    const arr = [...activities];
+    const arr = [...courses];
     arr.sort((a, b) => {
       const av = getSortValue(a, sortKey);
       const bv = getSortValue(b, sortKey);
@@ -70,7 +70,7 @@ export function useActivitiesSort(activities: Activity[]) {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [activities, sortKey, sortDir]);
+  }, [courses, sortKey, sortDir]);
 
   return { sortKey, sortDir, sorted, handleSort };
 }

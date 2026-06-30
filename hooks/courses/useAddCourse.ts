@@ -1,42 +1,42 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  EMPTY_ACTIVITY_FORM,
-  isActivityFormValid,
+  EMPTY_COURSE_FORM,
+  isCourseFormValid,
   makeEquipmentLine,
   makeMeeting,
   meetsCriteria,
-  type ActivityFormValues,
+  type CourseFormValues,
   type EquipmentLineValues,
   type MeetingValues,
-} from "@/lib/activity-form";
+} from "@/lib/course-form";
 import { players, type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
 
 /**
- * Owns all state for the "add activity" modal: the scalar fields plus the three
+ * Owns all state for the "add course" modal: the scalar fields plus the three
  * dynamic lists (recurring meetings, enrolled students, equipment lines). The
  * modal stays presentational and receives everything from here.
  */
 /** The modal's tabs, in order; the first is the default shown on open. */
-export type ActivityTab = "details" | "meetings" | "students" | "equipment";
+export type CourseTab = "details" | "meetings" | "students" | "equipment";
 
 /**
- * "add" shows the empty add flow; "edit" prefills an existing activity; "view"
- * prefills it read-only (used by the cleanup archive, where activities may only
+ * "add" shows the empty add flow; "edit" prefills an existing course; "view"
+ * prefills it read-only (used by the cleanup archive, where courses may only
  * be inspected, not changed).
  */
-export type ActivityModalMode = "add" | "edit" | "view";
+export type CourseModalMode = "add" | "edit" | "view";
 
-export function useAddActivity() {
+export function useAddCourse() {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<ActivityModalMode>("add");
-  const [tab, setTab] = useState<ActivityTab>("details");
-  const [values, setValues] = useState<ActivityFormValues>(EMPTY_ACTIVITY_FORM);
+  const [mode, setMode] = useState<CourseModalMode>("add");
+  const [tab, setTab] = useState<CourseTab>("details");
+  const [values, setValues] = useState<CourseFormValues>(EMPTY_COURSE_FORM);
 
-  const valid = isActivityFormValid(values);
+  const valid = isCourseFormValid(values);
 
   const updateField = useCallback(
-    <K extends keyof ActivityFormValues>(field: K, value: ActivityFormValues[K]) => {
+    <K extends keyof CourseFormValues>(field: K, value: CourseFormValues[K]) => {
       setValues((prev) => ({ ...prev, [field]: value }));
     },
     [],
@@ -216,21 +216,21 @@ export function useAddActivity() {
 
   const openModal = useCallback(() => {
     setMode("add");
-    setValues(EMPTY_ACTIVITY_FORM);
+    setValues(EMPTY_COURSE_FORM);
     setTab("details");
     setOpen(true);
   }, []);
 
-  // Opens the modal in edit mode prefilled with an existing activity.
-  const openForEdit = useCallback((next: ActivityFormValues) => {
+  // Opens the modal in edit mode prefilled with an existing course.
+  const openForEdit = useCallback((next: CourseFormValues) => {
     setMode("edit");
     setValues(next);
     setTab("details");
     setOpen(true);
   }, []);
 
-  // Opens the modal read-only, prefilled with an existing activity.
-  const openForView = useCallback((next: ActivityFormValues) => {
+  // Opens the modal read-only, prefilled with an existing course.
+  const openForView = useCallback((next: CourseFormValues) => {
     setMode("view");
     setValues(next);
     setTab("details");

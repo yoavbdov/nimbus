@@ -41,7 +41,7 @@ function ratingUpdatedDate(p: PlayerBase): string {
 
 const basePlayers: PlayerBase[] = [
   {
-    id: "p-1",
+    id: "player-1",
     name: "אורי גולן",
     age: 11,
     grade: "כיתה ו",
@@ -55,7 +55,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-2",
+    id: "player-2",
     name: "יובל דוד",
     age: 13,
     grade: "כיתה ח",
@@ -69,7 +69,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-3",
+    id: "player-3",
     name: "ליאור ברק",
     age: 15,
     grade: "כיתה י",
@@ -83,7 +83,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-4",
+    id: "player-4",
     name: "מיה שפירא",
     age: 15,
     grade: "כיתה י",
@@ -97,7 +97,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-5",
+    id: "player-5",
     name: "נועם כץ",
     age: 13,
     grade: "כיתה ח",
@@ -111,7 +111,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-6",
+    id: "player-6",
     name: "נטע חיים",
     age: 13,
     grade: "כיתה ח",
@@ -125,7 +125,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-7",
+    id: "player-7",
     name: "עידן פרץ",
     age: 14,
     grade: "כיתה ט",
@@ -139,7 +139,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-8",
+    id: "player-8",
     name: "רון סעדון",
     age: 16,
     grade: "כיתה יא",
@@ -153,7 +153,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-9",
+    id: "player-9",
     name: "שיר מזרחי",
     age: 14,
     grade: "כיתה ט",
@@ -167,7 +167,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-10",
+    id: "player-10",
     name: "תמר אברהם",
     age: 16,
     grade: "כיתה יא",
@@ -181,7 +181,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-11",
+    id: "player-11",
     name: "איתי לוי",
     age: 10,
     grade: "כיתה ה",
@@ -195,7 +195,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-12",
+    id: "player-12",
     name: "דניאל כהן",
     age: 12,
     grade: "כיתה ז",
@@ -209,7 +209,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-13",
+    id: "player-13",
     name: "אלון גרין",
     age: 17,
     grade: "כיתה יב",
@@ -223,7 +223,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-14",
+    id: "player-14",
     name: "רוני בן דוד",
     age: 9,
     grade: "כיתה ד",
@@ -237,7 +237,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-15",
+    id: "player-15",
     name: "עומר אזולאי",
     age: 14,
     grade: "כיתה ט",
@@ -251,7 +251,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-16",
+    id: "player-16",
     name: "יערה פלד",
     age: 11,
     grade: "כיתה ו",
@@ -265,7 +265,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-17",
+    id: "player-17",
     name: "גיל אבני",
     age: 15,
     grade: "כיתה י",
@@ -279,7 +279,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-18",
+    id: "player-18",
     name: "הילה רוזן",
     age: 13,
     grade: "כיתה ח",
@@ -293,7 +293,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-19",
+    id: "player-19",
     name: "נדב שמש",
     age: 16,
     grade: "כיתה יא",
@@ -307,7 +307,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-20",
+    id: "player-20",
     name: "מאיה הרשקוביץ",
     age: 12,
     grade: "כיתה ז",
@@ -321,7 +321,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-21",
+    id: "player-21",
     name: "תום שטרן",
     age: 14,
     grade: "כיתה ט",
@@ -335,7 +335,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-22",
+    id: "player-22",
     name: "אביב מור",
     age: 10,
     grade: "כיתה ה",
@@ -349,7 +349,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-23",
+    id: "player-23",
     name: "ירדן פרידמן",
     age: 17,
     grade: "כיתה יב",
@@ -363,7 +363,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-24",
+    id: "player-24",
     name: "שחר לביא",
     age: 13,
     grade: "כיתה ח",
@@ -377,7 +377,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-25",
+    id: "player-25",
     name: "אריאל נחום",
     age: 15,
     grade: "כיתה י",
@@ -403,7 +403,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-26",
+    id: "player-26",
     name: "בן ציון אליהו",
     age: 11,
     grade: "כיתה ו",
@@ -417,7 +417,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-27",
+    id: "player-27",
     name: "ליה בכר",
     age: 14,
     grade: "כיתה ט",
@@ -431,7 +431,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-28",
+    id: "player-28",
     name: "עדן רביב",
     age: 12,
     grade: "כיתה ז",
@@ -445,7 +445,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-29",
+    id: "player-29",
     name: "יונתן ברגר",
     age: 16,
     grade: "כיתה יא",
@@ -459,7 +459,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-30",
+    id: "player-30",
     name: "אסף וקנין",
     age: 5,
     grade: "גן",
@@ -473,7 +473,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-31",
+    id: "player-31",
     name: "נעה דהן",
     age: 13,
     grade: "כיתה ח",
@@ -487,7 +487,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-32",
+    id: "player-32",
     name: "רועי שלום",
     age: 28,
     grade: "מבוגר",
@@ -501,7 +501,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-33",
+    id: "player-33",
     name: "שני אדרי",
     age: 11,
     grade: "כיתה ו",
@@ -515,7 +515,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-34",
+    id: "player-34",
     name: "מתן יוסף",
     age: 15,
     grade: "כיתה י",
@@ -529,7 +529,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-35",
+    id: "player-35",
     name: "אופיר חדד",
     age: 14,
     grade: "כיתה ט",
@@ -543,7 +543,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-36",
+    id: "player-36",
     name: "טליה מלכה",
     age: 10,
     grade: "כיתה ה",
@@ -557,7 +557,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-37",
+    id: "player-37",
     name: "אדם זילבר",
     age: 16,
     grade: "כיתה יא",
@@ -571,7 +571,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-38",
+    id: "player-38",
     name: "אלה גבאי",
     age: 12,
     grade: "כיתה ז",
@@ -585,7 +585,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-39",
+    id: "player-39",
     name: "יהונתן אסולין",
     age: 15,
     grade: "כיתה י",
@@ -599,7 +599,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-40",
+    id: "player-40",
     name: "רעות סבן",
     age: 13,
     grade: "כיתה ח",
@@ -613,7 +613,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-41",
+    id: "player-41",
     name: "אורן טל",
     age: 24,
     grade: "מבוגר",
@@ -627,7 +627,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-42",
+    id: "player-42",
     name: "מעיין שביט",
     age: 11,
     grade: "כיתה ו",
@@ -641,7 +641,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-43",
+    id: "player-43",
     name: "אביתר רחמים",
     age: 14,
     grade: "כיתה ט",
@@ -655,7 +655,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-44",
+    id: "player-44",
     name: "כרמל פינטו",
     age: 6,
     grade: "גן",
@@ -669,7 +669,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-45",
+    id: "player-45",
     name: "אורי בר",
     age: 16,
     grade: "כיתה יא",
@@ -683,7 +683,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-46",
+    id: "player-46",
     name: "טל אוחנה",
     age: 12,
     grade: "כיתה ז",
@@ -697,7 +697,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-47",
+    id: "player-47",
     name: "יסמין לוין",
     age: 15,
     grade: "כיתה י",
@@ -711,7 +711,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-48",
+    id: "player-48",
     name: "נריה כהן",
     age: 13,
     grade: "כיתה ח",
@@ -725,7 +725,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-49",
+    id: "player-49",
     name: "אביגיל סטולר",
     age: 17,
     grade: "כיתה יב",
@@ -739,7 +739,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-50",
+    id: "player-50",
     name: "יהלי שרון",
     age: 10,
     grade: "כיתה ה",
@@ -753,7 +753,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-51",
+    id: "player-51",
     name: "עידו בן חמו",
     age: 14,
     grade: "כיתה ט",
@@ -767,7 +767,7 @@ const basePlayers: PlayerBase[] = [
     status: "ליגה בלבד",
   },
   {
-    id: "p-52",
+    id: "player-52",
     name: "ספיר טוויל",
     age: 11,
     grade: "כיתה ו",
@@ -781,7 +781,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-53",
+    id: "player-53",
     name: "אילן פוקס",
     age: 16,
     grade: "כיתה יא",
@@ -795,7 +795,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-54",
+    id: "player-54",
     name: "נויה ביטון",
     age: 13,
     grade: "כיתה ח",
@@ -809,7 +809,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-55",
+    id: "player-55",
     name: "אסיף לוגסי",
     age: 15,
     grade: "כיתה י",
@@ -823,7 +823,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-56",
+    id: "player-56",
     name: "רותם ארביב",
     age: 9,
     grade: "כיתה ד",
@@ -837,7 +837,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-57",
+    id: "player-57",
     name: "אופק שמואל",
     age: 12,
     grade: "כיתה ז",
@@ -851,7 +851,7 @@ const basePlayers: PlayerBase[] = [
     status: "לא פעיל",
   },
   {
-    id: "p-58",
+    id: "player-58",
     name: "הדר אלבז",
     age: 14,
     grade: "כיתה ט",
@@ -865,7 +865,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-59",
+    id: "player-59",
     name: "ניר אטיאס",
     age: 17,
     grade: "כיתה יב",
@@ -879,7 +879,7 @@ const basePlayers: PlayerBase[] = [
     status: "פעיל",
   },
   {
-    id: "p-60",
+    id: "player-60",
     name: "מיכל אדלר",
     age: 16,
     grade: "כיתה יא",

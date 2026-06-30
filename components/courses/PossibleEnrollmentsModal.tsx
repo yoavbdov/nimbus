@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import type { EnrollmentCandidate } from "@/lib/possible-enrollments";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 
 const MotionTableRow = motion.create(TableRow);
 
@@ -32,7 +32,7 @@ const headClass =
 interface PossibleEnrollmentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  activity: Activity | null;
+  course: Course | null;
   candidates: EnrollmentCandidate[];
   onExport: () => void;
 }
@@ -40,7 +40,7 @@ interface PossibleEnrollmentsModalProps {
 export function PossibleEnrollmentsModal({
   open,
   onOpenChange,
-  activity,
+  course,
   candidates,
   onExport,
 }: PossibleEnrollmentsModalProps) {
@@ -50,8 +50,8 @@ export function PossibleEnrollmentsModal({
         <DialogHeader>
           <DialogTitle>רישומים אפשריים</DialogTitle>
           <DialogDescription>
-            {activity
-              ? `תלמידים שפנויים ועומדים בקריטריונים של "${activity.name}".`
+            {course
+              ? `תלמידים שפנויים ועומדים בקריטריונים של "${course.name}".`
               : "תלמידים פנויים שעומדים בקריטריונים של החוג."}
           </DialogDescription>
         </DialogHeader>

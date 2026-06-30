@@ -3,22 +3,22 @@ import {
   possibleEnrollments,
   type EnrollmentCandidate,
 } from "@/lib/possible-enrollments";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 
-/** Drives the "possible enrollments" dialog: which activity it shows and its candidates. */
+/** Drives the "possible enrollments" dialog: which course it shows and its candidates. */
 export function usePossibleEnrollments() {
-  const [activity, setActivity] = useState<Activity | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [open, setOpen] = useState(false);
 
-  const openFor = useCallback((next: Activity) => {
-    setActivity(next);
+  const openFor = useCallback((next: Course) => {
+    setCourse(next);
     setOpen(true);
   }, []);
 
   const candidates: EnrollmentCandidate[] = useMemo(
-    () => (activity ? possibleEnrollments(activity) : []),
-    [activity],
+    () => (course ? possibleEnrollments(course) : []),
+    [course],
   );
 
-  return { open, onOpenChange: setOpen, openFor, activity, candidates };
+  return { open, onOpenChange: setOpen, openFor, course, candidates };
 }

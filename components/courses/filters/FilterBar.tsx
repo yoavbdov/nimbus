@@ -5,18 +5,18 @@ import { CalendarClock, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AddFilterPopover } from "@/components/activities/filters/AddFilterPopover";
-import { FilterChip } from "@/components/activities/filters/FilterChip";
+import { AddFilterPopover } from "@/components/courses/filters/AddFilterPopover";
+import { FilterChip } from "@/components/courses/filters/FilterChip";
 import { cn } from "@/lib/utils";
-import type { ActivityFilter } from "@/lib/activities-filters";
+import type { CourseFilter } from "@/lib/courses-filters";
 
 interface FilterBarProps {
   search: string;
-  filters: ActivityFilter[];
+  filters: CourseFilter[];
   todayOnly: boolean;
   onSearchChange: (v: string) => void;
-  onAdd: (filter: ActivityFilter) => void;
-  onUpdate: (id: string, next: ActivityFilter) => void;
+  onAdd: (filter: CourseFilter) => void;
+  onUpdate: (id: string, next: CourseFilter) => void;
   onRemove: (id: string) => void;
   onToggleToday: () => void;
   onClearAll: () => void;

@@ -32,9 +32,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import { ActivityStatusBadge } from "@/components/activities/ActivityStatusBadge";
+import { CourseStatusBadge } from "@/components/courses/CourseStatusBadge";
 import { cn } from "@/lib/utils";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -59,7 +59,7 @@ const itemVariants = {
   },
 };
 
-function ClubMeta({ club }: { club: Activity }) {
+function ClubMeta({ club }: { club: Course }) {
   return (
     <div className="flex flex-nowrap items-center gap-x-4 whitespace-nowrap text-xs text-foreground/70">
       <span className="flex shrink-0 items-center gap-1.5">
@@ -82,7 +82,7 @@ function ClubMeta({ club }: { club: Activity }) {
 }
 
 interface ClubCardProps {
-  club: Activity;
+  club: Course;
   editing: boolean;
   confirming: boolean;
   onRequestRemove: (name: string) => void;
@@ -113,7 +113,7 @@ function ClubCard({
           <div className="flex items-center gap-2">
             <BookOpen className="size-4 shrink-0 text-primary" />
             <span className="font-medium text-foreground">{club.name}</span>
-            <ActivityStatusBadge status={club.status} />
+            <CourseStatusBadge status={club.status} />
           </div>
           <ClubMeta club={club} />
         </div>
@@ -175,7 +175,7 @@ function ClubCard({
 }
 
 interface ClubComboboxProps {
-  available: Activity[];
+  available: Course[];
   selectedClub: string;
   onSelectedClubChange: (value: string) => void;
   container: HTMLElement | null;
@@ -282,7 +282,7 @@ function ClubCombobox({
 }
 
 interface AddClubFieldProps {
-  available: Activity[];
+  available: Course[];
   selectedClub: string;
   onSelectedClubChange: (value: string) => void;
   onAdd: () => void;
@@ -327,8 +327,8 @@ interface ClubsModalProps {
   onOpenChange: (open: boolean) => void;
   coachName: string;
   editing: boolean;
-  registered: Activity[];
-  available: Activity[];
+  registered: Course[];
+  available: Course[];
   pendingRemoval: string | null;
   selectedClub: string;
   onSelectedClubChange: (value: string) => void;

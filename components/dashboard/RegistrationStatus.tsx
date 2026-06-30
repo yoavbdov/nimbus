@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
 import { useRegistrationStatus } from "@/hooks/dashboard/useRegistrationStatus";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +79,7 @@ export function RegistrationStatus() {
           })}
         </CardContent>
       </Card>
-      <ActivityActionsMenuContent onSelect={onSelectAction} />
+      <CourseActionsMenuContent onSelect={onSelectAction} />
     </Popover>
   );
 }

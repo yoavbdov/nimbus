@@ -1,14 +1,14 @@
-import { activities } from "@/lib/activities-data";
+import { courses } from "@/lib/courses-data";
 import { events } from "@/lib/events-data";
 import { tournaments } from "@/lib/tournaments-data";
 
 // ── Cleanup / archive domain ───────────────────────────────────────
-// A single, unified view over the three activity sources (חוגים, אירועים,
+// A single, unified view over the three course sources (חוגים, אירועים,
 // תחרויות). Only the ones that already ended are offered for archiving.
 
 export type CompletedKind = "חוג" | "אירוע" | "תחרות";
 
-export interface CompletedActivity {
+export interface CompletedCourse {
   id: string;
   kind: CompletedKind;
   name: string;
@@ -26,7 +26,7 @@ export interface CompletedActivity {
   detailLabel: string;
 }
 
-/** Stable little hash so each activity gets a consistent time window. */
+/** Stable little hash so each course gets a consistent time window. */
 function hash(str: string): number {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
@@ -40,7 +40,7 @@ function timeRange(id: string): string {
   return `${String(start).padStart(2, "0")}:${half}–${String(end + 1).padStart(2, "0")}:${half}`;
 }
 
-const endedClasses: CompletedActivity[] = activities
+const endedClasses: CompletedCourse[] = courses
   .filter((a) => a.status === "לא פעיל")
   .map((a) => ({
     id: a.id,
@@ -55,7 +55,7 @@ const endedClasses: CompletedActivity[] = activities
     detailLabel: `מדריך: ${a.coach}`,
   }));
 
-const endedEvents: CompletedActivity[] = events
+const endedEvents: CompletedCourse[] = events
   .filter((e) => e.status === "הסתיים")
   .map((e) => ({
     id: e.id,
@@ -70,7 +70,7 @@ const endedEvents: CompletedActivity[] = events
     detailLabel: e.recurrence,
   }));
 
-const endedTournaments: CompletedActivity[] = tournaments
+const endedTournaments: CompletedCourse[] = tournaments
   .filter((t) => t.status === "הסתיימה")
   .map((t) => ({
     id: t.id,
@@ -85,7 +85,7 @@ const endedTournaments: CompletedActivity[] = tournaments
     detailLabel: `שופט: ${t.judge} · ${t.rounds} סיבובים · ${t.participants} משתתפים`,
   }));
 
-export const completedActivities: CompletedActivity[] = [
+export const completedCourses: CompletedCourse[] = [
   ...endedClasses,
   ...endedEvents,
   ...endedTournaments,

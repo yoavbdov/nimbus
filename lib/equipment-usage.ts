@@ -1,4 +1,4 @@
-import { activities } from "@/lib/activities-data";
+import { courses } from "@/lib/courses-data";
 import { tournaments } from "@/lib/tournaments-data";
 import { events } from "@/lib/events-data";
 import type { EquipmentSlot } from "@/lib/equipment-availability";
@@ -24,9 +24,9 @@ function hash(value: string): number {
 }
 
 // One flat pool of every possible user, tagged by kind. No real backend links
-// equipment to activities yet, so we derive a stable subset per equipment + slot.
+// equipment to courses yet, so we derive a stable subset per equipment + slot.
 const pool: { id: string; name: string; kind: EquipmentUsageKind }[] = [
-  ...activities.map((a) => ({ id: a.id, name: a.name, kind: "חוג" as const })),
+  ...courses.map((a) => ({ id: a.id, name: a.name, kind: "חוג" as const })),
   ...tournaments.map((t) => ({ id: t.id, name: t.name, kind: "תחרות" as const })),
   ...events.map((e) => ({ id: e.id, name: e.name, kind: "אירוע" as const })),
 ];

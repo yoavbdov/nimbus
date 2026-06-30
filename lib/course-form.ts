@@ -30,15 +30,15 @@ export interface MeetingValues {
   endDate: string;
 }
 
-/** A line of physical equipment reserved for the activity. */
+/** A line of physical equipment reserved for the course. */
 export interface EquipmentLineValues {
   id: string;
   equipmentId: string;
   quantity: string;
 }
 
-/** Shape of the "add activity" form. Empty strings = not filled yet. */
-export interface ActivityFormValues {
+/** Shape of the "add course" form. Empty strings = not filled yet. */
+export interface CourseFormValues {
   name: string;
   coach: string;
   capacity: string;
@@ -53,7 +53,7 @@ export interface ActivityFormValues {
   equipment: EquipmentLineValues[];
 }
 
-export const EMPTY_ACTIVITY_FORM: ActivityFormValues = {
+export const EMPTY_COURSE_FORM: CourseFormValues = {
   name: "",
   coach: "",
   capacity: "",
@@ -106,7 +106,7 @@ export function meetingComplete(meeting: MeetingValues): boolean {
 }
 
 /** Name and start date are required; any opened meeting must be fully filled. */
-export function isActivityFormValid(values: ActivityFormValues): boolean {
+export function isCourseFormValid(values: CourseFormValues): boolean {
   if (values.name.trim() === "") return false;
   if (!values.startDate) return false;
   return values.meetings.every(meetingComplete);
@@ -149,8 +149,8 @@ export function equipmentById(equipmentId: string): Equipment | undefined {
   return equipment.find((e) => e.id === equipmentId);
 }
 
-/** Whether a student falls within the activity's age and fitness ranges. */
-export function meetsCriteria(player: Player, values: ActivityFormValues): boolean {
+/** Whether a student falls within the course's age and fitness ranges. */
+export function meetsCriteria(player: Player, values: CourseFormValues): boolean {
   const ageMin = values.ageMin ? Number(values.ageMin) : null;
   const ageMax = values.ageMax ? Number(values.ageMax) : null;
   const fitMin = values.fitnessMin ? Number(values.fitnessMin) : null;

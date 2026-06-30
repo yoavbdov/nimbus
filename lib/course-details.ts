@@ -1,11 +1,11 @@
 import { players } from "@/lib/players-data";
 import { rooms, equipment } from "@/lib/rooms-data";
-import type { Activity } from "@/lib/activities-data";
+import type { Course } from "@/lib/courses-data";
 import {
-  type ActivityFormValues,
+  type CourseFormValues,
   type MeetingValues,
   type EquipmentLineValues,
-} from "@/lib/activity-form";
+} from "@/lib/course-form";
 
 /** A small, stable string hash (djb2-ish) with a seed for independent draws. */
 function hash(str: string, seed: number): number {
@@ -27,29 +27,29 @@ function isoFromNextDate(nextDate: string): string {
   return `${m[3]}-${m[2]}-${m[1]}`;
 }
 
-/** A deterministic afternoon time window for an activity's meetings. */
-function timeWindow(activity: Activity): { start: string; end: string } {
-  const startHour = 14 + (hash(activity.id, 5381) % 5); // 14:00–18:00
-  const duration = 1 + (hash(activity.id, 131) % 2); // 1–2 hours
+/** A deterministic afternoon time window for an course's meetings. */
+function timeWindow(course: Course): { start: string; end: string } {
+  const startHour = 14 + (hash(course.id, 5381) % 5); // 14:00–18:00
+  const duration = 1 + (hash(course.id, 131) % 2); // 1–2 hours
   return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
 }
 
-/** Built-from-data notes so every activity shows something in its details. */
-function notesFor(activity: Activity): string {
-  const dayList = activity.days.join(", ");
-  const coachLine = activity.coach
-    ? `החוג מועבר על ידי ${activity.coach}.`
+/** Built-from-data notes so every course shows something in its details. */
+function notesFor(course: Course): string {
+  const dayList = course.days.join(", ");
+  const coachLine = course.coach
+    ? `החוג מועבר על ידי ${course.coach}.`
     : "טרם שובץ מדריך לחוג.";
-  return `${coachLine} מתקיים בימים: ${dayList || "—"}, בחדר ${activity.room}. מיועד לגילאי ${activity.ageMin}–${activity.ageMax} ולמד כושר ${activity.fitnessMin}–${activity.fitnessMax}.`;
+  return `${coachLine} מתקיים בימים: ${dayList || "—"}, בחדר ${course.room}. מיועד לגילאי ${course.ageMin}–${course.ageMax} ולמד כושר ${course.fitnessMin}–${course.fitnessMax}.`;
 }
 
-/** One weekly, open-ended meeting per activity day, all in the activity's room. */
-function meetingsFor(activity: Activity): MeetingValues[] {
-  const { start, end } = timeWindow(activity);
-  return activity.days.map((day, i) => ({
-    id: `meeting-${activity.id}-${i}`,
+/** One weekly, open-ended meeting per course day, all in the course's room. */
+function meetingsFor(course: Course): MeetingValues[] {
+  const { start, end } = timeWindow(course);
+  return course.days.map((day, i) => ({
+    id: `meeting-${course.id}-${i}`,
     day,
-    room: activity.room,
+    room: course.room,
     startTime: start,
     endTime: end,
     frequency: "weekly",
@@ -58,14 +58,14 @@ function meetingsFor(activity: Activity): MeetingValues[] {
   }));
 }
 
-/** The students already registered to this activity (those whose clubs include it). */
-function studentIdsFor(activity: Activity): string[] {
-  return players.filter((p) => p.clubs.includes(activity.name)).map((p) => p.id);
+/** The students already registered to this course (those whose clubs include it). */
+function studentIdsFor(course: Course): string[] {
+  return players.filter((p) => p.clubs.includes(course.name)).map((p) => p.id);
 }
 
-/** Equipment lines derived from the gear that lives in the activity's room. */
-function equipmentFor(activity: Activity): EquipmentLineValues[] {
-  const room = rooms.find((r) => r.name === activity.room);
+/** Equipment lines derived from the gear that lives in the course's room. */
+function equipmentFor(course: Course): EquipmentLineValues[] {
+  const room = rooms.find((r) => r.name === course.room);
   if (!room) return [];
   const lines: EquipmentLineValues[] = [];
   room.equipment.forEach((name, i) => {
@@ -74,7 +74,7 @@ function equipmentFor(activity: Activity): EquipmentLineValues[] {
     );
     if (match && !lines.some((l) => l.equipmentId === match.name)) {
       lines.push({
-        id: `equip-${activity.id}-${i}`,
+        id: `equip-${course.id}-${i}`,
         equipmentId: match.name,
         quantity: String(1 + (hash(match.id, 7) % 3)),
       });
@@ -84,23 +84,23 @@ function equipmentFor(activity: Activity): EquipmentLineValues[] {
 }
 
 /**
- * Builds the full "edit activity" form from an existing activity. The roster
+ * Builds the full "edit course" form from an existing course. The roster
  * only stores a slice of these fields, so the rest (meetings, students,
- * equipment, notes, start date) is derived consistently from the activity.
+ * equipment, notes, start date) is derived consistently from the course.
  */
-export function activityFormValuesFor(activity: Activity): ActivityFormValues {
+export function courseFormValuesFor(course: Course): CourseFormValues {
   return {
-    name: activity.name,
-    coach: activity.coach,
-    capacity: String(activity.capacity),
-    fitnessMin: String(activity.fitnessMin),
-    fitnessMax: String(activity.fitnessMax),
-    ageMin: String(activity.ageMin),
-    ageMax: String(activity.ageMax),
-    notes: notesFor(activity),
-    startDate: isoFromNextDate(activity.nextDate),
-    meetings: meetingsFor(activity),
-    studentIds: studentIdsFor(activity),
-    equipment: equipmentFor(activity),
+    name: course.name,
+    coach: course.coach,
+    capacity: String(course.capacity),
+    fitnessMin: String(course.fitnessMin),
+    fitnessMax: String(course.fitnessMax),
+    ageMin: String(course.ageMin),
+    ageMax: String(course.ageMax),
+    notes: notesFor(course),
+    startDate: isoFromNextDate(course.nextDate),
+    meetings: meetingsFor(course),
+    studentIds: studentIdsFor(course),
+    equipment: equipmentFor(course),
   };
 }

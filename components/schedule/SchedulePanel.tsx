@@ -10,12 +10,12 @@ import { CalendarGrid } from "@/components/schedule/CalendarGrid";
 import { ScheduleAgenda } from "@/components/schedule/ScheduleAgenda";
 import { TimeGridView } from "@/components/schedule/TimeGridView";
 import { ScheduleEventMenu } from "@/components/schedule/ScheduleEventMenu";
-import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
 import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
 import { EventFormModal } from "@/components/events/EventFormModal";
 import { EditLeagueTeamModal } from "@/components/leagues/EditLeagueTeamModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
-import { PossibleEnrollmentsModal as ActivityEnrollmentsModal } from "@/components/activities/PossibleEnrollmentsModal";
+import { PossibleEnrollmentsModal as CourseEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
 import { PossibleEnrollmentsModal as TournamentEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { useScheduleCalendar } from "@/hooks/schedule/useScheduleCalendar";
@@ -124,7 +124,7 @@ export function SchedulePanel() {
       />
 
       {/* The same modals the management modules open from their row dropdowns. */}
-      <ActivityFormModal addActivity={actions.activityEdit} />
+      <CourseFormModal addCourse={actions.courseEdit} />
       <TournamentFormModal addTournament={actions.tournamentEdit} />
       <EventFormModal addEvent={actions.eventEdit} />
       <EditLeagueTeamModal
@@ -157,11 +157,11 @@ export function SchedulePanel() {
         valid={actions.coachEdit.valid}
         onConfirm={actions.coachEdit.confirm}
       />
-      <ActivityEnrollmentsModal
-        open={actions.activityEnrollments.open}
-        onOpenChange={actions.activityEnrollments.onOpenChange}
-        activity={actions.activityEnrollments.activity}
-        candidates={actions.activityEnrollments.candidates}
+      <CourseEnrollmentsModal
+        open={actions.courseEnrollments.open}
+        onOpenChange={actions.courseEnrollments.onOpenChange}
+        course={actions.courseEnrollments.course}
+        candidates={actions.courseEnrollments.candidates}
         onExport={() => {}}
       />
       <TournamentEnrollmentsModal

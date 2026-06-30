@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { CleanupKindBadge } from "@/components/tools/cleanup/CleanupKindBadge";
-import { type CompletedActivity } from "@/lib/cleanup-data";
+import { type CompletedCourse } from "@/lib/cleanup-data";
 import { type RowSelection } from "@/hooks/useRowSelection";
 import { cn } from "@/lib/utils";
 
@@ -18,17 +18,17 @@ const headClass =
   "px-3 py-2.5 text-center text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70";
 const cellClass = "px-3 py-2.5 text-center text-sm text-foreground/85";
 
-interface CompletedActivitiesTableProps {
-  items: CompletedActivity[];
+interface CompletedCoursesTableProps {
+  items: CompletedCourse[];
   selection: RowSelection;
-  onOpenDetails: (item: CompletedActivity) => void;
+  onOpenDetails: (item: CompletedCourse) => void;
 }
 
-export function CompletedActivitiesTable({
+export function CompletedCoursesTable({
   items,
   selection,
   onOpenDetails,
-}: CompletedActivitiesTableProps) {
+}: CompletedCoursesTableProps) {
   return (
     <Table>
       <TableHeader className="[&_tr]:border-b-2 [&_tr]:border-border">

@@ -35,7 +35,7 @@ export const leagueCategories: LeagueCategory[] = ["בוגרים", "נוער", "
 export const leagueTeams: LeagueTeam[] = [
   // ── בוגרים ─────────────────────────────────────────────
   {
-    id: "lt-1",
+    id: "league-1",
     category: "בוגרים",
     rank: "לאומית",
     name: "נבחרת המאסטרים",
@@ -48,7 +48,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-2",
+    id: "league-2",
     category: "בוגרים",
     rank: "ארצית",
     name: "סוסי הברזל",
@@ -60,7 +60,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-3",
+    id: "league-3",
     category: "בוגרים",
     rank: "ליגה א׳",
     name: "פתיחת המלך",
@@ -72,7 +72,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-4",
+    id: "league-4",
     category: "בוגרים",
     rank: "ליגה ב׳",
     name: "רגלי החייל",
@@ -83,7 +83,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-5",
+    id: "league-5",
     category: "בוגרים",
     rank: "ליגה ג׳",
     name: "מתחילים שאפתנים",
@@ -97,7 +97,7 @@ export const leagueTeams: LeagueTeam[] = [
 
   // ── נוער ───────────────────────────────────────────────
   {
-    id: "lt-6",
+    id: "league-6",
     category: "נוער",
     rank: "לאומית",
     name: "כוכבי העתיד",
@@ -109,7 +109,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-7",
+    id: "league-7",
     category: "נוער",
     rank: "ארצית",
     name: "אריות צעירים",
@@ -121,7 +121,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-8",
+    id: "league-8",
     category: "נוער",
     rank: "מחוזית",
     name: "פרשי המחוז",
@@ -134,7 +134,7 @@ export const leagueTeams: LeagueTeam[] = [
 
   // ── נשים ───────────────────────────────────────────────
   {
-    id: "lt-9",
+    id: "league-9",
     category: "נשים",
     rank: "עילית",
     name: "מלכות הלוח",
@@ -146,7 +146,7 @@ export const leagueTeams: LeagueTeam[] = [
     ),
   },
   {
-    id: "lt-10",
+    id: "league-10",
     category: "נשים",
     rank: "ארצית",
     name: "נסיכות הצריח",

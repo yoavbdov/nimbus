@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { useActivityActionsMenu } from "@/hooks/useActivityActionsMenu";
+import { useCourseActionsMenu } from "@/hooks/useCourseActionsMenu";
 
 export interface TodaySession {
   time: string;
@@ -26,7 +26,7 @@ const sessions: TodaySession[] = [
 export const todayLabel = "יום חמישי, 21 במאי";
 
 export function useTodaySessions() {
-  const menu = useActivityActionsMenu();
+  const menu = useCourseActionsMenu();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   function handleRowClick(index: number, e: MouseEvent) {

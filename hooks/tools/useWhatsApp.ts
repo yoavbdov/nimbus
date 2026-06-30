@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   buildInvitationMessage,
   defaultNotesTemplates,
-  invitableActivities,
+  invitableCourses,
   openWhatsApp,
   type NotesTemplate,
 } from "@/lib/whatsapp-templates";
@@ -27,7 +27,7 @@ export function useWhatsApp() {
   const [view, setView] = useState<WhatsAppView>("invite");
 
   // ── Invitations ──
-  const [activityId, setActivityId] = useState(invitableActivities[0]?.id ?? "");
+  const [courseId, setCourseId] = useState(invitableCourses[0]?.id ?? "");
   const [templates, setTemplates] = useState<NotesTemplate[]>(
     defaultNotesTemplates,
   );
@@ -35,9 +35,9 @@ export function useWhatsApp() {
   const [body, setBody] = useState(defaultNotesTemplates[0]?.body ?? "");
   const [newTemplateName, setNewTemplateName] = useState("");
 
-  const activity = useMemo(
-    () => invitableActivities.find((a) => a.id === activityId) ?? null,
-    [activityId],
+  const course = useMemo(
+    () => invitableCourses.find((a) => a.id === courseId) ?? null,
+    [courseId],
   );
 
   const selectTemplate = (id: string) => {
@@ -82,8 +82,8 @@ export function useWhatsApp() {
   };
 
   const message = useMemo(
-    () => (activity ? buildInvitationMessage(activity, body) : ""),
-    [activity, body],
+    () => (course ? buildInvitationMessage(course, body) : ""),
+    [course, body],
   );
 
   const sendInvitation = () => {
@@ -106,10 +106,10 @@ export function useWhatsApp() {
     view,
     setView,
     // invitations
-    activities: invitableActivities,
-    activityId,
-    setActivityId,
-    activity,
+    courses: invitableCourses,
+    courseId,
+    setCourseId,
+    course,
     templates,
     templateId,
     selectTemplate,

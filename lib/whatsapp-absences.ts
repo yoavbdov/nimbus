@@ -14,14 +14,14 @@ export interface AbsenceStreak {
 }
 
 const mockAbsentees: AbsenceStreak[] = [
-  { studentId: "s-ab-1", studentName: "אורי גולן", classId: "ac-1", className: "שחמט מתחילים", streak: 4, lastSeen: "05.05.2026" },
-  { studentId: "s-ab-2", studentName: "נועם ברקת", classId: "ac-1", className: "שחמט מתחילים", streak: 2, lastSeen: "19.05.2026" },
-  { studentId: "s-ab-3", studentName: "מיה שפירא", classId: "ac-2", className: "שחמט מתקדמים", streak: 3, lastSeen: "11.05.2026" },
-  { studentId: "s-ab-4", studentName: "דור אביב", classId: "ac-3", className: "מועדון אחה״צ", streak: 5, lastSeen: "30.04.2026" },
-  { studentId: "s-ab-5", studentName: "מתן זיו", classId: "ac-3", className: "מועדון אחה״צ", streak: 2, lastSeen: "21.05.2026" },
-  { studentId: "s-ab-6", studentName: "רותם חן", classId: "ac-4", className: "אימון קבוצתי", streak: 3, lastSeen: "14.05.2026" },
-  { studentId: "s-ab-7", studentName: "עידו לב", classId: "ac-5", className: "חוג גן", streak: 2, lastSeen: "20.05.2026" },
-  { studentId: "s-ab-8", studentName: "ליבי שמש", classId: "ac-5", className: "חוג גן", streak: 4, lastSeen: "06.05.2026" },
+  { studentId: "s-ab-1", studentName: "אורי גולן", classId: "attendance-1", className: "שחמט מתחילים", streak: 4, lastSeen: "05.05.2026" },
+  { studentId: "s-ab-2", studentName: "נועם ברקת", classId: "attendance-1", className: "שחמט מתחילים", streak: 2, lastSeen: "19.05.2026" },
+  { studentId: "s-ab-3", studentName: "מיה שפירא", classId: "attendance-2", className: "שחמט מתקדמים", streak: 3, lastSeen: "11.05.2026" },
+  { studentId: "s-ab-4", studentName: "דור אביב", classId: "attendance-3", className: "מועדון אחה״צ", streak: 5, lastSeen: "30.04.2026" },
+  { studentId: "s-ab-5", studentName: "מתן זיו", classId: "attendance-3", className: "מועדון אחה״צ", streak: 2, lastSeen: "21.05.2026" },
+  { studentId: "s-ab-6", studentName: "רותם חן", classId: "attendance-4", className: "אימון קבוצתי", streak: 3, lastSeen: "14.05.2026" },
+  { studentId: "s-ab-7", studentName: "עידו לב", classId: "attendance-5", className: "חוג גן", streak: 2, lastSeen: "20.05.2026" },
+  { studentId: "s-ab-8", studentName: "ליבי שמש", classId: "attendance-5", className: "חוג גן", streak: 4, lastSeen: "06.05.2026" },
 ];
 
 /** Students whose trailing absence streak meets the given threshold. */

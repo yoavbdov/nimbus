@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { filterActivities, type ActivityFilter } from "@/lib/activities-filters";
+import { filterCourses, type CourseFilter } from "@/lib/courses-filters";
 
-export function useActivitiesFilter() {
+export function useCoursesFilter() {
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<ActivityFilter[]>([]);
+  const [filters, setFilters] = useState<CourseFilter[]>([]);
   const [todayOnly, setTodayOnly] = useState(false);
 
-  function addFilter(filter: ActivityFilter) {
+  function addFilter(filter: CourseFilter) {
     setFilters((prev) => [...prev, filter]);
   }
 
@@ -14,7 +14,7 @@ export function useActivitiesFilter() {
     setFilters((prev) => prev.filter((f) => f.id !== id));
   }
 
-  function updateFilter(id: string, next: ActivityFilter) {
+  function updateFilter(id: string, next: CourseFilter) {
     setFilters((prev) => prev.map((f) => (f.id === id ? { ...next, id } : f)));
   }
 
@@ -29,7 +29,7 @@ export function useActivitiesFilter() {
   }
 
   const filtered = useMemo(
-    () => filterActivities(search, filters, todayOnly),
+    () => filterCourses(search, filters, todayOnly),
     [search, filters, todayOnly],
   );
 

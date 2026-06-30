@@ -67,7 +67,7 @@ function sessions(...entries: [string, string][]): AttendanceSession[] {
 
 export const attendanceClasses: AttendanceClass[] = [
   {
-    id: "ac-1",
+    id: "attendance-1",
     name: "שחמט מתחילים",
     coach: "אבי לוי",
     sessions: sessions(
@@ -88,7 +88,7 @@ export const attendanceClasses: AttendanceClass[] = [
     ),
   },
   {
-    id: "ac-2",
+    id: "attendance-2",
     name: "שחמט מתקדמים",
     coach: "יוסי בן עמי",
     sessions: sessions(
@@ -107,7 +107,7 @@ export const attendanceClasses: AttendanceClass[] = [
     ),
   },
   {
-    id: "ac-3",
+    id: "attendance-3",
     name: "מועדון אחה״צ",
     coach: "מירב כהן",
     sessions: sessions(
@@ -124,7 +124,7 @@ export const attendanceClasses: AttendanceClass[] = [
     ),
   },
   {
-    id: "ac-4",
+    id: "attendance-4",
     name: "אימון קבוצתי",
     coach: "דנה אביב",
     sessions: sessions(
@@ -142,7 +142,7 @@ export const attendanceClasses: AttendanceClass[] = [
     ),
   },
   {
-    id: "ac-5",
+    id: "attendance-5",
     name: "חוג גן",
     coach: "ליאת מור",
     sessions: sessions(

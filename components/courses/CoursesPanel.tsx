@@ -3,15 +3,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ActivitiesActions } from "@/components/activities/ActivitiesActions";
-import { FilterBar } from "@/components/activities/filters/FilterBar";
-import { ActivitiesTable } from "@/components/activities/ActivitiesTable";
-import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
-import { useActivitiesPanel } from "@/hooks/activities/useActivitiesPanel";
-import { useAddActivity } from "@/hooks/activities/useAddActivity";
-import { activities as allActivities } from "@/lib/activities-data";
+import { CoursesActions } from "@/components/courses/CoursesActions";
+import { FilterBar } from "@/components/courses/filters/FilterBar";
+import { CoursesTable } from "@/components/courses/CoursesTable";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
+import { useCoursesPanel } from "@/hooks/courses/useCoursesPanel";
+import { useAddCourse } from "@/hooks/courses/useAddCourse";
+import { courses as allCourses } from "@/lib/courses-data";
 
-export function ActivitiesPanel() {
+export function CoursesPanel() {
   const {
     search,
     setSearch,
@@ -24,9 +24,9 @@ export function ActivitiesPanel() {
     clearAll,
     filtered,
     filterKey,
-  } = useActivitiesPanel();
+  } = useCoursesPanel();
 
-  const addActivity = useAddActivity();
+  const addCourse = useAddCourse();
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -38,10 +38,10 @@ export function ActivitiesPanel() {
               ניהול חוגים
             </h1>
             <p className="text-xs text-muted-foreground/80 num">
-              {filtered.length} מתוך {allActivities.length} חוגים
+              {filtered.length} מתוך {allCourses.length} חוגים
             </p>
           </div>
-          <ActivitiesActions onAddActivity={addActivity.openModal} />
+          <CoursesActions onAddCourse={addCourse.openModal} />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -67,13 +67,13 @@ export function ActivitiesPanel() {
               exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <ActivitiesTable activities={filtered} />
+              <CoursesTable courses={filtered} />
             </motion.div>
           </AnimatePresence>
         </div>
       </CardContent>
 
-      <ActivityFormModal addActivity={addActivity} />
+      <CourseFormModal addCourse={addCourse} />
     </Card>
   );
 }

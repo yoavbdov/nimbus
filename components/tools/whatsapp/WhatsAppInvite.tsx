@@ -27,7 +27,7 @@ import {
 import { EmojiBar } from "@/components/tools/whatsapp/EmojiBar";
 import { useEmojiInsert } from "@/hooks/shared/useEmojiInsert";
 import {
-  type InvitableActivity,
+  type InvitableCourse,
   type NotesTemplate,
 } from "@/lib/whatsapp-templates";
 
@@ -37,10 +37,10 @@ const contentCenter =
   "[&_[data-slot=select-item]]:justify-center [&_[data-slot=select-item]]:pl-8 [&_[data-slot=select-item]]:text-center [&_[data-slot=select-item]]:text-sm";
 
 interface WhatsAppInviteProps {
-  activities: InvitableActivity[];
-  activityId: string;
-  onActivityChange: (id: string) => void;
-  activity: InvitableActivity | null;
+  courses: InvitableCourse[];
+  courseId: string;
+  onCourseChange: (id: string) => void;
+  course: InvitableCourse | null;
   templates: NotesTemplate[];
   templateId: string;
   onTemplateChange: (id: string) => void;
@@ -58,10 +58,10 @@ interface WhatsAppInviteProps {
 }
 
 export function WhatsAppInvite({
-  activities,
-  activityId,
-  onActivityChange,
-  activity,
+  courses,
+  courseId,
+  onCourseChange,
+  course,
   templates,
   templateId,
   onTemplateChange,
@@ -85,14 +85,14 @@ export function WhatsAppInvite({
   const pendingName =
     templates.find((t) => t.id === templatePendingDelete)?.name ?? "";
 
-  const legend: LegendEntry[] = activity
+  const legend: LegendEntry[] = course
     ? [
-        { token: "{שם}", value: `${activity.kind} ${activity.name}` },
-        { token: "{תאריך}", value: activity.date },
-        { token: "{ימים}", value: activity.daysLabel },
-        { token: "{שעות}", value: activity.timeRange },
-        { token: "{טווח}", value: activity.rangeLabel },
-        { token: "{חדר}", value: activity.room },
+        { token: "{שם}", value: `${course.kind} ${course.name}` },
+        { token: "{תאריך}", value: course.date },
+        { token: "{ימים}", value: course.daysLabel },
+        { token: "{שעות}", value: course.timeRange },
+        { token: "{טווח}", value: course.rangeLabel },
+        { token: "{חדר}", value: course.room },
       ]
     : [];
 
@@ -105,7 +105,7 @@ export function WhatsAppInvite({
             <span className="text-xs font-medium text-foreground/70">
               פעילות
             </span>
-            <Select value={activityId} onValueChange={onActivityChange}>
+            <Select value={courseId} onValueChange={onCourseChange}>
               <SelectTrigger className={triggerCenter}>
                 <SelectValue placeholder="בחירה" />
               </SelectTrigger>
@@ -114,7 +114,7 @@ export function WhatsAppInvite({
                 position="popper"
                 className={contentCenter}
               >
-                {activities.map((a) => (
+                {courses.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.kind} · {a.name}
                   </SelectItem>

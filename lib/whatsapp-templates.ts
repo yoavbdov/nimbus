@@ -1,5 +1,5 @@
 import { tournaments } from "@/lib/tournaments-data";
-import { activities } from "@/lib/activities-data";
+import { courses } from "@/lib/courses-data";
 
 // ── WhatsApp invitations ───────────────────────────────────────────
 // Turns a tournament / class into a ready-to-send WhatsApp invitation,
@@ -7,13 +7,13 @@ import { activities } from "@/lib/activities-data";
 
 export type InvitableKind = "תחרות" | "חוג";
 
-export interface InvitableActivity {
+export interface InvitableCourse {
   id: string;
   kind: InvitableKind;
   name: string;
   date: string;
   daysLabel: string;
-  /** The activity's known weekly time window, e.g. "17:00–18:30". */
+  /** The course's known weekly time window, e.g. "17:00–18:30". */
   timeRange: string;
   /** Rating range (תחרות) or fitness range (חוג). */
   rangeLabel: string;
@@ -22,7 +22,7 @@ export interface InvitableActivity {
   detailLabel: string;
 }
 
-/** Stable little hash so each activity gets a consistent time window. */
+/** Stable little hash so each course gets a consistent time window. */
 function hash(str: string): number {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
@@ -35,7 +35,7 @@ function timeRange(id: string): string {
   return `${String(start).padStart(2, "0")}:${half}–${String(start + 1).padStart(2, "0")}:${half}`;
 }
 
-const invitableTournaments: InvitableActivity[] = tournaments
+const invitableTournaments: InvitableCourse[] = tournaments
   .filter((t) => t.status !== "הסתיימה")
   .map((t) => ({
     id: t.id,
@@ -49,7 +49,7 @@ const invitableTournaments: InvitableActivity[] = tournaments
     detailLabel: `שופט: ${t.judge} · ${t.rounds} סיבובים`,
   }));
 
-const invitableClasses: InvitableActivity[] = activities
+const invitableClasses: InvitableCourse[] = courses
   .filter((a) => a.status !== "לא פעיל")
   .map((a) => ({
     id: a.id,
@@ -63,7 +63,7 @@ const invitableClasses: InvitableActivity[] = activities
     detailLabel: `מדריך: ${a.coach}`,
   }));
 
-export const invitableActivities: InvitableActivity[] = [
+export const invitableCourses: InvitableCourse[] = [
   ...invitableTournaments,
   ...invitableClasses,
 ];
@@ -106,18 +106,18 @@ export const WHATSAPP_EMOJIS = [
   "👏", "🙌", "❤️", "🤝", "🎯", "📝", "😊", "🙏",
 ] as const;
 
-/** Fills a template body with the activity's details. */
+/** Fills a template body with the course's details. */
 export function buildInvitationMessage(
-  activity: InvitableActivity,
+  course: InvitableCourse,
   templateBody: string,
 ): string {
   return templateBody
-    .replaceAll("{שם}", activity.name)
-    .replaceAll("{תאריך}", activity.date)
-    .replaceAll("{ימים}", activity.daysLabel)
-    .replaceAll("{שעות}", activity.timeRange)
-    .replaceAll("{טווח}", activity.rangeLabel)
-    .replaceAll("{חדר}", activity.room);
+    .replaceAll("{שם}", course.name)
+    .replaceAll("{תאריך}", course.date)
+    .replaceAll("{ימים}", course.daysLabel)
+    .replaceAll("{שעות}", course.timeRange)
+    .replaceAll("{טווח}", course.rangeLabel)
+    .replaceAll("{חדר}", course.room);
 }
 
 /** Opens WhatsApp with the message text pre-filled (manual send). */

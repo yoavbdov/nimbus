@@ -13,10 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ActivityActionsMenuContent } from "@/components/activities/ActivityActionsMenu";
+import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
-import { activityActions } from "@/lib/activity-actions";
+import { courseActions } from "@/lib/course-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import { useTodaySessions, todayLabel } from "@/hooks/dashboard/useTodaySessions";
 import { cn } from "@/lib/utils";
@@ -116,12 +116,12 @@ export function TodaySessions() {
       </Card>
       {bulkMode ? (
         <BulkActionsMenuContent
-          actions={activityActions}
+          actions={courseActions}
           count={selection.selectedCount}
           onSelect={onBulkSelect}
         />
       ) : (
-        <ActivityActionsMenuContent onSelect={onSelectAction} />
+        <CourseActionsMenuContent onSelect={onSelectAction} />
       )}
     </Popover>
   );

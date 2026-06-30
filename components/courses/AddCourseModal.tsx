@@ -57,20 +57,20 @@ import {
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { ACTIVITY_DAYS, allActivityCoaches } from "@/lib/activities-data";
+import { COURSE_DAYS, allCourseCoaches } from "@/lib/courses-data";
 import { rooms, equipment } from "@/lib/rooms-data";
 import {
   FREQUENCY_OPTIONS,
   equipmentAvailableNow,
   meetingEndDateValid,
-  type ActivityFormValues,
+  type CourseFormValues,
   type EquipmentLineValues,
   type MeetingValues,
-} from "@/lib/activity-form";
+} from "@/lib/course-form";
 import type {
-  ActivityModalMode,
-  ActivityTab,
-} from "@/hooks/activities/useAddActivity";
+  CourseModalMode,
+  CourseTab,
+} from "@/hooks/courses/useAddCourse";
 import type { Player } from "@/lib/players-data";
 
 /** The "no coach" choice in the searchable coach dropdown (maps to "" in the form). */
@@ -477,7 +477,7 @@ function MeetingCard({
               position="popper"
               className={selectContentClass}
             >
-              {ACTIVITY_DAYS.map((d) => (
+              {COURSE_DAYS.map((d) => (
                 <SelectItem key={d} value={d}>
                   {d}
                 </SelectItem>
@@ -676,22 +676,22 @@ function EquipmentRow({
 
 const tabHighlight = (
   <motion.span
-    layoutId="add-activity-tab-highlight"
+    layoutId="add-course-tab-highlight"
     className="absolute inset-0 rounded-lg border-2 border-primary bg-primary/5"
     transition={{ type: "spring", stiffness: 420, damping: 34 }}
   />
 );
 
-interface AddActivityModalProps {
+interface AddCourseModalProps {
   open: boolean;
-  mode: ActivityModalMode;
+  mode: CourseModalMode;
   onOpenChange: (open: boolean) => void;
-  tab: ActivityTab;
-  onTabChange: (tab: ActivityTab) => void;
-  values: ActivityFormValues;
-  onFieldChange: <K extends keyof ActivityFormValues>(
+  tab: CourseTab;
+  onTabChange: (tab: CourseTab) => void;
+  values: CourseFormValues;
+  onFieldChange: <K extends keyof CourseFormValues>(
     field: K,
-    value: ActivityFormValues[K],
+    value: CourseFormValues[K],
   ) => void;
   valid: boolean;
   onConfirm: () => void;
@@ -725,7 +725,7 @@ interface AddActivityModalProps {
   criteriaMismatch: (playerId: string) => boolean;
 }
 
-export function AddActivityModal({
+export function AddCourseModal({
   open,
   mode,
   onOpenChange,
@@ -763,7 +763,7 @@ export function AddActivityModal({
   coachWarning,
   capacityWarning,
   criteriaMismatch,
-}: AddActivityModalProps) {
+}: AddCourseModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   // The cleanup archive opens this modal read-only: every control is disabled
@@ -795,7 +795,7 @@ export function AddActivityModal({
 
         <Tabs
           value={tab}
-          onValueChange={(v) => onTabChange(v as ActivityTab)}
+          onValueChange={(v) => onTabChange(v as CourseTab)}
           dir="rtl"
           className="min-h-0 flex-1 gap-4"
         >
@@ -875,7 +875,7 @@ export function AddActivityModal({
                           onChange={(v) =>
                             onFieldChange("coach", v === NO_COACH ? "" : v)
                           }
-                          options={[NO_COACH, ...allActivityCoaches]}
+                          options={[NO_COACH, ...allCourseCoaches]}
                           placeholder={NO_COACH}
                           searchPlaceholder="חיפוש מדריך…"
                           container={container}

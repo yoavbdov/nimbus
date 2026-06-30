@@ -54,10 +54,10 @@ export function WhatsAppView() {
             >
               {wa.view === "invite" ? (
                 <WhatsAppInvite
-                  activities={wa.activities}
-                  activityId={wa.activityId}
-                  onActivityChange={wa.setActivityId}
-                  activity={wa.activity}
+                  courses={wa.courses}
+                  courseId={wa.courseId}
+                  onCourseChange={wa.setCourseId}
+                  course={wa.course}
                   templates={wa.templates}
                   templateId={wa.templateId}
                   onTemplateChange={wa.selectTemplate}
