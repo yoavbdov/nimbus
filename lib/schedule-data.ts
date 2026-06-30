@@ -1,4 +1,5 @@
 import { startOfMonth, toISODate } from "@/lib/calendar";
+import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type EventCategory = "חוג" | "תחרות" | "אירוע" | "ליגה";
 
@@ -232,7 +233,7 @@ export function buildFacetOptions(
     player: new Set(),
     class: new Set(),
     coach: new Set(),
-    room: new Set(),
+    room: new Set([OUTSIDE_CLUB_ROOM]),
     competition: new Set(),
     event: new Set(),
   };

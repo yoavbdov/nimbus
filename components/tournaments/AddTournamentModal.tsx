@@ -458,7 +458,7 @@ function RoundCard({
           <SearchSelect
             value={round.room}
             onChange={(v) => onChange({ room: v })}
-            options={rooms.map((r) => r.name)}
+            options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
             placeholder="בחר חדר"
             searchPlaceholder="חיפוש חדר…"
             container={container}
@@ -1051,7 +1051,7 @@ export function AddTournamentModal({
                               <SearchSelect
                                 value={values.fixedRoom}
                                 onChange={(v) => onFieldChange("fixedRoom", v)}
-                                options={rooms.map((r) => r.name)}
+                                options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
                                 placeholder="בחר חדר"
                                 searchPlaceholder="חיפוש חדר…"
                                 container={container}

@@ -490,7 +490,7 @@ function MeetingCard({
           <SearchSelect
             value={meeting.room}
             onChange={(v) => onChange({ room: v })}
-            options={rooms.map((r) => r.name)}
+            options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
             placeholder="בחר חדר"
             searchPlaceholder="חיפוש חדר…"
             container={container}

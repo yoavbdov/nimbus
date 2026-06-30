@@ -1,3 +1,5 @@
+import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
+
 export type ActivityStatus = "פעיל" | "מלא" | "לא פעיל";
 
 export const ACTIVITY_DAYS = [
@@ -65,7 +67,7 @@ export const allActivityCoaches = Array.from(
 export const allActivityStatuses: ActivityStatus[] = ["פעיל", "מלא", "לא פעיל"];
 
 export const allActivityRooms = Array.from(
-  new Set(activities.map((a) => a.room)),
+  new Set([...activities.map((a) => a.room), OUTSIDE_CLUB_ROOM]),
 ).sort((a, b) => a.localeCompare(b, "he"));
 
 const HEBREW_DAY_BY_JS: Record<number, ActivityDay> = {

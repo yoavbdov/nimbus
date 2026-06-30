@@ -1,4 +1,5 @@
 import { type ActivityDay } from "@/lib/activities-data";
+import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { ActivityDay };
 
@@ -59,5 +60,5 @@ export const allTournamentStatuses: TournamentStatus[] = [
 ];
 
 export const allTournamentRooms = Array.from(
-  new Set(tournaments.map((t) => t.room)),
+  new Set([...tournaments.map((t) => t.room), OUTSIDE_CLUB_ROOM]),
 ).sort((a, b) => a.localeCompare(b, "he"));

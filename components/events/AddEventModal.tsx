@@ -732,7 +732,7 @@ export function AddEventModal({
                               <SearchSelect
                                 value={values.oneoffRoom}
                                 onChange={(v) => onFieldChange("oneoffRoom", v)}
-                                options={rooms.map((r) => r.name)}
+                                options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
                                 placeholder="בחר חדר"
                                 searchPlaceholder="חיפוש חדר…"
                                 container={container}
@@ -798,7 +798,7 @@ export function AddEventModal({
                                 onChange={(v) =>
                                   onFieldChange("recurringRoom", v)
                                 }
-                                options={rooms.map((r) => r.name)}
+                                options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
                                 placeholder="בחר חדר"
                                 searchPlaceholder="חיפוש חדר…"
                                 container={container}

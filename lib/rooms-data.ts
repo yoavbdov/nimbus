@@ -12,6 +12,8 @@ export interface Equipment {
   notes: string;
 }
 
+export const OUTSIDE_CLUB_ROOM = "מחוץ למועדון";
+
 export const rooms: Room[] = [
   { id: "r1", name: "אולם ראשי", capacity: 40, equipment: ["שעוני שח", "לוחות הדגמה", "מקרן"] },
   { id: "r2", name: "חדר אימונים א'", capacity: 16, equipment: ["שעוני שח", "לוחות הדגמה"] },
