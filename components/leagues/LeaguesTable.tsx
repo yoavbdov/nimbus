@@ -120,9 +120,10 @@ function LeagueTeamRow({
 
 interface LeaguesTableProps {
   teams: LeagueTeam[];
+  onTeamAction?: (actionId: string, teamId: string) => void;
 }
 
-export function LeaguesTable({ teams }: LeaguesTableProps) {
+export function LeaguesTable({ teams, onTeamAction }: LeaguesTableProps) {
   const {
     sortKey,
     sortDir,
@@ -134,7 +135,7 @@ export function LeaguesTable({ teams }: LeaguesTableProps) {
     activeId,
     handleRowClick,
     handleMenuOpenChange,
-  } = useLeaguesTable(teams);
+  } = useLeaguesTable(teams, onTeamAction);
   const { selection, bulkMode, onBulkSelect } = useTableSelection({
     ids: sorted.map((t) => t.id),
     activeId,
@@ -163,11 +164,11 @@ export function LeaguesTable({ teams }: LeaguesTableProps) {
       <PopoverAnchor virtualRef={virtualRef} />
       <div
         dir="ltr"
-        className="players-scroll max-h-[calc(100dvh-26rem)] min-h-76 overflow-y-auto overflow-x-hidden"
+        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
       >
         <div dir="rtl">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
+            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-foreground/15">
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם קבוצה</SortableHeader>
                 <SortableHeader {...headerProps("rank")}>דרגת ליגה</SortableHeader>

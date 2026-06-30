@@ -7,12 +7,14 @@ interface ActionButtonProps {
   label: string;
   variant?: "default" | "ghost";
   iconClassName?: string;
+  onClick?: () => void;
 }
 
-function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName, onClick }: ActionButtonProps) {
   return (
     <Button
       type="button"
+      onClick={onClick}
       variant={variant}
       className={cn(
         "group/btn relative overflow-hidden tint-indigo",
@@ -27,10 +29,10 @@ function ActionButton({ icon: Icon, label, variant = "ghost", iconClassName }: A
   );
 }
 
-export function LeaguesActions() {
+export function LeaguesActions({ onAddTeam }: { onAddTeam: () => void }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ActionButton icon={Swords} label="הוסף קבוצה" variant="default" />
+      <ActionButton icon={Swords} label="הוסף קבוצה" variant="default" onClick={onAddTeam} />
       <ActionButton icon={FileDown} label="ייצוא לאקסל" iconClassName="text-[#217346]" />
       <ActionButton icon={FileUp} label="משיכה מאקסל" iconClassName="text-[#217346]" />
     </div>

@@ -5,6 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LeaguesActions } from "@/components/leagues/LeaguesActions";
 import { LeaguesTable } from "@/components/leagues/LeaguesTable";
+import { AddLeagueTeamModal } from "@/components/leagues/AddLeagueTeamModal";
+import { EditLeagueTeamModal } from "@/components/leagues/EditLeagueTeamModal";
+import { useAddLeagueTeam } from "@/hooks/leagues/useAddLeagueTeam";
+import { useLeagueTeamDetails } from "@/hooks/leagues/useLeagueTeamDetails";
 import { leagueTeams, type LeagueCategory } from "@/lib/leagues-data";
 
 const subtitles: Record<LeagueCategory, string> = {
@@ -15,6 +19,16 @@ const subtitles: Record<LeagueCategory, string> = {
 
 export function LeaguesPanel({ category }: { category: LeagueCategory }) {
   const teams = leagueTeams.filter((t) => t.category === category);
+  const addTeam = useAddLeagueTeam();
+  const details = useLeagueTeamDetails();
+
+  function handleTeamAction(actionId: string, teamId: string) {
+    const team = leagueTeams.find((t) => t.id === teamId);
+    if (!team) return;
+    // "פרטי קבוצה" lands on the details tab; "רשימת שחקנים" jumps to the players tab.
+    if (actionId === "details") details.openFor(team, "details");
+    else if (actionId === "players") details.openFor(team, "players");
+  }
 
   return (
     <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
@@ -29,7 +43,7 @@ export function LeaguesPanel({ category }: { category: LeagueCategory }) {
               {teams.length} קבוצות · {subtitles[category]}
             </p>
           </div>
-          <LeaguesActions />
+          <LeaguesActions onAddTeam={() => addTeam.openModal(category)} />
         </div>
 
         <Separator className="bg-foreground/8" />
@@ -43,11 +57,42 @@ export function LeaguesPanel({ category }: { category: LeagueCategory }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             >
-              <LeaguesTable teams={teams} />
+              <LeaguesTable teams={teams} onTeamAction={handleTeamAction} />
             </motion.div>
           </AnimatePresence>
         </div>
       </CardContent>
+
+      <AddLeagueTeamModal
+        open={addTeam.open}
+        onOpenChange={addTeam.handleOpenChange}
+        values={addTeam.values}
+        onFieldChange={addTeam.updateField}
+        valid={addTeam.valid}
+        onConfirm={addTeam.confirm}
+      />
+
+      <EditLeagueTeamModal
+        open={details.open}
+        tab={details.tab}
+        onTabChange={details.setTab}
+        onOpenChange={details.handleOpenChange}
+        values={details.values}
+        onFieldChange={details.updateField}
+        members={details.members}
+        onRemovePlayer={details.removePlayer}
+        valid={details.valid}
+        onConfirm={details.confirm}
+        pickerOpen={details.pickerOpen}
+        onOpenPicker={details.openPicker}
+        onPickerOpenChange={details.handlePickerOpenChange}
+        query={details.query}
+        onQueryChange={details.setQuery}
+        pickerRows={details.pickerRows}
+        checkedCount={details.checkedCount}
+        onToggleChecked={details.toggleChecked}
+        onConfirmAddPlayers={details.confirmAddPlayers}
+      />
     </Card>
   );
 }
