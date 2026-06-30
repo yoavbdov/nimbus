@@ -20,6 +20,7 @@ import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
 import { eventActions } from "@/lib/row-actions";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
 import { useEventsTable } from "@/hooks/events/useEventsTable";
@@ -153,6 +154,7 @@ export function EventsTable({ events }: EventsTableProps) {
     virtualRef,
     onSelectAction,
     onRowAction,
+    archive,
     eventEdit,
     activeId,
     handleRowClick,
@@ -227,6 +229,13 @@ export function EventsTable({ events }: EventsTableProps) {
       )}
     </Popover>
     <EventFormModal addEvent={eventEdit} />
+    <ArchiveConfirmDialog
+      open={archive.open}
+      count={archive.count}
+      noun="אירועים"
+      onCancel={archive.cancel}
+      onConfirm={archive.confirm}
+    />
     </>
   );
 }

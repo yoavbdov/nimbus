@@ -1,8 +1,9 @@
-import { CalendarCheck, CalendarHeart, DoorOpen, Package, Trash2 } from "lucide-react";
+import { Archive, CalendarCheck, CalendarHeart, DoorOpen, Package, Trash2 } from "lucide-react";
 import type { RowAction } from "@/components/shared/RowActionsMenu";
 
 export const eventActions: RowAction[] = [
   { id: "details", label: "פרטי אירוע", icon: CalendarHeart, variant: "default" },
+  { id: "archive", label: "העברה לארכיון", icon: Archive, variant: "default" },
   { id: "delete", label: "מחיקת אירוע", icon: Trash2, variant: "destructive" },
 ];
 

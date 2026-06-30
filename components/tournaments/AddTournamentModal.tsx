@@ -774,6 +774,10 @@ export function AddTournamentModal({
 }: AddTournamentModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
+  // The cleanup archive opens this modal read-only: every control is disabled
+  // (via the wrapping fieldset) and the confirm/export actions are hidden.
+  const readOnly = mode === "view";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -783,11 +787,21 @@ export function AddTournamentModal({
       >
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "עריכת תחרות" : "הוספת תחרות"}
+            {readOnly
+              ? "צפייה בתחרות"
+              : mode === "edit"
+                ? "עריכת תחרות"
+                : "הוספת תחרות"}
           </DialogTitle>
           <DialogDescription>
-            שדות המסומנים ב־
-            <span className="text-destructive">*</span> הם שדות חובה.
+            {readOnly ? (
+              "פרטי התחרות מוצגים לצפייה בלבד."
+            ) : (
+              <>
+                שדות המסומנים ב־
+                <span className="text-destructive">*</span> הם שדות חובה.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -832,6 +846,9 @@ export function AddTournamentModal({
             dir="ltr"
             className="players-scroll -mx-1 min-h-0 flex-1 overflow-y-auto px-1"
           >
+            {/* A disabled fieldset turns the whole form read-only in "view"
+                mode (cleanup archive) — every nested control is inert. */}
+            <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab}
@@ -1272,11 +1289,12 @@ export function AddTournamentModal({
                 )}
               </motion.div>
             </AnimatePresence>
+            </fieldset>
           </div>
         </Tabs>
 
         <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
-          {tab === "players" && (
+          {!readOnly && tab === "players" && (
             <Button
               type="button"
               variant="ghost"
@@ -1288,21 +1306,23 @@ export function AddTournamentModal({
               ייצוא לאקסל
             </Button>
           )}
+          {!readOnly && (
+            <Button
+              type="button"
+              disabled={!valid}
+              onClick={onConfirm}
+              className="rounded-xl"
+            >
+              {mode === "edit" ? "עדכון" : "אישור"}
+            </Button>
+          )}
           <Button
             type="button"
-            disabled={!valid}
-            onClick={onConfirm}
-            className="rounded-xl"
-          >
-            {mode === "edit" ? "עדכון" : "אישור"}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
+            variant={readOnly ? "default" : "ghost"}
             onClick={() => onOpenChange(false)}
             className="rounded-xl"
           >
-            ביטול
+            {readOnly ? "סגירה" : "ביטול"}
           </Button>
         </DialogFooter>
       </DialogContent>

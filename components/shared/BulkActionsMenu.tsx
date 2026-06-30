@@ -33,6 +33,7 @@ export function BulkActionsMenuContent({
   onSelect,
 }: BulkActionsMenuContentProps) {
   const availability = actions.find((a) => a.id === "availability");
+  const archive = actions.find((a) => a.id === "archive");
   const remove = actions.find((a) => a.id === "delete");
 
   return (
@@ -67,7 +68,23 @@ export function BulkActionsMenuContent({
         </Button>
       )}
 
-      {availability && remove && (
+      {archive && (
+        <Button
+          variant="ghost"
+          onClick={() => onSelect(archive)}
+          className={cn(
+            "group w-full justify-start gap-2.5 rounded-lg px-2.5 py-2 h-auto",
+            "text-sm font-normal text-foreground/85",
+            "hover:bg-primary/20 dark:hover:bg-primary/40 hover:text-foreground hover:pe-1",
+            "transition-all duration-150",
+          )}
+        >
+          <archive.icon className="size-4 text-primary/70 transition-colors group-hover:text-primary" />
+          <span className="flex-1 text-start">{archive.label}</span>
+        </Button>
+      )}
+
+      {(availability || archive) && remove && (
         <Separator className="my-1 bg-linear-to-r from-transparent via-foreground/15 to-transparent" />
       )}
 

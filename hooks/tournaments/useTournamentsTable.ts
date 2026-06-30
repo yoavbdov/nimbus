@@ -4,6 +4,7 @@ import { useTournamentActionsMenu } from "@/hooks/useTournamentActionsMenu";
 import { useAddTournament } from "@/hooks/tournaments/useAddTournament";
 import { usePossibleTournamentEnrollments } from "@/hooks/tournaments/usePossibleTournamentEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
+import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
 import { tournamentFormValuesFor } from "@/lib/tournament-details";
@@ -16,6 +17,7 @@ export function useTournamentsTable(tournaments: Tournament[]) {
   const tournamentEdit = useAddTournament();
   const enrollments = usePossibleTournamentEnrollments();
   const coachEdit = useAddCoach();
+  const archive = useArchiveConfirm();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {
@@ -37,7 +39,14 @@ export function useTournamentsTable(tournaments: Tournament[]) {
     } else if (action.id === "judge") {
       const coach = tournament && coaches.find((c) => c.name === tournament.judge);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
+    } else if (action.id === "archive") {
+      archive.openFor(1);
     }
+    menu.onSelect(action);
+  }
+
+  function handleSelectAction(action: TournamentAction, selectedIds: string[]) {
+    if (action.id === "archive") archive.openFor(selectedIds.length);
     menu.onSelect(action);
   }
 
@@ -45,8 +54,9 @@ export function useTournamentsTable(tournaments: Tournament[]) {
     ...sort,
     menuOpen: menu.open,
     virtualRef: menu.virtualRef,
-    onSelectAction: menu.onSelect,
+    onSelectAction: handleSelectAction,
     onRowAction: handleRowAction,
+    archive,
     tournamentEdit,
     enrollments,
     coachEdit,

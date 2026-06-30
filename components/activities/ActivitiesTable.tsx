@@ -21,6 +21,7 @@ import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { ActivityFormModal } from "@/components/activities/ActivityFormModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { activityActions } from "@/lib/activity-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
@@ -183,6 +184,7 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
     virtualRef,
     onSelectAction,
     onRowAction,
+    archive,
     enrollments,
     coachEdit,
     activityEdit,
@@ -280,6 +282,13 @@ export function ActivitiesTable({ activities }: ActivitiesTableProps) {
       onConfirm={coachEdit.confirm}
     />
     <ActivityFormModal addActivity={activityEdit} />
+    <ArchiveConfirmDialog
+      open={archive.open}
+      count={archive.count}
+      noun="חוגים"
+      onCancel={archive.cancel}
+      onConfirm={archive.confirm}
+    />
     </>
   );
 }

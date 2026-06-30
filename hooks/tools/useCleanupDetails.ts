@@ -14,7 +14,8 @@ import type { CompletedActivity } from "@/lib/cleanup-data";
 /**
  * Opens the *real* details view for a completed activity by reusing the same
  * prefilled form modals the rest of the app uses (חוג / תחרות / אירוע), rather
- * than a plain data dialog.
+ * than a plain data dialog. The cleanup archive is read-only, so the modals are
+ * opened in "view" mode — the data may be inspected but not edited.
  */
 export function useCleanupDetails() {
   const activityForm = useAddActivity();
@@ -24,14 +25,14 @@ export function useCleanupDetails() {
   function open(item: CompletedActivity) {
     if (item.kind === "חוג") {
       const activity = activities.find((a) => a.id === item.id);
-      if (activity) activityForm.openForEdit(activityFormValuesFor(activity));
+      if (activity) activityForm.openForView(activityFormValuesFor(activity));
     } else if (item.kind === "תחרות") {
       const tournament = tournaments.find((t) => t.id === item.id);
       if (tournament)
-        tournamentForm.openForEdit(tournamentFormValuesFor(tournament));
+        tournamentForm.openForView(tournamentFormValuesFor(tournament));
     } else {
       const event = events.find((e) => e.id === item.id);
-      if (event) eventForm.openForEdit(eventFormValuesFor(event));
+      if (event) eventForm.openForView(eventFormValuesFor(event));
     }
   }
 

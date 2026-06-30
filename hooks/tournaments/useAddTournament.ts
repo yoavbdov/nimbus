@@ -21,8 +21,12 @@ import { exampleRosters } from "@/lib/rosters-data";
 /** The modal's tabs, in order; the first is the default shown on open. */
 export type TournamentTab = "details" | "rounds" | "players" | "equipment";
 
-/** "add" shows the empty add flow; "edit" prefills an existing tournament. */
-export type TournamentModalMode = "add" | "edit";
+/**
+ * "add" shows the empty add flow; "edit" prefills an existing tournament;
+ * "view" prefills it read-only (used by the cleanup archive, where tournaments
+ * may only be inspected, not changed).
+ */
+export type TournamentModalMode = "add" | "edit" | "view";
 
 /** Hard cap so a typo in the count field can't spawn thousands of cards. */
 const MAX_ROUNDS = 30;
@@ -242,6 +246,14 @@ export function useAddTournament() {
     setOpen(true);
   }, []);
 
+  // Opens the modal read-only, prefilled with an existing tournament.
+  const openForView = useCallback((next: TournamentFormValues) => {
+    setMode("view");
+    setValues(next);
+    setTab("details");
+    setOpen(true);
+  }, []);
+
   const handleOpenChange = useCallback((next: boolean) => setOpen(next), []);
 
   const confirm = useCallback(() => {
@@ -257,6 +269,7 @@ export function useAddTournament() {
     setTab,
     openModal,
     openForEdit,
+    openForView,
     handleOpenChange,
     values,
     updateField,

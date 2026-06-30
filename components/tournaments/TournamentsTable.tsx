@@ -21,6 +21,7 @@ import { PossibleEnrollmentsModal } from "@/components/tournaments/PossibleEnrol
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { tournamentActions } from "@/lib/tournament-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import type { RowSelection } from "@/hooks/useRowSelection";
@@ -176,6 +177,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     virtualRef,
     onSelectAction,
     onRowAction,
+    archive,
     tournamentEdit,
     enrollments,
     coachEdit,
@@ -271,6 +273,13 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       onFieldChange={coachEdit.updateField}
       valid={coachEdit.valid}
       onConfirm={coachEdit.confirm}
+    />
+    <ArchiveConfirmDialog
+      open={archive.open}
+      count={archive.count}
+      noun="תחרויות"
+      onCancel={archive.cancel}
+      onConfirm={archive.confirm}
     />
     </>
   );

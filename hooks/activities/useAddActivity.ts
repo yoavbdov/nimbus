@@ -20,8 +20,12 @@ import { exampleRosters } from "@/lib/rosters-data";
 /** The modal's tabs, in order; the first is the default shown on open. */
 export type ActivityTab = "details" | "meetings" | "students" | "equipment";
 
-/** "add" shows the empty add flow; "edit" prefills an existing activity. */
-export type ActivityModalMode = "add" | "edit";
+/**
+ * "add" shows the empty add flow; "edit" prefills an existing activity; "view"
+ * prefills it read-only (used by the cleanup archive, where activities may only
+ * be inspected, not changed).
+ */
+export type ActivityModalMode = "add" | "edit" | "view";
 
 export function useAddActivity() {
   const [open, setOpen] = useState(false);
@@ -225,6 +229,14 @@ export function useAddActivity() {
     setOpen(true);
   }, []);
 
+  // Opens the modal read-only, prefilled with an existing activity.
+  const openForView = useCallback((next: ActivityFormValues) => {
+    setMode("view");
+    setValues(next);
+    setTab("details");
+    setOpen(true);
+  }, []);
+
   const handleOpenChange = useCallback((next: boolean) => setOpen(next), []);
 
   const confirm = useCallback(() => {
@@ -240,6 +252,7 @@ export function useAddActivity() {
     setTab,
     openModal,
     openForEdit,
+    openForView,
     handleOpenChange,
     values,
     updateField,

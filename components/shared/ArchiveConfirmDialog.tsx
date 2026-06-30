@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Archive } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,27 +11,32 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-interface DeleteConfirmDialogProps {
+interface ArchiveConfirmDialogProps {
   open: boolean;
   count: number;
+  /** Plural noun for the archived items, e.g. "חוגים" / "תחרויות" / "אירועים". */
+  noun: string;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function DeleteConfirmDialog({
+export function ArchiveConfirmDialog({
   open,
   count,
+  noun,
   onCancel,
   onConfirm,
-}: DeleteConfirmDialogProps) {
+}: ArchiveConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
       <DialogContent dir="rtl" className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>מחיקה מהארכיון?</DialogTitle>
+          <DialogTitle>העברה לארכיון?</DialogTitle>
           <DialogDescription>
-            {count} פעילויות יימחקו מהארכיון לצמיתות.
-            <br /> לא ניתן לשחזר פעולה זו.
+            {count} {noun} יועברו לארכיון.
+            <br />
+            כל האלמנטים המשוייכים ישתחררו בשעות שהתפנו(מדריכים, תלמידים, חדרים,
+            ציוד פיזי וכו')
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
@@ -39,10 +44,10 @@ export function DeleteConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={count === 0}
-            className="gap-1.5 rounded-xl bg-destructive text-white hover:bg-destructive/90"
+            className="gap-1.5 rounded-xl"
           >
-            <Trash2 className="size-4" />
-            כן, מחק
+            <Archive className="size-4" />
+            כן, העבר לארכיון
           </Button>
           <Button
             type="button"

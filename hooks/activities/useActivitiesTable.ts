@@ -4,6 +4,7 @@ import { useActivityActionsMenu } from "@/hooks/useActivityActionsMenu";
 import { usePossibleEnrollments } from "@/hooks/activities/usePossibleEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useAddActivity } from "@/hooks/activities/useAddActivity";
+import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
 import { activityFormValuesFor } from "@/lib/activity-details";
@@ -16,6 +17,7 @@ export function useActivitiesTable(activities: Activity[]) {
   const enrollments = usePossibleEnrollments();
   const coachEdit = useAddCoach();
   const activityEdit = useAddActivity();
+  const archive = useArchiveConfirm();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {
@@ -37,7 +39,14 @@ export function useActivitiesTable(activities: Activity[]) {
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
     } else if (action.id === "details") {
       if (activity) activityEdit.openForEdit(activityFormValuesFor(activity));
+    } else if (action.id === "archive") {
+      archive.openFor(1);
     }
+    menu.onSelect(action);
+  }
+
+  function handleSelectAction(action: ActivityAction, selectedIds: string[]) {
+    if (action.id === "archive") archive.openFor(selectedIds.length);
     menu.onSelect(action);
   }
 
@@ -45,8 +54,9 @@ export function useActivitiesTable(activities: Activity[]) {
     ...sort,
     menuOpen: menu.open,
     virtualRef: menu.virtualRef,
-    onSelectAction: menu.onSelect,
+    onSelectAction: handleSelectAction,
     onRowAction: handleRowAction,
+    archive,
     enrollments,
     coachEdit,
     activityEdit,

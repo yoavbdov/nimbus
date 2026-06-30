@@ -17,8 +17,12 @@ import { exampleRosters } from "@/lib/rosters-data";
 /** The modal's tabs, in order; the first is the default shown on open. */
 export type EventTab = "details" | "frequency" | "players" | "equipment";
 
-/** "add" shows the empty add flow; "edit" prefills an existing event. */
-export type EventModalMode = "add" | "edit";
+/**
+ * "add" shows the empty add flow; "edit" prefills an existing event; "view"
+ * prefills it read-only (used by the cleanup archive, where events may only be
+ * inspected, not changed).
+ */
+export type EventModalMode = "add" | "edit" | "view";
 
 export function useAddEvent() {
   const [open, setOpen] = useState(false);
@@ -183,6 +187,14 @@ export function useAddEvent() {
     setOpen(true);
   }, []);
 
+  // Opens the modal read-only, prefilled with an existing event.
+  const openForView = useCallback((next: EventFormValues) => {
+    setMode("view");
+    setValues(next);
+    setTab("details");
+    setOpen(true);
+  }, []);
+
   const handleOpenChange = useCallback((next: boolean) => setOpen(next), []);
 
   const confirm = useCallback(() => {
@@ -198,6 +210,7 @@ export function useAddEvent() {
     setTab,
     openModal,
     openForEdit,
+    openForView,
     handleOpenChange,
     values,
     updateField,
