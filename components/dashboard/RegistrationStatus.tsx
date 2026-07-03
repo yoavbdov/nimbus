@@ -42,7 +42,7 @@ export function RegistrationStatus() {
         <div className="h-1 tint-bar" />
         <CardHeader className="px-6 pt-5 pb-4 flex flex-col items-center space-y-0">
           <CardTitle className="text-base font-semibold tracking-wide tint-text text-center">
-            מצב רישומים · חוגים פעילים
+            חוגים פעילים - מצב קיבולת
           </CardTitle>
         </CardHeader>
 
@@ -55,7 +55,11 @@ export function RegistrationStatus() {
                 key={c.name}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                  delay: i * 0.06,
+                  duration: 0.4,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 onClick={(e) => handleRowClick(c.name, e)}
                 className={cn(
                   "glass-sm shadow-depth rounded-2xl px-4 py-3 cursor-pointer transition-colors duration-150 hover:bg-primary/15",

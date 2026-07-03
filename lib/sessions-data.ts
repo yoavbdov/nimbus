@@ -15,15 +15,27 @@
  *   - player-1 is in course-1 (session-1) and course-3 (session-3), which overlap → STUDENT conflict.
  */
 
+import type { MeetingFrequency } from "@/lib/course-form";
+
 export interface SessionDoc {
   id: string;
   /** Which entity this slot belongs to. */
   parentType: "course" | "tournament" | "event";
   parentId: string;
-  date: string; // "YYYY-MM-DD"
+  date: string; // "YYYY-MM-DD" — for a recurring meeting this is the anchor (first) date
   start: string; // "HH:mm"
   end: string; // "HH:mm"
   roomId: string;
+  // ── Recurring-meeting fields (a course meeting repeats weekly/… on a weekday).
+  // Absent on one-off tournament/event slots, which are pinned to a single date.
+  /** Hebrew weekday the meeting runs on, e.g. "שני". */
+  day?: string;
+  /** How often it repeats; "once" or absent = a single dated slot. */
+  frequency?: MeetingFrequency;
+  /** Last date the recurrence runs; "" when open-ended. */
+  endDate?: string;
+  /** True when the meeting repeats indefinitely (no end date). */
+  noEndDate?: boolean;
 }
 
 export const sessions: SessionDoc[] = [

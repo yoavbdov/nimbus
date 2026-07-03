@@ -4,12 +4,16 @@ import { useCourseActionsMenu } from "@/hooks/useCourseActionsMenu";
 import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useAddCourse } from "@/hooks/courses/useAddCourse";
+import { useDeleteCourse } from "@/hooks/courses/useDeleteCourse";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
+import { useCollection } from "@/lib/firebase/useCollection";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
-import { courseFormValuesFor } from "@/lib/course-details";
+import { courseFormValuesFromLive } from "@/lib/course-details";
 import type { CourseAction } from "@/lib/course-actions";
 import type { Course } from "@/lib/courses-data";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 
 export function useCoursesTable(courses: Course[]) {
   const sort = useCoursesSort(courses);
@@ -17,7 +21,12 @@ export function useCoursesTable(courses: Course[]) {
   const enrollments = usePossibleEnrollments();
   const coachEdit = useAddCoach();
   const courseEdit = useAddCourse();
+  const deleteCourse = useDeleteCourse();
   const archive = useArchiveConfirm();
+  // Read live so opening "פרטי חוג" prefills meetings/students/equipment from
+  // the real sessions + relations, not the legacy mock.
+  const { data: sessions } = useCollection<SessionDoc>("sessions");
+  const { data: relations } = useCollection<RelationDoc>("relations");
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {
@@ -38,15 +47,29 @@ export function useCoursesTable(courses: Course[]) {
       const coach = course && coaches.find((c) => c.name === course.coach);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
     } else if (action.id === "details") {
-      if (course) courseEdit.openForEdit(courseFormValuesFor(course));
+      if (course) {
+        courseEdit.openForEdit(
+          courseFormValuesFromLive(course, sessions, relations),
+        );
+      }
     } else if (action.id === "archive") {
       archive.openFor(1);
+    } else if (action.id === "delete") {
+      if (course) deleteCourse.openFor([{ id: course.id, name: course.name }]);
     }
     menu.onSelect(action);
   }
 
   function handleSelectAction(action: CourseAction, selectedIds: string[]) {
     if (action.id === "archive") archive.openFor(selectedIds.length);
+    else if (action.id === "delete") {
+      deleteCourse.openFor(
+        selectedIds.map((id) => ({
+          id,
+          name: courses.find((c) => c.id === id)?.name ?? id,
+        })),
+      );
+    }
     menu.onSelect(action);
   }
 
@@ -57,6 +80,7 @@ export function useCoursesTable(courses: Course[]) {
     onSelectAction: handleSelectAction,
     onRowAction: handleRowAction,
     archive,
+    deleteCourse,
     enrollments,
     coachEdit,
     courseEdit,

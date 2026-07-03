@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { filterCourses, type CourseFilter } from "@/lib/courses-filters";
+import type { Course } from "@/lib/courses-data";
 
-export function useCoursesFilter() {
+export function useCoursesFilter(courses: Course[]) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<CourseFilter[]>([]);
   const [todayOnly, setTodayOnly] = useState(false);
@@ -29,8 +30,8 @@ export function useCoursesFilter() {
   }
 
   const filtered = useMemo(
-    () => filterCourses(search, filters, todayOnly),
-    [search, filters, todayOnly],
+    () => filterCourses(courses, search, filters, todayOnly),
+    [courses, search, filters, todayOnly],
   );
 
   return {

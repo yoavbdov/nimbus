@@ -1,5 +1,4 @@
 import {
-  courses,
   allCourseCoaches,
   allCourseStatuses,
   allCourseOccupancies,
@@ -230,12 +229,13 @@ function matchesSearch(a: Course, query: string): boolean {
 }
 
 export function filterCourses(
+  list: Course[],
   query: string,
   filters: CourseFilter[],
   todayOnly: boolean,
 ): Course[] {
   const today = todayOnly ? todayHebrewDay() : null;
-  return courses.filter(
+  return list.filter(
     (a) =>
       matchesSearch(a, query) &&
       filters.every((f) => applyFilter(a, f)) &&

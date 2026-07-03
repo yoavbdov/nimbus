@@ -9,7 +9,6 @@ import { CoursesTable } from "@/components/courses/CoursesTable";
 import { CourseFormModal } from "@/components/courses/CourseFormModal";
 import { useCoursesPanel } from "@/hooks/courses/useCoursesPanel";
 import { useAddCourse } from "@/hooks/courses/useAddCourse";
-import { courses as allCourses } from "@/lib/courses-data";
 
 export function CoursesPanel() {
   const {
@@ -23,6 +22,7 @@ export function CoursesPanel() {
     toggleToday,
     clearAll,
     filtered,
+    total,
     filterKey,
   } = useCoursesPanel();
 
@@ -38,7 +38,7 @@ export function CoursesPanel() {
               ניהול חוגים
             </h1>
             <p className="text-xs text-muted-foreground/80 num">
-              {filtered.length} מתוך {allCourses.length} חוגים
+              {filtered.length} מתוך {total} חוגים
             </p>
           </div>
           <CoursesActions onAddCourse={addCourse.openModal} />

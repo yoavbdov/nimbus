@@ -11,6 +11,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
+import { deleteSessionsForParent } from "@/lib/firebase/data/sessions";
+import { removeRelationsForTarget } from "@/lib/firebase/data/relations";
 import type { Course } from "@/lib/courses-data";
 
 function coursesRef(clubId: string = DEMO_CLUB_ID) {
@@ -48,4 +50,20 @@ export function deleteCourse(
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
   return deleteDoc(doc(coursesRef(clubId), id));
+}
+
+/**
+ * Delete a course AND everything hanging off it: its meetings (sessions) and
+ * every relation that points at it (enrolled players, its coach, its
+ * equipment). Leaves no dangling links.
+ */
+export async function deleteCourseCascade(
+  id: string,
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  await Promise.all([
+    deleteSessionsForParent(id, clubId),
+    removeRelationsForTarget(id, clubId),
+  ]);
+  await deleteCourse(id, clubId);
 }

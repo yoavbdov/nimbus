@@ -9,9 +9,13 @@ import {
   type EquipmentLineValues,
   type MeetingValues,
 } from "@/lib/course-form";
-import { players, type Player } from "@/lib/players-data";
+import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
-import { updateCourse } from "@/lib/firebase/data/courses";
+import { useCollection } from "@/lib/firebase/useCollection";
+import { addCourse, updateCourse } from "@/lib/firebase/data/courses";
+import { replaceCourseSessions } from "@/lib/firebase/data/sessions";
+import { replaceTargetRelations } from "@/lib/firebase/data/relations";
+import { courseRecordFromForm, courseEditPatch } from "@/lib/course-details";
 
 /**
  * Owns all state for the "add course" modal: the scalar fields plus the three
@@ -33,6 +37,10 @@ export function useAddCourse() {
   const [mode, setMode] = useState<CourseModalMode>("add");
   const [tab, setTab] = useState<CourseTab>("details");
   const [values, setValues] = useState<CourseFormValues>(EMPTY_COURSE_FORM);
+
+  // The club roster, read live — the students picker and criteria checks all
+  // work off real players, not the legacy mock.
+  const { data: players } = useCollection<Player>("players");
 
   const valid = isCourseFormValid(values);
 
@@ -118,7 +126,7 @@ export function useAddCourse() {
     setSourceChoiceOpen(false);
     setCheckedStudentIds([]);
     setStudentPickerOpen(true);
-  }, [values.studentIds]);
+  }, [players, values.studentIds]);
 
   const chooseStudentsFromRoster = useCallback(() => {
     setSourceChoiceOpen(false);
@@ -151,7 +159,7 @@ export function useAddCourse() {
       setRosterChoiceOpen(false);
       setStudentPickerOpen(true);
     },
-    [values.studentIds],
+    [players, values.studentIds],
   );
 
   const toggleCheckedStudent = useCallback((id: string) => {
@@ -170,12 +178,12 @@ export function useAddCourse() {
 
   const students = useMemo(
     () => players.filter((p) => values.studentIds.includes(p.id)),
-    [values.studentIds],
+    [players, values.studentIds],
   );
 
   const availableStudents = useMemo(
     () => players.filter((p) => !values.studentIds.includes(p.id)),
-    [values.studentIds],
+    [players, values.studentIds],
   );
 
   // ---- Equipment ----------------------------------------------------------
@@ -212,7 +220,7 @@ export function useAddCourse() {
       const player = players.find((p) => p.id === playerId);
       return player ? !meetsCriteria(player, values) : false;
     },
-    [values],
+    [players, values],
   );
 
   const openModal = useCallback(() => {
@@ -242,20 +250,42 @@ export function useAddCourse() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // Persist the edited fields to Firestore (merge patch — derived fields like
-    // enrolled/status/occupancy stay untouched). Add-mode wiring comes later.
-    if (values.id) {
-      void updateCourse(values.id, {
-        name: values.name.trim(),
-        coach: values.coach,
-        notes: values.notes,
-        ageMin: Number(values.ageMin) || 0,
-        ageMax: Number(values.ageMax) || 0,
-        fitnessMin: Number(values.fitnessMin) || 0,
-        fitnessMax: Number(values.fitnessMax) || 0,
-        capacity: Number(values.capacity) || 0,
-      });
-    }
+    // Persist the whole course: the scalar doc, then its meetings (sessions) and
+    // its associations (coach / students / equipment) in the `relations`
+    // junction. Add creates the doc; edit patches it. Derived counts
+    // (enrolled/occupancy) are projected on read, so the patch skips them.
+    const persist = async () => {
+      const courseId = values.id
+        ? (await updateCourse(values.id, courseEditPatch(values)), values.id)
+        : await addCourse(courseRecordFromForm(values));
+      await Promise.all([
+        replaceCourseSessions(courseId, values.startDate, values.meetings),
+        replaceTargetRelations(
+          "coach_course",
+          "coach",
+          "course",
+          courseId,
+          values.coach ? [{ subjectId: values.coach, role: "מדריך ראשי" }] : [],
+        ),
+        replaceTargetRelations(
+          "player_course",
+          "player",
+          "course",
+          courseId,
+          values.studentIds.map((subjectId) => ({ subjectId })),
+        ),
+        replaceTargetRelations(
+          "equipment_course",
+          "equipment",
+          "course",
+          courseId,
+          values.equipment
+            .filter((e) => e.equipmentId)
+            .map((e) => ({ subjectId: e.equipmentId, role: e.quantity })),
+        ),
+      ]);
+    };
+    void persist();
     setOpen(false);
   }, [valid, values]);
 

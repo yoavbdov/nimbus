@@ -22,6 +22,7 @@ import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu
 import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { CourseFormModal } from "@/components/courses/CourseFormModal";
+import { DeleteCourseModal } from "@/components/courses/DeleteCourseModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
@@ -191,6 +192,7 @@ export function CoursesTable({ courses }: CoursesTableProps) {
     onSelectAction,
     onRowAction,
     archive,
+    deleteCourse,
     enrollments,
     coachEdit,
     courseEdit,
@@ -289,6 +291,16 @@ export function CoursesTable({ courses }: CoursesTableProps) {
       onConfirm={coachEdit.confirm}
     />
     <CourseFormModal addCourse={courseEdit} />
+    <DeleteCourseModal
+      open={deleteCourse.open}
+      onOpenChange={deleteCourse.handleOpenChange}
+      courseNames={deleteCourse.names}
+      expectedPhrase={deleteCourse.expectedPhrase}
+      confirmText={deleteCourse.confirmText}
+      onConfirmTextChange={deleteCourse.setConfirmText}
+      valid={deleteCourse.valid}
+      onConfirm={deleteCourse.confirm}
+    />
     <ArchiveConfirmDialog
       open={archive.open}
       count={archive.count}

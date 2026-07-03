@@ -1,6 +1,13 @@
 import { players } from "@/lib/players-data";
 import { rooms, equipment } from "@/lib/rooms-data";
-import type { Course } from "@/lib/courses-data";
+import {
+  COURSE_DAYS,
+  courseOccupancy,
+  type Course,
+  type CourseDay,
+} from "@/lib/courses-data";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 import {
   type CourseFormValues,
   type MeetingValues,
@@ -25,6 +32,18 @@ function isoFromNextDate(nextDate: string): string {
   const m = nextDate.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if (!m) return "";
   return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+/** "2026-06-07" → "07.06.2026"; invalid → "—". */
+function nextDateFromIso(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : "—";
+}
+
+/** The distinct weekdays a course's meetings run on, in week order. */
+function daysFromMeetings(meetings: MeetingValues[]): CourseDay[] {
+  const set = new Set(meetings.map((m) => m.day).filter(Boolean));
+  return COURSE_DAYS.filter((d) => set.has(d));
 }
 
 /** A deterministic afternoon time window for an course's meetings. */
@@ -97,4 +116,120 @@ export function courseFormValuesFor(course: Course): CourseFormValues {
     studentIds: studentIdsFor(course),
     equipment: equipmentFor(course),
   };
+}
+
+/** Rebuild a form meeting from a stored recurring session (edit prefill). */
+function meetingFromSession(session: SessionDoc): MeetingValues {
+  return {
+    id: session.id,
+    day: session.day ?? "",
+    room: session.roomId,
+    startTime: session.start,
+    endTime: session.end,
+    frequency: session.frequency ?? "weekly",
+    noEndDate: session.noEndDate ?? false,
+    endDate: session.endDate ?? "",
+  };
+}
+
+/**
+ * A course's meetings inferred from its own `days` + `times` fields. Used as a
+ * fallback for courses that don't have `sessions` documents yet (e.g. seeded
+ * courses whose slots weren't materialised), so the מפגשים tab isn't empty.
+ */
+function meetingsFromCourseShape(course: Course): MeetingValues[] {
+  return course.days.map((day, i) => {
+    const t = course.times?.[day];
+    return {
+      id: `meeting-${course.id}-${i}`,
+      day,
+      room: course.room,
+      startTime: t?.start ?? "",
+      endTime: t?.end ?? "",
+      frequency: "weekly",
+      noEndDate: true,
+      endDate: "",
+    };
+  });
+}
+
+/**
+ * Builds the "edit course" form from LIVE Firestore data: meetings come from the
+ * course's `sessions`, enrolled students and equipment from its `relations`.
+ * This is the courses-page path; the mock-derived {@link courseFormValuesFor}
+ * stays for modules not yet migrated.
+ */
+export function courseFormValuesFromLive(
+  course: Course,
+  sessions: SessionDoc[],
+  relations: RelationDoc[],
+): CourseFormValues {
+  const sessionMeetings = sessions
+    .filter((s) => s.parentId === course.id)
+    .map(meetingFromSession);
+  const meetings = sessionMeetings.length
+    ? sessionMeetings
+    : meetingsFromCourseShape(course);
+  const studentIds = relations
+    .filter((r) => r.kind === "player_course" && r.targetId === course.id)
+    .map((r) => r.subjectId);
+  const equipmentLines: EquipmentLineValues[] = relations
+    .filter((r) => r.kind === "equipment_course" && r.targetId === course.id)
+    .map((r, i) => ({
+      id: `equip-${course.id}-${i}`,
+      equipmentId: r.subjectId,
+      quantity: r.role ?? "1",
+    }));
+  return {
+    id: course.id,
+    name: course.name,
+    coach: course.coach,
+    capacity: String(course.capacity),
+    fitnessMin: String(course.fitnessMin),
+    fitnessMax: String(course.fitnessMax),
+    ageMin: String(course.ageMin),
+    ageMax: String(course.ageMax),
+    notes: course.notes ?? "",
+    startDate: isoFromNextDate(course.nextDate),
+    meetings,
+    studentIds,
+    equipment: equipmentLines,
+  };
+}
+
+/** The scalar course fields to persist, derived from the form. */
+function courseScalarsFromForm(values: CourseFormValues) {
+  const capacity = Number(values.capacity) || 0;
+  return {
+    name: values.name.trim(),
+    coach: values.coach,
+    ageMin: Number(values.ageMin) || 0,
+    ageMax: Number(values.ageMax) || 0,
+    fitnessMin: Number(values.fitnessMin) || 0,
+    fitnessMax: Number(values.fitnessMax) || 0,
+    capacity,
+    days: daysFromMeetings(values.meetings),
+    nextDate: nextDateFromIso(values.startDate),
+    room: values.meetings[0]?.room ?? "",
+    notes: values.notes,
+  };
+}
+
+/** A full new-course document (derived counts start from the form). */
+export function courseRecordFromForm(
+  values: CourseFormValues,
+): Omit<Course, "id"> {
+  const scalars = courseScalarsFromForm(values);
+  const enrolled = values.studentIds.length;
+  return {
+    ...scalars,
+    enrolled,
+    status: "פעיל",
+    occupancy: courseOccupancy(enrolled, scalars.capacity),
+  };
+}
+
+/** The patch applied when editing a course (derived counts are projected on read). */
+export function courseEditPatch(values: CourseFormValues): Partial<Course> {
+  return courseScalarsFromForm(values);
 }

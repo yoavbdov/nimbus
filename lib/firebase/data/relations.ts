@@ -24,6 +24,8 @@ import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
 import type {
   RelationDoc,
   RelationKind,
+  RelationSubjectType,
+  RelationTargetType,
 } from "@/lib/relations-data";
 
 function relationsRef(clubId: string = DEMO_CLUB_ID) {
@@ -69,6 +71,72 @@ export async function removeRelationsForSubject(
       where("kind", "==", kind),
       where("subjectId", "==", subjectId),
     ),
+  );
+  if (snapshot.empty) return;
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
+/** One desired subject in a target's relation set (with optional per-link extras). */
+export interface RelationSubject {
+  subjectId: string;
+  role?: string;
+  status?: string;
+}
+
+/**
+ * Make the relations of one KIND pointing at a target exactly match `subjects`:
+ * drop the links that are no longer wanted and (over)write the desired ones.
+ * Runs in a single batch. This is how a course reconciles its enrolled players,
+ * its equipment, or its (single) coach after an edit.
+ */
+export async function replaceTargetRelations(
+  kind: RelationKind,
+  subjectType: RelationSubjectType,
+  targetType: RelationTargetType,
+  targetId: string,
+  subjects: RelationSubject[],
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  const snapshot = await getDocs(
+    query(
+      relationsRef(clubId),
+      where("kind", "==", kind),
+      where("targetId", "==", targetId),
+    ),
+  );
+  const desired = new Set(subjects.map((s) => s.subjectId));
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    if (!desired.has((d.data() as RelationDoc).subjectId)) batch.delete(d.ref);
+  });
+  subjects.forEach(({ subjectId, role, status }) => {
+    const rel: Omit<RelationDoc, "id"> = {
+      kind,
+      subjectType,
+      subjectId,
+      targetType,
+      targetId,
+      ...(role != null ? { role } : {}),
+      ...(status != null ? { status } : {}),
+    };
+    batch.set(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)), rel);
+  });
+  await batch.commit();
+}
+
+/**
+ * Remove EVERY relation pointing at one target (any kind, any subject). Used
+ * when the target entity is deleted, so no dangling links are left behind —
+ * e.g. deleting a course drops its player/coach/equipment links.
+ */
+export async function removeRelationsForTarget(
+  targetId: string,
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  const snapshot = await getDocs(
+    query(relationsRef(clubId), where("targetId", "==", targetId)),
   );
   if (snapshot.empty) return;
   const batch = writeBatch(db);

@@ -268,10 +268,23 @@ const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> =
   event: eventNameById,
 };
 
+const HEBREW_DAY_BY_JS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
 export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => ({
   ...s,
   parentId: parentNameById[s.parentType][s.parentId] ?? s.parentId,
   roomId: roomNameById[s.roomId] ?? s.roomId,
+  // Course slots are recurring weekly meetings; tagging the weekday (derived
+  // from the fixture date) + repeat rule keeps the "פרטי חוג" edit form coherent
+  // without disturbing the concrete dates that drive the conflict fixtures.
+  ...(s.parentType === "course"
+    ? {
+        day: HEBREW_DAY_BY_JS[new Date(s.date).getDay()],
+        frequency: "weekly" as const,
+        noEndDate: true,
+        endDate: "",
+      }
+    : {}),
 }));
 
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
