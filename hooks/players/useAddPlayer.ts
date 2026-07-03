@@ -9,6 +9,7 @@ import {
   type PlayerFormValues,
 } from "@/lib/player-form";
 import { birthPartsFromIso } from "@/lib/player-details";
+import { updatePlayer } from "@/lib/firebase/data/players";
 
 /** "add" shows the empty add-player flow; "edit" prefills an existing player. */
 export type PlayerModalMode = "add" | "edit";
@@ -80,8 +81,24 @@ export function useAddPlayer() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
-  }, [valid]);
+    // Persist edited fields to Firestore (merge patch); add-mode comes later.
+    if (values.id) {
+      void updatePlayer(values.id, {
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+        notes: values.notes,
+        phone: values.phone,
+        grade: values.grade,
+        email: values.email,
+        address: values.address,
+        idNumber: values.idNumber,
+        israeliPlayerId: values.israeliPlayerId,
+        fidePlayerId: values.fidePlayerId,
+        israeliRating: Number(values.israeliRating) || 0,
+      });
+    }
+  }, [valid, values]);
 
   return {
     open,

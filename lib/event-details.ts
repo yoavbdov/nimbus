@@ -33,14 +33,6 @@ function timeWindow(event: ClubEvent): { start: string; end: string } {
   return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
 }
 
-/** Built-from-data notes so every event shows something in its details. */
-function notesFor(event: ClubEvent): string {
-  const cadence =
-    event.recurrence === "קבוע" ? "אירוע קבוע" : "אירוע חד פעמי";
-  const daysLine =
-    event.days.length > 0 ? ` בימי ${event.days.join(", ")}` : "";
-  return `${cadence} בחדר ${event.room}${daysLine}.`;
-}
 
 /** Equipment lines derived from the gear that lives in the event's room. */
 function equipmentFor(event: ClubEvent): EquipmentLineValues[] {
@@ -75,8 +67,9 @@ export function eventFormValuesFor(event: ClubEvent): EventFormValues {
 
   return {
     ...EMPTY_EVENT_FORM,
+    id: event.id,
     name: event.name,
-    notes: notesFor(event),
+    notes: event.notes ?? "",
     format: oneoff ? "oneoff" : "recurring",
     oneoffRoom: oneoff ? event.room : "",
     oneoffDate: oneoff ? date : "",

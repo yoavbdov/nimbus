@@ -11,6 +11,7 @@ import {
 } from "@/lib/course-form";
 import { players, type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
+import { updateCourse } from "@/lib/firebase/data/courses";
 
 /**
  * Owns all state for the "add course" modal: the scalar fields plus the three
@@ -241,9 +242,22 @@ export function useAddCourse() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
+    // Persist the edited fields to Firestore (merge patch — derived fields like
+    // enrolled/status/occupancy stay untouched). Add-mode wiring comes later.
+    if (values.id) {
+      void updateCourse(values.id, {
+        name: values.name.trim(),
+        coach: values.coach,
+        notes: values.notes,
+        ageMin: Number(values.ageMin) || 0,
+        ageMax: Number(values.ageMax) || 0,
+        fitnessMin: Number(values.fitnessMin) || 0,
+        fitnessMax: Number(values.fitnessMax) || 0,
+        capacity: Number(values.capacity) || 0,
+      });
+    }
     setOpen(false);
-  }, [valid]);
+  }, [valid, values]);
 
   return {
     open,

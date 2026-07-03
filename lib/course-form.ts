@@ -39,6 +39,8 @@ export interface EquipmentLineValues {
 
 /** Shape of the "add course" form. Empty strings = not filled yet. */
 export interface CourseFormValues {
+  /** Set when editing an existing course; drives the Firestore save. */
+  id?: string;
   name: string;
   coach: string;
   capacity: string;

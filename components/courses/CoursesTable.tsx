@@ -14,7 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { CourseStatusBadge } from "@/components/courses/CourseStatusBadge";
+import {
+  CourseStatusBadge,
+  CourseOccupancyBadge,
+} from "@/components/courses/CourseStatusBadge";
 import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
 import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
@@ -165,6 +168,9 @@ function CourseRow({
       <TableCell className="px-4 py-3 text-center">
         <CourseStatusBadge status={a.status} />
       </TableCell>
+      <TableCell className="px-4 py-3 text-center">
+        <CourseOccupancyBadge occupancy={a.occupancy} />
+      </TableCell>
       <SelectionCell id={a.id} selection={selection} />
     </MotionTableRow>
   );
@@ -237,6 +243,7 @@ export function CoursesTable({ courses }: CoursesTableProps) {
                 <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
                 <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SortableHeader {...headerProps("occupancy")}>תפוסה</SortableHeader>
                 <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>

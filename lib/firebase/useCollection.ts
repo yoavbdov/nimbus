@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { collectionPath, DEMO_CLUB_ID, type CollectionName } from "@/lib/collections";
+import { db } from "@/lib/firebase/client";
+import { collectionPath, DEMO_CLUB_ID, type CollectionName } from "@/lib/firebase/collections";
 
 /** A document read back from Firestore, with its id merged in. */
 export type WithId<T> = T & { id: string };

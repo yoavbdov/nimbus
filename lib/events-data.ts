@@ -16,6 +16,8 @@ export interface ClubEvent {
   status: EventStatus;
   recurrence: EventRecurrence;
   room: string;
+  /** Free-text notes, persisted in Firestore. */
+  notes?: string;
 }
 
 const OVER_DATE = "—";

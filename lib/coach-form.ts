@@ -1,5 +1,7 @@
 /** Shape of the "add coach" form. Empty strings = not filled yet. */
 export interface CoachFormValues {
+  /** Set when editing an existing coach; drives the Firestore save. */
+  id?: string;
   firstName: string;
   lastName: string;
   phone: string;

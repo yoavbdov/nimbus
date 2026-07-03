@@ -45,6 +45,8 @@ export interface RoundValues {
 
 /** Shape of the "add tournament" form. Empty strings = not filled yet. */
 export interface TournamentFormValues {
+  /** Set when editing an existing tournament; drives the Firestore save. */
+  id?: string;
   name: string;
   judge: string;
   fitnessMin: string;

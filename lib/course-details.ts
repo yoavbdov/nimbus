@@ -34,14 +34,6 @@ function timeWindow(course: Course): { start: string; end: string } {
   return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
 }
 
-/** Built-from-data notes so every course shows something in its details. */
-function notesFor(course: Course): string {
-  const dayList = course.days.join(", ");
-  const coachLine = course.coach
-    ? `החוג מועבר על ידי ${course.coach}.`
-    : "טרם שובץ מדריך לחוג.";
-  return `${coachLine} מתקיים בימים: ${dayList || "—"}, בחדר ${course.room}. מיועד לגילאי ${course.ageMin}–${course.ageMax} ולמד כושר ${course.fitnessMin}–${course.fitnessMax}.`;
-}
 
 /** One weekly, open-ended meeting per course day, all in the course's room. */
 function meetingsFor(course: Course): MeetingValues[] {
@@ -90,6 +82,7 @@ function equipmentFor(course: Course): EquipmentLineValues[] {
  */
 export function courseFormValuesFor(course: Course): CourseFormValues {
   return {
+    id: course.id,
     name: course.name,
     coach: course.coach,
     capacity: String(course.capacity),
@@ -97,7 +90,8 @@ export function courseFormValuesFor(course: Course): CourseFormValues {
     fitnessMax: String(course.fitnessMax),
     ageMin: String(course.ageMin),
     ageMax: String(course.ageMax),
-    notes: notesFor(course),
+    // Show exactly what's stored in Firestore (no fabricated fallback).
+    notes: course.notes ?? "",
     startDate: isoFromNextDate(course.nextDate),
     meetings: meetingsFor(course),
     studentIds: studentIdsFor(course),

@@ -7,6 +7,8 @@ export interface CoachRecord {
   phone: string;
   clubs: string[];
   competitions: number;
+  /** Free-text notes, persisted in Firestore. */
+  notes?: string;
 }
 
 export interface Coach extends CoachRecord {

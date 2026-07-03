@@ -8,6 +8,7 @@ import {
 } from "@/lib/event-form";
 import { players, type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
+import { updateEvent } from "@/lib/firebase/data/events";
 
 /**
  * Owns all state for the "add event" modal: the scalar fields, the chosen
@@ -199,9 +200,17 @@ export function useAddEvent() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
+    // Persist edited fields to Firestore (merge patch); add-mode comes later.
+    if (values.id) {
+      void updateEvent(values.id, {
+        name: values.name.trim(),
+        notes: values.notes,
+        room:
+          values.format === "oneoff" ? values.oneoffRoom : values.recurringRoom,
+      });
+    }
     setOpen(false);
-  }, [valid]);
+  }, [valid, values]);
 
   return {
     open,

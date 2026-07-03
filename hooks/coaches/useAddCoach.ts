@@ -4,6 +4,7 @@ import {
   isCoachFormValid,
   type CoachFormValues,
 } from "@/lib/coach-form";
+import { updateCoach } from "@/lib/firebase/data/coaches";
 
 /** "add" shows the empty add-coach flow; "edit" prefills an existing coach. */
 export type CoachModalMode = "add" | "edit";
@@ -46,8 +47,16 @@ export function useAddCoach() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
-  }, [valid]);
+    // Persist edited fields to Firestore (merge patch); add-mode comes later.
+    if (values.id) {
+      void updateCoach(values.id, {
+        name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+        phone: values.phone,
+        notes: values.notes,
+      });
+    }
+    setOpen(false);
+  }, [valid, values]);
 
   return {
     open,

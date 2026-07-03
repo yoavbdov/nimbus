@@ -19,7 +19,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 
-import { COLLECTIONS, DEMO_CLUB_ID, clubPath } from "../lib/collections";
+import { COLLECTIONS, DEMO_CLUB_ID, clubPath } from "../lib/firebase/collections";
 
 import {
   seedPlayers,
@@ -33,6 +33,7 @@ import {
   seedEvents,
   seedRelations,
   seedSessions,
+  seedRatingTiers,
 } from "../lib/seed-dataset";
 
 // ── Load .env.local into process.env (tsx does not do this automatically) ────
@@ -112,6 +113,7 @@ async function main(): Promise<void> {
   await seedCollection(COLLECTIONS.events, seedEvents);
   await seedCollection(COLLECTIONS.relations, seedRelations);
   await seedCollection(COLLECTIONS.sessions, seedSessions);
+  await seedCollection(COLLECTIONS.ratingTiers, seedRatingTiers);
 
   console.log("Done.");
 }

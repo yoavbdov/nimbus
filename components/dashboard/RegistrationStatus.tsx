@@ -6,6 +6,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
+import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { useRegistrationStatus } from "@/hooks/dashboard/useRegistrationStatus";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +26,11 @@ export function RegistrationStatus() {
     virtualRef,
     onSelectAction,
     activeName,
+    courseEdit,
+    coachEdit,
+    enrollments,
+    archive,
+    confirmArchive,
     handleRowClick,
     handleMenuOpenChange,
   } = useRegistrationStatus();
@@ -68,7 +77,7 @@ export function RegistrationStatus() {
                     {status.label}
                   </Badge>
                   <span className="text-xs num text-muted-foreground shrink-0">
-                    {c.enrolled} / {c.capacity}
+                    {c.enrolled} מתוך {c.capacity}
                   </span>
                 </div>
                 <div className="neu-inset rounded-full overflow-hidden">
@@ -80,6 +89,30 @@ export function RegistrationStatus() {
         </CardContent>
       </Card>
       <CourseActionsMenuContent onSelect={onSelectAction} />
+      <CourseFormModal addCourse={courseEdit} />
+      <AddCoachModal
+        open={coachEdit.open}
+        mode={coachEdit.mode}
+        onOpenChange={coachEdit.handleOpenChange}
+        values={coachEdit.values}
+        onFieldChange={coachEdit.updateField}
+        valid={coachEdit.valid}
+        onConfirm={coachEdit.confirm}
+      />
+      <PossibleEnrollmentsModal
+        open={enrollments.open}
+        onOpenChange={enrollments.onOpenChange}
+        course={enrollments.course}
+        candidates={enrollments.candidates}
+        onExport={() => {}}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="חוגים"
+        onCancel={archive.cancel}
+        onConfirm={confirmArchive}
+      />
     </Popover>
   );
 }

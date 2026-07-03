@@ -2,6 +2,7 @@ import {
   courses,
   allCourseCoaches,
   allCourseStatuses,
+  allCourseOccupancies,
   allCourseRooms,
   COURSE_DAYS,
   todayHebrewDay,
@@ -20,6 +21,7 @@ export type FilterField =
   | "capacity"
   | "days"
   | "status"
+  | "occupancy"
   | "room";
 
 export type ValueMode = "none" | "text" | "number" | "single-enum" | "multi-enum";
@@ -98,6 +100,18 @@ export const FIELD_DEFS: FieldDef[] = [
     label: "סטטוס",
     basic: true,
     options: allCourseStatuses,
+    operators: [
+      { op: "is", label: "הוא", valueMode: "single-enum" },
+      { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
+      { op: "in", label: "הוא אחד מהבאים", valueMode: "multi-enum" },
+      { op: "not_in", label: "הוא לא אחד מהבאים", valueMode: "multi-enum" },
+    ],
+  },
+  {
+    field: "occupancy",
+    label: "תפוסה",
+    basic: true,
+    options: allCourseOccupancies,
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
@@ -188,6 +202,13 @@ function applyFilter(a: Course, f: CourseFilter): boolean {
       if (f.op === "is_not") return a.status !== f.value;
       const arr = Array.isArray(f.value) ? f.value : [];
       const has = arr.includes(a.status);
+      return f.op === "in" ? has : !has;
+    }
+    case "occupancy": {
+      if (f.op === "is") return a.occupancy === f.value;
+      if (f.op === "is_not") return a.occupancy !== f.value;
+      const arr = Array.isArray(f.value) ? f.value : [];
+      const has = arr.includes(a.occupancy);
       return f.op === "in" ? has : !has;
     }
     case "room": {

@@ -18,7 +18,7 @@ import { resolve } from "node:path";
 import { cert, initializeApp, type ServiceAccount } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
-import { COLLECTIONS, DEMO_CLUB_ID, clubPath } from "../lib/collections";
+import { COLLECTIONS, DEMO_CLUB_ID, clubPath } from "../lib/firebase/collections";
 
 import {
   seedPlayers,
@@ -32,6 +32,7 @@ import {
   seedEvents,
   seedRelations,
   seedSessions,
+  seedRatingTiers,
 } from "../lib/seed-dataset";
 
 // ── Admin SDK init ──────────────────────────────────────────────────────────
@@ -100,6 +101,7 @@ async function main(): Promise<void> {
   await seedCollection(COLLECTIONS.events, seedEvents);
   await seedCollection(COLLECTIONS.relations, seedRelations);
   await seedCollection(COLLECTIONS.sessions, seedSessions);
+  await seedCollection(COLLECTIONS.ratingTiers, seedRatingTiers);
 
   console.log("Done.");
 }

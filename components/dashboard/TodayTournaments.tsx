@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import {
   Table,
@@ -14,6 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
+import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
+import { PossibleEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { tournamentActions } from "@/lib/tournament-actions";
@@ -27,6 +30,11 @@ export function TodayTournaments() {
     menuOpen,
     virtualRef,
     onSelectAction,
+    tournamentEdit,
+    enrollments,
+    coachEdit,
+    archive,
+    confirmArchive,
     activeIndex,
     handleRowClick,
     handleMenuOpenChange,
@@ -50,15 +58,14 @@ export function TodayTournaments() {
 
         <CardContent className="px-4 pb-4">
           <div className="neu-inset rounded-2xl p-2">
-            <ScrollArea>
-              <Table className="min-w-150">
+            <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סבב</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / שופט</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סבב</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
                     <SelectionHead selection={selection} />
                   </TableRow>
                 </TableHeader>
@@ -83,13 +90,16 @@ export function TodayTournaments() {
                           activeIndex === i && "bg-primary/30",
                         )}
                       >
-                        <TableCell className="px-4 py-3 text-sm num whitespace-nowrap">
-                          {t.time}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-foreground">
+                        <TableCell className="px-3 py-3 text-sm text-foreground">
                           {t.name}
                         </TableCell>
-                        <TableCell className="px-4 py-3">
+                        <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+                          {t.room}
+                        </TableCell>
+                        <TableCell className="px-3 py-3 text-sm num whitespace-nowrap">
+                          {t.time}
+                        </TableCell>
+                        <TableCell className="px-3 py-3">
                           <Badge
                             variant="secondary"
                             className="status-ok tint-text rounded-full px-2.5 py-0.5 text-[0.65rem] font-medium border-0"
@@ -98,10 +108,7 @@ export function TodayTournaments() {
                             {t.round}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-muted-foreground">
-                          {t.room} · {t.judge}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
+                        <TableCell className="px-3 py-3 text-sm num text-muted-foreground">
                           {t.participants}
                         </TableCell>
                         <SelectionCell id={String(i)} selection={selection} />
@@ -110,7 +117,6 @@ export function TodayTournaments() {
                   )}
                 </TableBody>
               </Table>
-            </ScrollArea>
           </div>
         </CardContent>
       </Card>
@@ -123,6 +129,30 @@ export function TodayTournaments() {
       ) : (
         <TournamentActionsMenuContent onSelect={onSelectAction} />
       )}
+      <TournamentFormModal addTournament={tournamentEdit} />
+      <PossibleEnrollmentsModal
+        open={enrollments.open}
+        onOpenChange={enrollments.onOpenChange}
+        tournament={enrollments.tournament}
+        candidates={enrollments.candidates}
+        onExport={() => {}}
+      />
+      <AddCoachModal
+        open={coachEdit.open}
+        mode={coachEdit.mode}
+        onOpenChange={coachEdit.handleOpenChange}
+        values={coachEdit.values}
+        onFieldChange={coachEdit.updateField}
+        valid={coachEdit.valid}
+        onConfirm={coachEdit.confirm}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="תחרויות"
+        onCancel={archive.cancel}
+        onConfirm={confirmArchive}
+      />
     </Popover>
   );
 }

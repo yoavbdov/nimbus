@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { Course } from "@/lib/courses-data";
+import type { Course, CourseOccupancy } from "@/lib/courses-data";
 
 export type SortKey =
   | "name"
@@ -11,13 +11,20 @@ export type SortKey =
   | "days"
   | "nextDate"
   | "status"
+  | "occupancy"
   | "room";
 export type SortDir = "asc" | "desc";
 
 const statusOrder: Record<Course["status"], number> = {
   "פעיל": 0,
-  "מלא": 1,
-  "לא פעיל": 2,
+  "לא פעיל": 1,
+  "ארכיון": 2,
+};
+
+const occupancyOrder: Record<CourseOccupancy, number> = {
+  "ריק": 0,
+  "חלקי": 1,
+  "מלא": 2,
 };
 
 function getSortValue(a: Course, key: SortKey): string | number {
@@ -40,6 +47,8 @@ function getSortValue(a: Course, key: SortKey): string | number {
       return a.nextDate;
     case "status":
       return statusOrder[a.status];
+    case "occupancy":
+      return occupancyOrder[a.occupancy];
     case "room":
       return a.room;
   }

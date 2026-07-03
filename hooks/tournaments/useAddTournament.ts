@@ -12,6 +12,7 @@ import {
 } from "@/lib/tournament-form";
 import { players, type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
+import { updateTournament } from "@/lib/firebase/data/tournaments";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -258,9 +259,18 @@ export function useAddTournament() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
+    // Persist edited fields to Firestore (merge patch); add-mode comes later.
+    if (values.id) {
+      void updateTournament(values.id, {
+        name: values.name.trim(),
+        judge: values.judge,
+        notes: values.notes,
+        ratingMin: Number(values.fitnessMin) || 0,
+        ratingMax: Number(values.fitnessMax) || 0,
+      });
+    }
     setOpen(false);
-  }, [valid]);
+  }, [valid, values]);
 
   return {
     open,

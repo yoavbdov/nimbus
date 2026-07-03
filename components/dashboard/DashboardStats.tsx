@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { StatCard } from "@/components/shared/StatCard";
+import { useDashboardStats } from "@/hooks/dashboard/useDashboardStats";
 
 export type ActivePanel =
   | "players"
@@ -14,44 +15,6 @@ interface DashboardStatsProps {
   onSelect: (panel: ActivePanel) => void;
   activePanel?: ActivePanel;
 }
-
-const stats: Array<{
-  key: NonNullable<ActivePanel>;
-  label: string;
-  value: number;
-  subtext?: string;
-  icon: string;
-  color: "indigo" | "sky";
-}> = [
-  {
-    key: "players",
-    label: "שחקנים פעילים",
-    value: 10,
-    icon: "/icons/people icon.png",
-    color: "indigo",
-  },
-  {
-    key: "clubs",
-    label: "חוגים פעילים",
-    value: 5,
-    icon: "/icons/teacher2 icon.png",
-    color: "indigo",
-  },
-  {
-    key: "sessions",
-    label: "חוגים היום",
-    value: 1,
-    icon: "/icons/calendar icon.png",
-    color: "indigo",
-  },
-  {
-    key: "tournaments",
-    label: "תחרויות היום",
-    value: 2,
-    icon: "/icons/trophy icon.png",
-    color: "indigo",
-  },
-];
 
 const containerVariants = {
   animate: {
@@ -69,6 +32,47 @@ const itemVariants = {
 };
 
 export function DashboardStats({ onSelect, activePanel }: DashboardStatsProps) {
+  const { activePlayers, activeCourses, coursesToday, tournamentsToday } =
+    useDashboardStats();
+
+  const stats: Array<{
+    key: NonNullable<ActivePanel>;
+    label: string;
+    value: number;
+    subtext?: string;
+    icon: string;
+    color: "indigo" | "sky";
+  }> = [
+    {
+      key: "players",
+      label: "שחקנים פעילים",
+      value: activePlayers,
+      icon: "/icons/people icon.png",
+      color: "indigo",
+    },
+    {
+      key: "clubs",
+      label: "חוגים פעילים",
+      value: activeCourses,
+      icon: "/icons/teacher2 icon.png",
+      color: "indigo",
+    },
+    {
+      key: "sessions",
+      label: "חוגים היום",
+      value: coursesToday,
+      icon: "/icons/calendar icon.png",
+      color: "indigo",
+    },
+    {
+      key: "tournaments",
+      label: "תחרויות היום",
+      value: tournamentsToday,
+      icon: "/icons/trophy icon.png",
+      color: "indigo",
+    },
+  ];
+
   return (
     <motion.div
       variants={containerVariants}

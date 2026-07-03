@@ -1,9 +1,9 @@
-import { type CourseDay } from "@/lib/courses-data";
+import { type CourseDay, type WeeklyTimes } from "@/lib/courses-data";
 import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
-export type TournamentStatus = "פעילה" | "הסתיימה" | "מתוכננת";
+export type TournamentStatus = "פעילה" | "הסתיימה" | "מתוכננת" | "ארכיון";
 
 export interface Tournament {
   id: string;
@@ -12,11 +12,15 @@ export interface Tournament {
   status: TournamentStatus;
   rounds: number;
   days: CourseDay[];
+  /** The meeting time on each weekday the tournament runs. */
+  times?: WeeklyTimes;
   nextDate: string;
   participants: number;
   ratingMin: number;
   ratingMax: number;
   room: string;
+  /** Free-text notes, persisted in Firestore. */
+  notes?: string;
 }
 
 const OVER_DATE = "—";
@@ -57,6 +61,7 @@ export const allTournamentStatuses: TournamentStatus[] = [
   "פעילה",
   "הסתיימה",
   "מתוכננת",
+  "ארכיון",
 ];
 
 export const allTournamentRooms = Array.from(

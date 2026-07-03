@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import {
   Table,
@@ -14,6 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
+import { CourseFormModal } from "@/components/courses/CourseFormModal";
+import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
+import { AddCoachModal } from "@/components/coaches/AddCoachModal";
+import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { courseActions } from "@/lib/course-actions";
@@ -27,6 +30,11 @@ export function TodaySessions() {
     menuOpen,
     virtualRef,
     onSelectAction,
+    courseEdit,
+    coachEdit,
+    enrollments,
+    archive,
+    confirmArchive,
     activeIndex,
     handleRowClick,
     handleMenuOpenChange,
@@ -50,15 +58,14 @@ export function TodaySessions() {
 
         <CardContent className="px-4 pb-4">
           <div className="neu-inset rounded-2xl p-2">
-            <ScrollArea>
-              <Table className="min-w-150">
+            <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סוג</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום / מדריך</TableHead>
-                    <TableHead className="px-4 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סוג</TableHead>
                     <SelectionHead selection={selection} />
                   </TableRow>
                 </TableHeader>
@@ -83,10 +90,19 @@ export function TodaySessions() {
                           activeIndex === i && "bg-primary/30",
                         )}
                       >
-                        <TableCell className="px-4 py-3 text-sm num whitespace-nowrap">
+                        <TableCell className="px-3 py-3 text-sm text-foreground">
+                          {s.name}
+                        </TableCell>
+                        <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+                          {s.location}
+                        </TableCell>
+                        <TableCell className="px-3 py-3 text-sm num whitespace-nowrap">
                           {s.time}
                         </TableCell>
-                        <TableCell className="px-4 py-3">
+                        <TableCell className="px-3 py-3 text-sm num text-muted-foreground">
+                          {s.enrolled} מתוך {s.capacity}
+                        </TableCell>
+                        <TableCell className="px-3 py-3">
                           <Badge
                             variant="secondary"
                             className="status-ok tint-text rounded-full px-2.5 py-0.5 text-[0.65rem] font-medium border-0"
@@ -95,22 +111,12 @@ export function TodaySessions() {
                             {s.type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-foreground">
-                          {s.name}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-muted-foreground">
-                          {s.location} · {s.coach}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm num text-muted-foreground">
-                          {s.enrolled} / {s.capacity}
-                        </TableCell>
                         <SelectionCell id={String(i)} selection={selection} />
                       </motion.tr>
                     ))
                   )}
                 </TableBody>
               </Table>
-            </ScrollArea>
           </div>
         </CardContent>
       </Card>
@@ -123,6 +129,30 @@ export function TodaySessions() {
       ) : (
         <CourseActionsMenuContent onSelect={onSelectAction} />
       )}
+      <CourseFormModal addCourse={courseEdit} />
+      <AddCoachModal
+        open={coachEdit.open}
+        mode={coachEdit.mode}
+        onOpenChange={coachEdit.handleOpenChange}
+        values={coachEdit.values}
+        onFieldChange={coachEdit.updateField}
+        valid={coachEdit.valid}
+        onConfirm={coachEdit.confirm}
+      />
+      <PossibleEnrollmentsModal
+        open={enrollments.open}
+        onOpenChange={enrollments.onOpenChange}
+        course={enrollments.course}
+        candidates={enrollments.candidates}
+        onExport={() => {}}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="חוגים"
+        onCancel={archive.cancel}
+        onConfirm={confirmArchive}
+      />
     </Popover>
   );
 }

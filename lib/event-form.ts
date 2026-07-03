@@ -25,6 +25,8 @@ export type EventFormat = "oneoff" | "recurring";
 
 /** Shape of the "add event" form. Empty strings = not filled yet. */
 export interface EventFormValues {
+  /** Set when editing an existing event; drives the Firestore save. */
+  id?: string;
   name: string;
   notes: string;
   format: EventFormat;

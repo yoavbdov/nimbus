@@ -36,13 +36,6 @@ function timeWindow(tournament: Tournament): { start: string; end: string } {
   return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
 }
 
-/** Built-from-data notes so every tournament shows something in its details. */
-function notesFor(tournament: Tournament): string {
-  const judgeLine = tournament.judge
-    ? `התחרות נשפטת על ידי ${tournament.judge}.`
-    : "טרם שובץ שופט לתחרות.";
-  return `${judgeLine} ${tournament.rounds} סיבובים בחדר ${tournament.room}. מיועדת למד כושר ${tournament.ratingMin}–${tournament.ratingMax}.`;
-}
 
 /**
  * One round per the tournament's round count, all in its room, a week apart
@@ -98,13 +91,14 @@ export function tournamentFormValuesFor(
 ): TournamentFormValues {
   const rounds = roundsFor(tournament);
   return {
+    id: tournament.id,
     name: tournament.name,
     judge: tournament.judge,
     fitnessMin: String(tournament.ratingMin),
     fitnessMax: String(tournament.ratingMax),
     ageMin: "",
     ageMax: "",
-    notes: notesFor(tournament),
+    notes: tournament.notes ?? "",
     format: "rounds",
     roundsCount: String(rounds.length),
     rounds,

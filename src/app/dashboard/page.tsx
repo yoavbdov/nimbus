@@ -16,8 +16,7 @@ const panelVariants = {
 };
 
 export default function DashboardPage() {
-  const { tiers, activePanel, handleTierChange, handlePanelSelect } =
-    useDashboard();
+  const { activePanel, handlePanelSelect } = useDashboard();
 
   return (
     <PageShell title="לוח בקרה">
@@ -41,10 +40,7 @@ export default function DashboardPage() {
             >
               {activePanel === "players" && (
                 <div className="bloom bloom-indigo rounded-3xl">
-                  <RatingDistribution
-                    tiers={tiers}
-                    onTierChange={handleTierChange}
-                  />
+                  <RatingDistribution />
                 </div>
               )}
               {activePanel === "clubs" && (

@@ -26,6 +26,8 @@ export const CHESS_TITLES: ChessTitle[] = [
 
 /** Shape of the "add player" form. Empty strings = not filled yet. */
 export interface PlayerFormValues {
+  /** Set when editing an existing player; drives the Firestore save. */
+  id?: string;
   // Tab 1 — מידע אישי
   firstName: string;
   lastName: string;

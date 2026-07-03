@@ -27,20 +27,13 @@ import { playerFormValuesFor } from "@/lib/player-details";
 import { useEditableField } from "@/hooks/dashboard/useEditableField";
 import { useEditableRange } from "@/hooks/dashboard/useEditableRange";
 import { useTierNavigation } from "@/hooks/dashboard/useTierNavigation";
-import { ratingPlayers, ratingPlayersAsPlayers } from "@/lib/dashboard-data";
+import { useDashboardPlayers } from "@/hooks/dashboard/useDashboardPlayers";
+import { useRatingTiers } from "@/hooks/dashboard/useRatingTiers";
+import type { RatingTier } from "@/lib/rating-tiers-data";
 import { cn } from "@/lib/utils";
 
-export interface RatingTier {
-  label: string;
-  count: number;
-  min: number;
-  max: number;
-}
-
-interface RatingDistributionProps {
-  tiers: RatingTier[];
-  onTierChange: (index: number, updated: Partial<RatingTier>) => void;
-}
+/** A tier plus its live, derived player count. */
+type TierWithCount = RatingTier & { count: number };
 
 interface EditableFieldProps {
   value: string;
@@ -62,7 +55,9 @@ function EditableField({ value, onCommit, className }: EditableFieldProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
+            // Keep keys inside the field — otherwise Space bubbles to the
+            // tier card and triggers its "open filter" click handler.
+            e.stopPropagation();
             if (e.key === "Enter") commit();
             if (e.key === "Escape") cancel();
           }}
@@ -129,7 +124,7 @@ function RangeField({ min, max, onCommit }: RangeFieldProps) {
   } = useEditableRange(min, max, onCommit);
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
+    e.stopPropagation();
     if (e.key === "Enter") commit();
     if (e.key === "Escape") cancel();
   }
@@ -205,7 +200,7 @@ function TierBox({
   tier,
   onChange,
 }: {
-  tier: RatingTier;
+  tier: TierWithCount;
   onChange: (updated: Partial<RatingTier>) => void;
 }) {
   const goToPlayers = useTierNavigation();
@@ -250,13 +245,22 @@ function TierBox({
   );
 }
 
-export function RatingDistribution({
-  tiers,
-  onTierChange,
-}: RatingDistributionProps) {
-  const total = tiers.reduce((sum, t) => sum + t.count, 0);
+export function RatingDistribution() {
+  const { players, ratingPlayers } = useDashboardPlayers();
+  const { tiers, handleTierChange } = useRatingTiers();
+
+  // Counts are derived live from the players in Firestore; the tier's
+  // label/min/max stay editable, but how many fall in each band is data-driven.
+  const tiersWithCount: TierWithCount[] = tiers.map((t) => ({
+    ...t,
+    count: players.filter(
+      (p) => p.israeliRating >= t.min && p.israeliRating < t.max,
+    ).length,
+  }));
+  const total = tiersWithCount.reduce((sum, t) => sum + t.count, 0);
+
   const deletePlayer = useDeletePlayer();
-  const availability = useAvailabilityCheck(ratingPlayersAsPlayers);
+  const availability = useAvailabilityCheck(players);
   const addPlayer = useAddPlayer();
   const clubRegistration = useClubRegistration();
   const tournamentRegistration = useTournamentRegistration();
@@ -264,20 +268,20 @@ export function RatingDistribution({
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
     if (actionId === "details") {
-      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      const player = players.find((p) => p.name === playerName);
       if (player) addPlayer.openForEdit(playerFormValuesFor(player));
     } else if (actionId === "clubs") {
-      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      const player = players.find((p) => p.name === playerName);
       if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
     } else if (actionId === "tournaments") {
-      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      const player = players.find((p) => p.name === playerName);
       if (player)
         tournamentRegistration.openFor({
           name: player.name,
           tournaments: player.tournaments,
         });
     } else if (actionId === "league") {
-      const player = ratingPlayersAsPlayers.find((p) => p.name === playerName);
+      const player = players.find((p) => p.name === playerName);
       if (player)
         leagueRegistration.openFor({
           name: player.name,
@@ -314,11 +318,11 @@ export function RatingDistribution({
         <div className="flex gap-6 items-stretch">
           <div className="w-1/2 h-90">
             <div className="grid grid-cols-2 grid-rows-2 gap-5 h-full">
-              {tiers.map((tier, i) => (
+              {tiersWithCount.map((tier) => (
                 <TierBox
-                  key={i}
+                  key={tier.id}
                   tier={tier}
-                  onChange={(updated) => onTierChange(i, updated)}
+                  onChange={(updated) => handleTierChange(tier.id, updated)}
                 />
               ))}
             </div>
@@ -360,7 +364,7 @@ export function RatingDistribution({
       <AvailabilityModal
         open={availability.open}
         onOpenChange={availability.handleOpenChange}
-        players={ratingPlayersAsPlayers}
+        players={players}
         selectedIds={availability.selectedIds}
         onTogglePlayer={availability.togglePlayer}
         slot={availability.slot}

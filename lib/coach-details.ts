@@ -23,11 +23,12 @@ export function coachFormValuesFor(coach: Coach): CoachFormValues {
   const h = hash(coach.name, 5381);
 
   return {
+    id: coach.id,
     firstName,
     lastName,
     phone: coach.phone,
     email: `coach${1000 + (h % 9000)}@gmail.com`,
-    notes: "",
+    notes: coach.notes ?? "",
   };
 }
 

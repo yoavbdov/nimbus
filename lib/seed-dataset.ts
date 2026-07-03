@@ -19,7 +19,7 @@
  */
 import { deriveDetails } from "@/lib/player-details";
 import type { Player, PlayerBase } from "@/lib/players-data";
-import type { Course } from "@/lib/courses-data";
+import { courseOccupancy, type Course, type WeeklyTimes } from "@/lib/courses-data";
 import type { CoachRecord } from "@/lib/coaches-data";
 import type { Room, Equipment } from "@/lib/rooms-data";
 import type { LeagueTeam } from "@/lib/leagues-data";
@@ -28,6 +28,7 @@ import type { ClubEvent } from "@/lib/events-data";
 import type { AttendanceClass } from "@/lib/attendance-data";
 import type { RelationDoc } from "@/lib/relations-data";
 import type { SessionDoc } from "@/lib/sessions-data";
+import { defaultRatingTiers } from "@/lib/rating-tiers-data";
 
 /** Permanent (ongoing) vs round (fixed cohort/term). */
 type Recurrence = "קבוע" | "סבב";
@@ -36,12 +37,12 @@ export type SeedTournament = Tournament & { recurrence: Recurrence };
 
 // ── Coaches (6) ──────────────────────────────────────────────────────────────
 export const seedCoaches: CoachRecord[] = [
-  { id: "coach-1", name: "אבי לוי", phone: "050-1000001", clubs: ["שחמט מתחילים"], competitions: 2 },
-  { id: "coach-2", name: "מירב כהן", phone: "054-1000002", clubs: ["מועדון אחה״צ"], competitions: 3 },
-  { id: "coach-3", name: "יוסי בן עמי", phone: "052-1000003", clubs: ["שחמט מתקדמים"], competitions: 1 },
-  { id: "coach-4", name: "דנה אביב", phone: "053-1000004", clubs: ["חוג גן"], competitions: 0 },
-  { id: "coach-5", name: "רון פרידמן", phone: "050-1000005", clubs: ["שחמט בוגרים"], competitions: 4 },
-  { id: "coach-6", name: "שירה גל", phone: "054-1000006", clubs: ["סדנת פתיחות"], competitions: 2 },
+  { id: "coach-1", name: "אבי לוי", phone: "050-1000001", clubs: ["שחמט מתחילים"], competitions: 2, notes: "" },
+  { id: "coach-2", name: "מירב כהן", phone: "054-1000002", clubs: ["מועדון אחה״צ"], competitions: 3, notes: "" },
+  { id: "coach-3", name: "יוסי בן עמי", phone: "052-1000003", clubs: ["שחמט מתקדמים"], competitions: 1, notes: "" },
+  { id: "coach-4", name: "דנה אביב", phone: "053-1000004", clubs: ["חוג גן"], competitions: 0, notes: "" },
+  { id: "coach-5", name: "רון פרידמן", phone: "050-1000005", clubs: ["שחמט בוגרים"], competitions: 4, notes: "" },
+  { id: "coach-6", name: "שירה גל", phone: "054-1000006", clubs: ["סדנת פתיחות"], competitions: 2, notes: "" },
 ];
 
 // ── Rooms (3) ────────────────────────────────────────────────────────────────
@@ -105,17 +106,36 @@ export const seedLeagues: LeagueTeam[] = [
 ];
 
 // ── Courses (6) — current/future × permanent/round. Today is 2026-06-30. ──────
-export const seedCourses: SeedCourse[] = [
-  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, fitnessMin: 0,    fitnessMax: 800,  enrolled: 8,  capacity: 14, days: ["ראשון", "שלישי"], nextDate: "01.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent
-  { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, fitnessMin: 800,  fitnessMax: 1600, enrolled: 12, capacity: 12, days: ["שני", "רביעי"],   nextDate: "01.07.2026", status: "מלא",    room: "חדר אימונים", recurrence: "סבב" },  // current, round
-  { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, fitnessMin: 400,  fitnessMax: 1200, enrolled: 9,  capacity: 16, days: ["ראשון"],          nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent
-  { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, fitnessMin: 1400, fitnessMax: 2500, enrolled: 5,  capacity: 20, days: ["שלישי"],          nextDate: "14.07.2026", status: "לא פעיל", room: "חדר תחרויות", recurrence: "סבב" },  // future, round
-  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, fitnessMin: 1200, fitnessMax: 2400, enrolled: 6,  capacity: 12, days: ["חמישי"],          nextDate: "03.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent
-  { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  fitnessMin: 0,    fitnessMax: 400,  enrolled: 3,  capacity: 10, days: ["רביעי"],          nextDate: "22.07.2026", status: "לא פעיל", room: "חדר אימונים", recurrence: "סבב" },  // future, round
+// Occupancy (ריק/חלקי/מלא) is derived from enrolled/capacity, so the rows omit it.
+const rawSeedCourses: Omit<SeedCourse, "occupancy">[] = [
+  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, fitnessMin: 0,    fitnessMax: 800,  enrolled: 8,  capacity: 14, days: ["ראשון", "שלישי"], nextDate: "01.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, fitnessMin: 800,  fitnessMax: 1600, enrolled: 12, capacity: 12, days: ["שני", "רביעי"],   nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "סבב" },  // current, round → מלא
+  { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, fitnessMin: 400,  fitnessMax: 1200, enrolled: 9,  capacity: 16, days: ["ראשון"],          nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, fitnessMin: 1400, fitnessMax: 2500, enrolled: 5,  capacity: 20, days: ["שלישי"],          nextDate: "14.07.2026", status: "לא פעיל", room: "חדר תחרויות", recurrence: "סבב" },  // future, round → חלקי
+  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, fitnessMin: 1200, fitnessMax: 2400, enrolled: 6,  capacity: 12, days: ["חמישי"],          nextDate: "03.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  fitnessMin: 0,    fitnessMax: 400,  enrolled: 0,  capacity: 10, days: ["רביעי"],          nextDate: "22.07.2026", status: "לא פעיל", room: "חדר אימונים", recurrence: "סבב" },  // future, round → ריק
 ];
 
+// Meeting time per weekday for each course (the "today" tables show the slot
+// matching the current weekday).
+const courseTimes: Record<string, WeeklyTimes> = {
+  "course-1": { "ראשון": { start: "16:00", end: "17:30" }, "שלישי": { start: "17:00", end: "18:30" } },
+  "course-2": { "שני": { start: "16:30", end: "18:00" }, "רביעי": { start: "16:30", end: "18:00" } },
+  "course-3": { "ראשון": { start: "15:00", end: "16:30" } },
+  "course-4": { "שלישי": { start: "18:00", end: "19:30" } },
+  "course-5": { "חמישי": { start: "17:00", end: "18:30" } },
+  "course-6": { "רביעי": { start: "16:00", end: "17:00" } },
+};
+
+export const seedCourses: SeedCourse[] = rawSeedCourses.map((c) => ({
+  ...c,
+  occupancy: courseOccupancy(c.enrolled, c.capacity),
+  times: courseTimes[c.id],
+  notes: "",
+}));
+
 // ── Tournaments (6) — same current/future × permanent/round spread. ──────────
-export const seedTournaments: SeedTournament[] = [
+const rawSeedTournaments: SeedTournament[] = [
   { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "01.07.2026", participants: 32, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // current, round
   { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "13.07.2026", participants: 24, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // future, round
   { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "03.07.2026", participants: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // current, permanent (weekly)
@@ -124,9 +144,24 @@ export const seedTournaments: SeedTournament[] = [
   { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "20.07.2026", participants: 48, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // future, round
 ];
 
+const tournamentTimes: Record<string, WeeklyTimes> = {
+  "tournament-1": { "שלישי": { start: "17:00", end: "20:00" } },
+  "tournament-2": { "שני": { start: "17:00", end: "20:00" } },
+  "tournament-3": { "חמישי": { start: "18:00", end: "21:00" } },
+  "tournament-4": { "ראשון": { start: "16:00", end: "19:00" } },
+  "tournament-5": { "שלישי": { start: "18:30", end: "21:00" } },
+  "tournament-6": { "ראשון": { start: "16:00", end: "19:00" }, "רביעי": { start: "16:00", end: "19:00" } },
+};
+
+export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => ({
+  ...t,
+  times: tournamentTimes[t.id],
+  notes: "",
+}));
+
 // ── Events (1 one-off, next week) ────────────────────────────────────────────
 export const seedEvents: ClubEvent[] = [
-  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["שני"], nextDate: "06.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי" },
+  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["שני"], nextDate: "06.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
 ];
 
 // ── Attendance (2 classes, left unmarked — to be filled in the app) ──────────
@@ -162,6 +197,9 @@ export const seedSessions: SessionDoc[] = [
   { id: "session-5", parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
   { id: "session-6", parentType: "event",      parentId: "event-1",      date: "2026-07-06", start: "18:00", end: "20:00", roomId: "room-1" }, // next-week event, no conflict
 ];
+
+// ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
+export const seedRatingTiers = defaultRatingTiers;
 
 // ── Relations (junction — links that drive student/coach/equipment conflicts) ─
 export const seedRelations: RelationDoc[] = [
