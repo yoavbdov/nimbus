@@ -6,10 +6,10 @@
  * function out into its own file only once it grows its own real logic.
  */
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
@@ -21,13 +21,18 @@ function playersRef(clubId: string = DEMO_CLUB_ID) {
   return collection(db, collectionPath(clubId, "players"));
 }
 
-/** Create a player; Firestore assigns the id. Returns the new doc id. */
+/**
+ * Create a player. The document id is the player's full name (e.g. "אלון כהן"),
+ * so docs are human-readable in Firestore. Returns that id. Note: two players
+ * with the same name would collide on the same document.
+ */
 export async function addPlayer(
   player: Omit<Player, "id">,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<string> {
-  const ref = await addDoc(playersRef(clubId), player);
-  return ref.id;
+  const id = player.name.trim();
+  await setDoc(doc(playersRef(clubId), id), player);
+  return id;
 }
 
 /** Patch an existing player. */

@@ -1,4 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { deletePlayer } from "@/lib/firebase/data/players";
+
+/** A player the modal can delete: its Firestore id plus its display name. */
+export interface DeletablePlayer {
+  id: string;
+  name: string;
+}
 
 /**
  * Owns the state for the "delete player(s)" confirmation modal. Deleting is
@@ -12,19 +19,21 @@ import { useCallback, useState } from "react";
  */
 export function useDeletePlayer() {
   const [open, setOpen] = useState(false);
-  const [names, setNames] = useState<string[]>([]);
+  const [targets, setTargets] = useState<DeletablePlayer[]>([]);
   const [confirmText, setConfirmText] = useState("");
+
+  const names = useMemo(() => targets.map((t) => t.name), [targets]);
 
   // The exact text the user has to type to enable the delete button.
   const expectedPhrase =
-    names.length > 1
-      ? `אני מעוניין למחוק ${names.length} שחקנים`
+    targets.length > 1
+      ? `אני מעוניין למחוק ${targets.length} שחקנים`
       : (names[0] ?? "");
 
-  const valid = names.length > 0 && confirmText.trim() === expectedPhrase;
+  const valid = targets.length > 0 && confirmText.trim() === expectedPhrase;
 
-  const openFor = useCallback((playerNames: string[]) => {
-    setNames(playerNames);
+  const openFor = useCallback((players: DeletablePlayer[]) => {
+    setTargets(players);
     setConfirmText("");
     setOpen(true);
   }, []);
@@ -35,8 +44,9 @@ export function useDeletePlayer() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — the actual delete is wired up elsewhere later.
-  }, [valid]);
+    for (const target of targets) void deletePlayer(target.id);
+    setOpen(false);
+  }, [valid, targets]);
 
   return {
     open,

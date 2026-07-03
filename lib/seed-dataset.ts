@@ -35,8 +35,20 @@ type Recurrence = "קבוע" | "סבב";
 export type SeedCourse = Course & { recurrence: Recurrence };
 export type SeedTournament = Tournament & { recurrence: Recurrence };
 
+/** Build an `id → name` lookup from a list of `{ id, name }` seed records. */
+function nameByIdOf<T extends { id: string; name: string }>(
+  items: T[],
+): Record<string, string> {
+  return Object.fromEntries(items.map((i) => [i.id, i.name]));
+}
+
+/** Re-key seed records so the document id is the record's own name. */
+function keyByName<T extends { name: string }>(items: T[]): T[] {
+  return items.map((i) => ({ ...i, id: i.name }));
+}
+
 // ── Coaches (6) ──────────────────────────────────────────────────────────────
-export const seedCoaches: CoachRecord[] = [
+const rawSeedCoaches: CoachRecord[] = [
   { id: "coach-1", name: "אבי לוי", phone: "050-1000001", clubs: ["שחמט מתחילים"], competitions: 2, notes: "" },
   { id: "coach-2", name: "מירב כהן", phone: "054-1000002", clubs: ["מועדון אחה״צ"], competitions: 3, notes: "" },
   { id: "coach-3", name: "יוסי בן עמי", phone: "052-1000003", clubs: ["שחמט מתקדמים"], competitions: 1, notes: "" },
@@ -44,20 +56,26 @@ export const seedCoaches: CoachRecord[] = [
   { id: "coach-5", name: "רון פרידמן", phone: "050-1000005", clubs: ["שחמט בוגרים"], competitions: 4, notes: "" },
   { id: "coach-6", name: "שירה גל", phone: "054-1000006", clubs: ["סדנת פתיחות"], competitions: 2, notes: "" },
 ];
+const coachNameById = nameByIdOf(rawSeedCoaches);
+export const seedCoaches: CoachRecord[] = keyByName(rawSeedCoaches);
 
 // ── Rooms (3) ────────────────────────────────────────────────────────────────
-export const seedRooms: Room[] = [
+const rawSeedRooms: Room[] = [
   { id: "room-1", name: "אולם ראשי", capacity: 40, equipment: ["שעוני שח", "לוחות הדגמה"] },
   { id: "room-2", name: "חדר אימונים", capacity: 16, equipment: ["סטים מגנטיים"] },
   { id: "room-3", name: "חדר תחרויות", capacity: 32, equipment: ["שעוני שח", "לוחות תחרות"] },
 ];
+const roomNameById = nameByIdOf(rawSeedRooms);
+export const seedRooms: Room[] = keyByName(rawSeedRooms);
 
 // ── Equipment (3) ────────────────────────────────────────────────────────────
-export const seedEquipment: Equipment[] = [
+const rawSeedEquipment: Equipment[] = [
   { id: "equipment-1", name: "שעוני שח", quantity: 30, notes: "5 דורשים סוללות" },
   { id: "equipment-2", name: "לוחות הדגמה", quantity: 8, notes: "—" },
   { id: "equipment-3", name: "סטים מגנטיים", quantity: 20, notes: "—" },
 ];
+const equipmentNameById = nameByIdOf(rawSeedEquipment);
+export const seedEquipment: Equipment[] = keyByName(rawSeedEquipment);
 
 // ── Players (20, every age band) ─────────────────────────────────────────────
 const basePlayers: PlayerBase[] = [
@@ -83,14 +101,22 @@ const basePlayers: PlayerBase[] = [
   { id: "player-20", name: "אלון זיו",     age: 36, grade: "בוגר",   israeliRating: 2150, fideRating: 2120, ratingUpdatedRecently: false, phone: "050-2000020", clubs: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת ב'", status: "פעיל" },
 ];
 
+// Player documents are keyed by the player's full name (readable ids in
+// Firestore). This map lets every player reference (league rosters, attendance
+// students, relations) point at the same name-based id.
+const playerNameById: Record<string, string> = Object.fromEntries(
+  basePlayers.map((p) => [p.id, p.name]),
+);
+
 export const seedPlayers: Player[] = basePlayers.map((p) => ({
   ...p,
+  id: p.name,
   ...deriveDetails(p),
   ratingUpdatedAt: p.ratingUpdatedRecently ? "20.06.2026" : "02.03.2026",
 }));
 
 // ── League teams (2 per category: בוגרים / נוער / נשים) ───────────────────────
-export const seedLeagues: LeagueTeam[] = [
+const rawSeedLeagues: LeagueTeam[] = [
   { id: "league-1", category: "בוגרים", rank: "לאומית", name: "נבחרת המאסטרים", notes: "אלופי העונה הקודמת",
     players: [{ id: "player-11", name: "נדב אורן", rating: 2310 }, { id: "player-13", name: "רון פרידמן", rating: 2240 }] },
   { id: "league-2", category: "בוגרים", rank: "ארצית", name: "נבחרת ב'", notes: "—",
@@ -104,6 +130,16 @@ export const seedLeagues: LeagueTeam[] = [
   { id: "league-6", category: "נשים", rank: "עילית", name: "נשים עילית", notes: "—",
     players: [{ id: "player-12", name: "שירה גל", rating: 1950 }, { id: "player-15", name: "דליה אביב", rating: 1450 }] },
 ];
+
+// Point each roster entry at the player's name-based document id.
+export const seedLeagues: LeagueTeam[] = rawSeedLeagues.map((team) => ({
+  ...team,
+  id: team.name,
+  players: team.players.map((pl) => ({
+    ...pl,
+    id: playerNameById[pl.id] ?? pl.id,
+  })),
+}));
 
 // ── Courses (6) — current/future × permanent/round. Today is 2026-06-30. ──────
 // Occupancy (ריק/חלקי/מלא) is derived from enrolled/capacity, so the rows omit it.
@@ -127,8 +163,10 @@ const courseTimes: Record<string, WeeklyTimes> = {
   "course-6": { "רביעי": { start: "16:00", end: "17:00" } },
 };
 
+const courseNameById = nameByIdOf(rawSeedCourses as { id: string; name: string }[]);
 export const seedCourses: SeedCourse[] = rawSeedCourses.map((c) => ({
   ...c,
+  id: c.name,
   occupancy: courseOccupancy(c.enrolled, c.capacity),
   times: courseTimes[c.id],
   notes: "",
@@ -153,19 +191,23 @@ const tournamentTimes: Record<string, WeeklyTimes> = {
   "tournament-6": { "ראשון": { start: "16:00", end: "19:00" }, "רביעי": { start: "16:00", end: "19:00" } },
 };
 
+const tournamentNameById = nameByIdOf(rawSeedTournaments);
 export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => ({
   ...t,
+  id: t.name,
   times: tournamentTimes[t.id],
   notes: "",
 }));
 
 // ── Events (1 one-off, next week) ────────────────────────────────────────────
-export const seedEvents: ClubEvent[] = [
+const rawSeedEvents: ClubEvent[] = [
   { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["שני"], nextDate: "06.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
 ];
+const eventNameById = nameByIdOf(rawSeedEvents);
+export const seedEvents: ClubEvent[] = keyByName(rawSeedEvents);
 
 // ── Attendance (2 classes, left unmarked — to be filled in the app) ──────────
-export const seedAttendance: AttendanceClass[] = [
+const rawSeedAttendance: AttendanceClass[] = [
   {
     id: "attendance-1", name: "שחמט מתחילים", coach: "אבי לוי",
     sessions: [
@@ -187,9 +229,19 @@ export const seedAttendance: AttendanceClass[] = [
   },
 ];
 
+// Point each attendance student at the player's name-based document id.
+export const seedAttendance: AttendanceClass[] = rawSeedAttendance.map((cls) => ({
+  ...cls,
+  id: cls.name,
+  students: cls.students.map((s) => ({
+    ...s,
+    id: playerNameById[s.id] ?? s.id,
+  })),
+}));
+
 // ── Sessions (scheduling slots — the conflict source of truth) ───────────────
 // All on 2026-07-01 except the no-conflict controls. Times "HH:mm".
-export const seedSessions: SessionDoc[] = [
+const rawSeedSessions: SessionDoc[] = [
   { id: "session-1", parentType: "course",     parentId: "course-1",     date: "2026-07-01", start: "16:00", end: "17:30", roomId: "room-1" },
   { id: "session-2", parentType: "course",     parentId: "course-2",     date: "2026-07-01", start: "17:00", end: "18:30", roomId: "room-1" },
   { id: "session-3", parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
@@ -198,11 +250,24 @@ export const seedSessions: SessionDoc[] = [
   { id: "session-6", parentType: "event",      parentId: "event-1",      date: "2026-07-06", start: "18:00", end: "20:00", roomId: "room-1" }, // next-week event, no conflict
 ];
 
+// Name lookups per parent type, so session parents/rooms point at name ids.
+const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> = {
+  course: courseNameById,
+  tournament: tournamentNameById,
+  event: eventNameById,
+};
+
+export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => ({
+  ...s,
+  parentId: parentNameById[s.parentType][s.parentId] ?? s.parentId,
+  roomId: roomNameById[s.roomId] ?? s.roomId,
+}));
+
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
 export const seedRatingTiers = defaultRatingTiers;
 
 // ── Relations (junction — links that drive student/coach/equipment conflicts) ─
-export const seedRelations: RelationDoc[] = [
+const rawSeedRelations: RelationDoc[] = [
   // players ↔ courses
   { id: "relation-1",  kind: "player_course",     subjectType: "player",    subjectId: "player-1",  targetType: "course",     targetId: "course-1" },
   { id: "relation-2",  kind: "player_course",     subjectType: "player",    subjectId: "player-1",  targetType: "course",     targetId: "course-3" }, // → student conflict
@@ -220,6 +285,28 @@ export const seedRelations: RelationDoc[] = [
   { id: "relation-12", kind: "equipment_course",  subjectType: "equipment", subjectId: "equipment-1", targetType: "course",   targetId: "course-2" }, // → equipment conflict
   { id: "relation-13", kind: "equipment_course",  subjectType: "equipment", subjectId: "equipment-2", targetType: "course",   targetId: "course-3" },
 ];
+
+// Every relation endpoint (subject and target) points at the entity's
+// name-based document id, keyed by its type.
+const nameByType: Record<string, Record<string, string>> = {
+  player: playerNameById,
+  coach: coachNameById,
+  equipment: equipmentNameById,
+  room: roomNameById,
+  course: courseNameById,
+  tournament: tournamentNameById,
+  event: eventNameById,
+};
+
+function toNameId(type: string, id: string): string {
+  return nameByType[type]?.[id] ?? id;
+}
+
+export const seedRelations: RelationDoc[] = rawSeedRelations.map((rel) => ({
+  ...rel,
+  subjectId: toNameId(rel.subjectType, rel.subjectId),
+  targetId: toNameId(rel.targetType, rel.targetId),
+}));
 
 /*
  * BUILT CONFLICTS (all on 2026-07-01):

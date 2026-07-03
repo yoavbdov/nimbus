@@ -3,8 +3,10 @@ import {
   availableTournamentsFor,
   registeredTournamentsFor,
 } from "@/lib/tournament-registration";
+import { updatePlayer } from "@/lib/firebase/data/players";
 
 interface OpenForArgs {
+  id: string;
   name: string;
   tournaments: string[];
 }
@@ -21,6 +23,7 @@ interface OpenForArgs {
  */
 export function useTournamentRegistration() {
   const [open, setOpen] = useState(false);
+  const [playerId, setPlayerId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [tournaments, setTournaments] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
@@ -39,7 +42,8 @@ export function useTournamentRegistration() {
   );
 
   const openFor = useCallback(
-    ({ name, tournaments: tournamentNames }: OpenForArgs) => {
+    ({ id, name, tournaments: tournamentNames }: OpenForArgs) => {
+      setPlayerId(id);
       setPlayerName(name);
       setTournaments(tournamentNames);
       setEditing(false);
@@ -74,13 +78,20 @@ export function useTournamentRegistration() {
   const cancelRemove = useCallback(() => setPendingRemoval(null), []);
 
   const confirmRemove = useCallback(() => {
-    // UI only for now — the actual removal is wired up elsewhere later.
+    if (!pendingRemoval) return;
+    const next = tournaments.filter((t) => t !== pendingRemoval);
+    setTournaments(next);
     setPendingRemoval(null);
-  }, []);
+    void updatePlayer(playerId, { tournaments: next });
+  }, [pendingRemoval, tournaments, playerId]);
 
   const addTournament = useCallback(() => {
-    // UI only for now — the actual registration is wired up elsewhere later.
-  }, []);
+    if (!selectedTournament || tournaments.includes(selectedTournament)) return;
+    const next = [...tournaments, selectedTournament];
+    setTournaments(next);
+    setSelectedTournament("");
+    void updatePlayer(playerId, { tournaments: next });
+  }, [selectedTournament, tournaments, playerId]);
 
   return {
     open,

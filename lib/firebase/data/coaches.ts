@@ -3,10 +3,10 @@
  * they never talk to Firestore directly.
  */
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
@@ -17,12 +17,14 @@ function coachesRef(clubId: string = DEMO_CLUB_ID) {
   return collection(db, collectionPath(clubId, "coaches"));
 }
 
+/** Create a coach. The document id is the coach name. Returns that id. */
 export async function addCoach(
   coach: Omit<CoachRecord, "id">,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<string> {
-  const ref = await addDoc(coachesRef(clubId), coach);
-  return ref.id;
+  const id = coach.name.trim();
+  await setDoc(doc(coachesRef(clubId), id), coach);
+  return id;
 }
 
 export function updateCoach(

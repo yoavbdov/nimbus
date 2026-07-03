@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { filterPlayers, type PlayerFilter } from "@/lib/players-filters";
+import type { Player } from "@/lib/players-data";
 
 function initialRatingFilters(min: string | null, max: string | null): PlayerFilter[] {
   const filters: PlayerFilter[] = [];
@@ -13,7 +14,7 @@ function initialRatingFilters(min: string | null, max: string | null): PlayerFil
   return filters;
 }
 
-export function usePlayersFilter() {
+export function usePlayersFilter(players: Player[]) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<PlayerFilter[]>(() =>
@@ -38,8 +39,8 @@ export function usePlayersFilter() {
   }
 
   const filtered = useMemo(
-    () => filterPlayers(search, filters),
-    [search, filters],
+    () => filterPlayers(search, filters, players),
+    [search, filters, players],
   );
 
   return {

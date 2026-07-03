@@ -19,7 +19,6 @@ import { useDeletePlayer } from "@/hooks/players/useDeletePlayer";
 import { useClubRegistration } from "@/hooks/players/useClubRegistration";
 import { useTournamentRegistration } from "@/hooks/players/useTournamentRegistration";
 import { useLeagueRegistration } from "@/hooks/players/useLeagueRegistration";
-import { players as allPlayers } from "@/lib/players-data";
 import { playerFormValuesFor } from "@/lib/player-details";
 
 export function PlayersPanel() {
@@ -33,9 +32,11 @@ export function PlayersPanel() {
     clearAll,
     filtered,
     filterKey,
+    players,
+    total,
   } = usePlayersPanel();
 
-  const availability = useAvailabilityCheck(allPlayers);
+  const availability = useAvailabilityCheck(players);
   const addPlayer = useAddPlayer();
   const deletePlayer = useDeletePlayer();
   const clubRegistration = useClubRegistration();
@@ -43,31 +44,34 @@ export function PlayersPanel() {
   const leagueRegistration = useLeagueRegistration();
 
   function handlePlayerAction(actionId: string, playerId: string | null) {
+    const player = players.find((p) => p.id === playerId);
     if (actionId === "details") {
-      const player = allPlayers.find((p) => p.id === playerId);
       if (player) addPlayer.openForEdit(playerFormValuesFor(player));
     } else if (actionId === "clubs") {
-      const player = allPlayers.find((p) => p.id === playerId);
-      if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
+      if (player)
+        clubRegistration.openFor({
+          id: player.id,
+          name: player.name,
+          clubs: player.clubs,
+        });
     } else if (actionId === "tournaments") {
-      const player = allPlayers.find((p) => p.id === playerId);
       if (player)
         tournamentRegistration.openFor({
+          id: player.id,
           name: player.name,
           tournaments: player.tournaments,
         });
     } else if (actionId === "league") {
-      const player = allPlayers.find((p) => p.id === playerId);
       if (player)
         leagueRegistration.openFor({
+          id: player.id,
           name: player.name,
           leagueTeam: player.leagueTeam,
         });
     } else if (actionId === "availability") {
       availability.openWith(playerId ? [playerId] : []);
     } else if (actionId === "delete") {
-      const player = allPlayers.find((p) => p.id === playerId);
-      if (player) deletePlayer.openFor([player.name]);
+      if (player) deletePlayer.openFor([{ id: player.id, name: player.name }]);
     }
   }
 
@@ -75,10 +79,11 @@ export function PlayersPanel() {
     if (actionId === "availability") {
       availability.openWith(playerIds);
     } else if (actionId === "delete") {
-      const names = playerIds
-        .map((id) => allPlayers.find((p) => p.id === id)?.name)
-        .filter((name): name is string => name != null);
-      deletePlayer.openFor(names);
+      const targets = playerIds
+        .map((id) => players.find((p) => p.id === id))
+        .filter((p): p is (typeof players)[number] => p != null)
+        .map((p) => ({ id: p.id, name: p.name }));
+      deletePlayer.openFor(targets);
     }
   }
 
@@ -92,7 +97,7 @@ export function PlayersPanel() {
               ניהול שחקנים
             </h1>
             <p className="text-xs text-muted-foreground/80 num">
-              {filtered.length} מתוך {allPlayers.length} שחקנים
+              {filtered.length} מתוך {total} שחקנים
             </p>
           </div>
           <PlayersActions
@@ -135,7 +140,7 @@ export function PlayersPanel() {
       <AvailabilityModal
         open={availability.open}
         onOpenChange={availability.handleOpenChange}
-        players={allPlayers}
+        players={players}
         selectedIds={availability.selectedIds}
         onTogglePlayer={availability.togglePlayer}
         slot={availability.slot}

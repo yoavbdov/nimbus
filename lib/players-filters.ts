@@ -269,8 +269,12 @@ function matchesSearch(p: Player, query: string): boolean {
   return p.name.toLowerCase().includes(q) || p.phone.toLowerCase().includes(q);
 }
 
-export function filterPlayers(query: string, filters: PlayerFilter[]): Player[] {
-  return players.filter(
+export function filterPlayers(
+  query: string,
+  filters: PlayerFilter[],
+  source: Player[],
+): Player[] {
+  return source.filter(
     (p) => matchesSearch(p, query) && filters.every((f) => applyFilter(p, f)),
   );
 }

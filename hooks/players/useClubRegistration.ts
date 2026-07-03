@@ -3,8 +3,10 @@ import {
   availableClubsFor,
   registeredClubsFor,
 } from "@/lib/club-registration";
+import { updatePlayer } from "@/lib/firebase/data/players";
 
 interface OpenForArgs {
+  id: string;
   name: string;
   clubs: string[];
 }
@@ -21,6 +23,7 @@ interface OpenForArgs {
  */
 export function useClubRegistration() {
   const [open, setOpen] = useState(false);
+  const [playerId, setPlayerId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [clubs, setClubs] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
@@ -32,7 +35,8 @@ export function useClubRegistration() {
   const registered = useMemo(() => registeredClubsFor(clubs), [clubs]);
   const available = useMemo(() => availableClubsFor(clubs), [clubs]);
 
-  const openFor = useCallback(({ name, clubs: clubNames }: OpenForArgs) => {
+  const openFor = useCallback(({ id, name, clubs: clubNames }: OpenForArgs) => {
+    setPlayerId(id);
     setPlayerName(name);
     setClubs(clubNames);
     setEditing(false);
@@ -65,13 +69,20 @@ export function useClubRegistration() {
   const cancelRemove = useCallback(() => setPendingRemoval(null), []);
 
   const confirmRemove = useCallback(() => {
-    // UI only for now — the actual removal is wired up elsewhere later.
+    if (!pendingRemoval) return;
+    const next = clubs.filter((c) => c !== pendingRemoval);
+    setClubs(next);
     setPendingRemoval(null);
-  }, []);
+    void updatePlayer(playerId, { clubs: next });
+  }, [pendingRemoval, clubs, playerId]);
 
   const addClub = useCallback(() => {
-    // UI only for now — the actual registration is wired up elsewhere later.
-  }, []);
+    if (!selectedClub || clubs.includes(selectedClub)) return;
+    const next = [...clubs, selectedClub];
+    setClubs(next);
+    setSelectedClub("");
+    void updatePlayer(playerId, { clubs: next });
+  }, [selectedClub, clubs, playerId]);
 
   return {
     open,

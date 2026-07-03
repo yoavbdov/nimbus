@@ -4,6 +4,7 @@ import {
   type Gender,
   type PlayerFormValues,
 } from "@/lib/player-form";
+import type { Player } from "@/lib/players-data";
 
 /**
  * The roster data only carries the columns the tables show (name, age,
@@ -142,6 +143,57 @@ export function playerFormValuesFor(p: PlayerLike): PlayerFormValues {
     fideRating: p.fideRating != null ? String(p.fideRating) : "",
     title: p.title,
     ratingUpdatedAt: p.ratingUpdatedAt ?? "",
+  };
+}
+
+/** Today as dd.MM.yyyy — the "rating last updated" stamp for a new player. */
+function todayStamp(today = new Date()): string {
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  return `${dd}.${mm}.${today.getFullYear()}`;
+}
+
+/**
+ * The editable fields from the "add/edit player" form, shaped for Firestore.
+ * Covers the personal + player-detail columns the modal owns; it deliberately
+ * leaves registrations (clubs / tournaments / league) and status alone, since
+ * those are managed by their own modals.
+ */
+export function playerEditPatch(values: PlayerFormValues): Partial<Player> {
+  const firstName = values.firstName.trim();
+  const lastName = values.lastName.trim();
+  const fide = values.fideRating.trim();
+  return {
+    firstName,
+    lastName,
+    name: `${firstName} ${lastName}`.trim(),
+    gender: values.gender as Gender,
+    birthDate: values.birthDate,
+    age: ageFromBirthDate(values.birthDate) ?? 0,
+    grade: values.grade,
+    idNumber: values.idNumber,
+    phone: values.phone,
+    email: values.email,
+    address: values.address,
+    notes: values.notes,
+    israeliPlayerId: values.israeliPlayerId,
+    israeliRating: Number(values.israeliRating) || 0,
+    fidePlayerId: values.fidePlayerId,
+    fideRating: fide === "" ? null : Number(fide),
+    title: values.title,
+  };
+}
+
+/** Build a full new-player record for Firestore from the form values. */
+export function playerRecordFromForm(values: PlayerFormValues): Omit<Player, "id"> {
+  return {
+    ...(playerEditPatch(values) as Omit<Player, "id">),
+    clubs: [],
+    tournaments: [],
+    leagueTeam: null,
+    status: "פעיל",
+    ratingUpdatedRecently: true,
+    ratingUpdatedAt: todayStamp(),
   };
 }
 

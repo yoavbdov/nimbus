@@ -267,30 +267,34 @@ export function RatingDistribution() {
   const leagueRegistration = useLeagueRegistration();
 
   function handlePlayerAction(actionId: string, playerName: string | null) {
+    const player = players.find((p) => p.name === playerName);
     if (actionId === "details") {
-      const player = players.find((p) => p.name === playerName);
       if (player) addPlayer.openForEdit(playerFormValuesFor(player));
     } else if (actionId === "clubs") {
-      const player = players.find((p) => p.name === playerName);
-      if (player) clubRegistration.openFor({ name: player.name, clubs: player.clubs });
+      if (player)
+        clubRegistration.openFor({
+          id: player.id,
+          name: player.name,
+          clubs: player.clubs,
+        });
     } else if (actionId === "tournaments") {
-      const player = players.find((p) => p.name === playerName);
       if (player)
         tournamentRegistration.openFor({
+          id: player.id,
           name: player.name,
           tournaments: player.tournaments,
         });
     } else if (actionId === "league") {
-      const player = players.find((p) => p.name === playerName);
       if (player)
         leagueRegistration.openFor({
+          id: player.id,
           name: player.name,
           leagueTeam: player.leagueTeam,
         });
     } else if (actionId === "availability") {
       availability.openWith(playerName ? [playerName] : []);
-    } else if (actionId === "delete" && playerName) {
-      deletePlayer.openFor([playerName]);
+    } else if (actionId === "delete" && player) {
+      deletePlayer.openFor([{ id: player.id, name: player.name }]);
     }
   }
 
@@ -298,7 +302,11 @@ export function RatingDistribution() {
     if (actionId === "availability") {
       availability.openWith(playerNames);
     } else if (actionId === "delete") {
-      deletePlayer.openFor(playerNames);
+      const targets = playerNames
+        .map((name) => players.find((p) => p.name === name))
+        .filter((p): p is (typeof players)[number] => p != null)
+        .map((p) => ({ id: p.id, name: p.name }));
+      deletePlayer.openFor(targets);
     }
   }
 
