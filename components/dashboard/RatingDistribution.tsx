@@ -275,7 +275,7 @@ export function RatingDistribution() {
         clubRegistration.openFor({
           id: player.id,
           name: player.name,
-          clubs: player.clubs,
+          clubs: player.courses,
         });
     } else if (actionId === "tournaments") {
       if (player)

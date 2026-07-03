@@ -24,6 +24,12 @@ export interface CoachFilter {
   value: string | number | string[] | null;
 }
 
+/**
+ * Live option overrides per field. Used to replace the static mock-derived
+ * dropdown options (חוג) with the real course names read from Firestore.
+ */
+export type FieldOptions = Partial<Record<FilterField, string[]>>;
+
 export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
@@ -126,9 +132,9 @@ function applyFilter(c: Coach, f: CoachFilter): boolean {
       return f.op === "in" ? has : !has;
     }
     case "club":
-      return applyMembership(c.clubs, f);
+      return applyMembership(c.courses, f);
     case "clubCount":
-      return compareNumber(c.clubs.length, f.op, Number(f.value));
+      return compareNumber(c.courses.length, f.op, Number(f.value));
   }
 }
 

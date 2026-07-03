@@ -27,7 +27,7 @@ export function possibleEnrollments(course: Course): EnrollmentCandidate[] {
         p.age <= course.ageMax &&
         p.israeliRating >= course.fitnessMin &&
         p.israeliRating <= course.fitnessMax &&
-        !p.clubs.includes(course.name),
+        !p.courses.includes(course.name),
     )
     .map((p) => ({
       id: p.id,

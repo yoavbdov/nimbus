@@ -3,6 +3,7 @@ import {
   FIELD_BY_KEY,
   getOperator,
   type CoachFilter,
+  type FieldOptions,
   type FilterField,
   type ValueMode,
 } from "@/lib/coaches-filters";
@@ -36,9 +37,15 @@ function buildFilter(
 interface UseFilterBuilderProps {
   initial?: CoachFilter;
   onSubmit: (filter: CoachFilter) => void;
+  /** Live option overrides per field (falls back to the static field def). */
+  options?: FieldOptions;
 }
 
-export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
+export function useFilterBuilder({
+  initial,
+  onSubmit,
+  options,
+}: UseFilterBuilderProps) {
   const initialMulti =
     initial && Array.isArray(initial.value) ? (initial.value as string[]) : [];
   const initialText =
@@ -73,6 +80,9 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
   }
 
   const fieldDef = field ? FIELD_BY_KEY[field] : null;
+  // Prefer live options for this field; fall back to the static field def.
+  const fieldOptions: string[] =
+    (field ? options?.[field] : undefined) ?? fieldDef?.options ?? [];
   const opDef = field && op ? getOperator(field, op) : undefined;
   const mode: ValueMode | null = opDef?.valueMode ?? null;
   const hasOpStep = !!field && FIELD_BY_KEY[field].operators.length > 1;
@@ -101,6 +111,7 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
     textValue,
     multiValue,
     fieldDef,
+    fieldOptions,
     opDef,
     mode,
     hasOpStep,

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AddFilterPopover } from "@/components/players/filters/AddFilterPopover";
 import { FilterChip } from "@/components/players/filters/FilterChip";
-import type { PlayerFilter } from "@/lib/players-filters";
+import type { FieldOptions, PlayerFilter } from "@/lib/players-filters";
 
 interface FilterBarProps {
   search: string;
@@ -17,6 +17,8 @@ interface FilterBarProps {
   onUpdate: (id: string, next: PlayerFilter) => void;
   onRemove: (id: string) => void;
   onClearAll: () => void;
+  /** Live dropdown options for the חוג / תחרות / ליגה fields. */
+  options?: FieldOptions;
 }
 
 export function FilterBar({
@@ -27,6 +29,7 @@ export function FilterBar({
   onUpdate,
   onRemove,
   onClearAll,
+  options,
 }: FilterBarProps) {
   const hasAny = filters.length > 0 || search.length > 0;
 
@@ -43,7 +46,7 @@ export function FilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        <AddFilterPopover onAdd={onAdd} />
+        <AddFilterPopover onAdd={onAdd} options={options} />
         {hasAny && (
           <Button
             type="button"
@@ -81,6 +84,7 @@ export function FilterBar({
                       filter={f}
                       onUpdate={(next) => onUpdate(f.id, next)}
                       onRemove={() => onRemove(f.id)}
+                      options={options}
                     />
                   ))}
                 </AnimatePresence>

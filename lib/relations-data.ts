@@ -10,11 +10,17 @@
  */
 
 export type RelationSubjectType = "player" | "coach" | "equipment";
-export type RelationTargetType = "course" | "tournament" | "event" | "session";
+export type RelationTargetType =
+  | "course"
+  | "tournament"
+  | "league"
+  | "event"
+  | "session";
 
 export type RelationKind =
   | "player_course"
   | "player_tournament"
+  | "player_league"
   | "coach_course"
   | "coach_tournament"
   | "equipment_course";

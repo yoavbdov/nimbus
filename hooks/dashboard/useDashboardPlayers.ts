@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useCollection } from "@/lib/firebase/useCollection";
+import { useRelationNames } from "@/hooks/relations/useRelationNames";
 import type { Player } from "@/lib/players-data";
 import type { RatingPlayer } from "@/hooks/dashboard/useRatingPlayersTable";
 
@@ -20,16 +21,33 @@ export interface DashboardPlayers {
  */
 export function useDashboardPlayers(): DashboardPlayers {
   const { data, loading } = useCollection<Player>("players");
+  const {
+    playerCourses,
+    playerTournaments,
+    playerLeague,
+    loading: relationsLoading,
+  } = useRelationNames();
+
+  const players = useMemo<Player[]>(
+    () =>
+      data.map((p) => ({
+        ...p,
+        courses: playerCourses.get(p.id) ?? [],
+        tournaments: playerTournaments.get(p.id) ?? [],
+        leagueTeam: playerLeague.get(p.id) ?? null,
+      })),
+    [data, playerCourses, playerTournaments, playerLeague],
+  );
 
   const ratingPlayers = useMemo<RatingPlayer[]>(
     () =>
-      data.map((p) => ({
+      players.map((p) => ({
         name: p.name,
         rating: p.israeliRating,
         birthYear: CURRENT_YEAR - p.age,
       })),
-    [data],
+    [players],
   );
 
-  return { players: data, ratingPlayers, loading };
+  return { players, ratingPlayers, loading: loading || relationsLoading };
 }

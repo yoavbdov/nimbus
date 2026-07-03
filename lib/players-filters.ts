@@ -1,4 +1,4 @@
-import { players, allClubs, allStatuses, type Player } from "@/lib/players-data";
+import { players, allCourses, allStatuses, type Player } from "@/lib/players-data";
 
 export type FilterField =
   | "name"
@@ -34,6 +34,13 @@ export interface PlayerFilter {
   op: string;
   value: string | number | string[] | null;
 }
+
+/**
+ * Live option overrides per field, keyed by field. Used to replace the static
+ * mock-derived dropdown options (חוג / תחרות / קבוצת ליגה) with the real values
+ * read from Firestore, so a filter can actually match live data.
+ */
+export type FieldOptions = Partial<Record<FilterField, string[]>>;
 
 const GRADE_ORDER = [
   "גן",
@@ -96,7 +103,7 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "club",
     label: "חוג",
     basic: true,
-    options: allClubs,
+    options: allCourses,
     operators: [
       { op: "participates", label: "משתתף בחוג", valueMode: "single-enum" },
       { op: "not_participates", label: "לא משתתף בחוג", valueMode: "single-enum" },
@@ -232,7 +239,7 @@ function applyFilter(p: Player, f: PlayerFilter): boolean {
       return f.op === "in" ? has : !has;
     }
     case "club":
-      return applyMembership(p.clubs, f);
+      return applyMembership(p.courses, f);
     case "tournament":
       return applyMembership(p.tournaments, f);
     case "grade": {

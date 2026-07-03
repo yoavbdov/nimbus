@@ -4,7 +4,8 @@ import {
   isCoachFormValid,
   type CoachFormValues,
 } from "@/lib/coach-form";
-import { updateCoach } from "@/lib/firebase/data/coaches";
+import { coachEditPatch, coachRecordFromForm } from "@/lib/coach-details";
+import { addCoach, updateCoach } from "@/lib/firebase/data/coaches";
 
 /** "add" shows the empty add-coach flow; "edit" prefills an existing coach. */
 export type CoachModalMode = "add" | "edit";
@@ -47,13 +48,13 @@ export function useAddCoach() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // Persist edited fields to Firestore (merge patch); add-mode comes later.
+    // Edit → patch the existing doc; add → create a new one. Club/competition
+    // assignments and the derived status are managed elsewhere, so both leave
+    // them alone.
     if (values.id) {
-      void updateCoach(values.id, {
-        name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
-        phone: values.phone,
-        notes: values.notes,
-      });
+      void updateCoach(values.id, coachEditPatch(values));
+    } else {
+      void addCoach(coachRecordFromForm(values));
     }
     setOpen(false);
   }, [valid, values]);

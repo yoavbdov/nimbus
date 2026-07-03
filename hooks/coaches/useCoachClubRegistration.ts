@@ -1,26 +1,31 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  availableClubsFor,
-  registeredClubsFor,
-} from "@/lib/club-registration";
+  availableCoursesFor,
+  registeredCoursesFor,
+} from "@/lib/course-registration";
+import { addRelation, removeRelation } from "@/lib/firebase/data/relations";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { Course } from "@/lib/courses-data";
 
 interface OpenForArgs {
+  id: string;
   name: string;
   clubs: string[];
 }
 
 /**
  * Owns the state for the coach "שיוך לחוגים" modal. Mirrors the player club
- * registration flow, driven by a coach's name plus the list of חוגים they
+ * registration flow, driven by a coach's id + name plus the list of חוגים they
  * instruct.
  *
  * The modal starts read-only; "עריכה" flips it into edit mode, where each
  * assignment can be removed (after an inline "האם אתה בטוח" confirm) and the
- * coach can be assigned to an existing חוג. Adding/removing are UI-only for
- * now — confirm/remove deliberately do nothing.
+ * coach can be assigned to an existing חוג. Both add and remove persist the new
+ * `clubs` array to Firestore.
  */
 export function useCoachClubRegistration() {
   const [open, setOpen] = useState(false);
+  const [coachId, setCoachId] = useState("");
   const [coachName, setCoachName] = useState("");
   const [clubs, setClubs] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
@@ -29,10 +34,19 @@ export function useCoachClubRegistration() {
   // The club selected in the "assign to existing חוג" dropdown.
   const [selectedClub, setSelectedClub] = useState("");
 
-  const registered = useMemo(() => registeredClubsFor(clubs), [clubs]);
-  const available = useMemo(() => availableClubsFor(clubs), [clubs]);
+  const { data: allCourses } = useCollection<Course>("courses");
 
-  const openFor = useCallback(({ name, clubs: clubNames }: OpenForArgs) => {
+  const registered = useMemo(
+    () => registeredCoursesFor(clubs, allCourses),
+    [clubs, allCourses],
+  );
+  const available = useMemo(
+    () => availableCoursesFor(clubs, allCourses),
+    [clubs, allCourses],
+  );
+
+  const openFor = useCallback(({ id, name, clubs: clubNames }: OpenForArgs) => {
+    setCoachId(id);
     setCoachName(name);
     setClubs(clubNames);
     setEditing(false);
@@ -65,13 +79,24 @@ export function useCoachClubRegistration() {
   const cancelRemove = useCallback(() => setPendingRemoval(null), []);
 
   const confirmRemove = useCallback(() => {
-    // UI only for now — the actual removal is wired up elsewhere later.
+    if (!pendingRemoval) return;
+    setClubs((prev) => prev.filter((c) => c !== pendingRemoval));
+    void removeRelation("coach_course", coachId, pendingRemoval);
     setPendingRemoval(null);
-  }, []);
+  }, [pendingRemoval, coachId]);
 
   const addClub = useCallback(() => {
-    // UI only for now — the actual assignment is wired up elsewhere later.
-  }, []);
+    if (!selectedClub || clubs.includes(selectedClub)) return;
+    setClubs((prev) => [...prev, selectedClub]);
+    void addRelation({
+      kind: "coach_course",
+      subjectType: "coach",
+      subjectId: coachId,
+      targetType: "course",
+      targetId: selectedClub,
+    });
+    setSelectedClub("");
+  }, [selectedClub, clubs, coachId]);
 
   return {
     open,

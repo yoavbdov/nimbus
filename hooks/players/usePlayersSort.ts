@@ -33,7 +33,7 @@ function getSortValue(p: Player, key: SortKey): string | number {
     case "phone":
       return p.phone;
     case "clubs":
-      return p.clubs.length;
+      return p.courses.length;
     case "tournaments":
       return p.tournaments.length;
     case "leagueTeam":

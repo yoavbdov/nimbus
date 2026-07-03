@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import type { LeagueCategory, LeagueTeam } from "@/lib/leagues-data";
 import { useCollection } from "@/lib/firebase/useCollection";
-import { updatePlayer } from "@/lib/firebase/data/players";
+import {
+  addRelation,
+  removeRelationsForSubject,
+} from "@/lib/firebase/data/relations";
 
 interface OpenForArgs {
   id: string;
@@ -86,17 +89,26 @@ export function useLeagueRegistration() {
   const confirmRemove = useCallback(() => {
     setLeagueTeam(null);
     setConfirmingRemoval(false);
-    void updatePlayer(playerId, { leagueTeam: null });
+    void removeRelationsForSubject("player_league", playerId);
   }, [playerId]);
 
   // Guard: refuse to register while already on a team; the player must be
-  // removed from their current team first.
+  // removed from their current team first. League membership is single-valued,
+  // so clear any stray relation before adding the new one.
   const register = useCallback(
     (team: string) => {
       if (leagueTeam) return;
       setLeagueTeam(team);
       setQuery("");
-      void updatePlayer(playerId, { leagueTeam: team });
+      void removeRelationsForSubject("player_league", playerId).then(() =>
+        addRelation({
+          kind: "player_league",
+          subjectType: "player",
+          subjectId: playerId,
+          targetType: "league",
+          targetId: team,
+        }),
+      );
     },
     [leagueTeam, playerId],
   );

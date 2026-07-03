@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  availableClubsFor,
-  registeredClubsFor,
-} from "@/lib/club-registration";
-import { updatePlayer } from "@/lib/firebase/data/players";
+  availableCoursesFor,
+  registeredCoursesFor,
+} from "@/lib/course-registration";
+import { addRelation, removeRelation } from "@/lib/firebase/data/relations";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { Course } from "@/lib/courses-data";
 
 interface OpenForArgs {
   id: string;
@@ -32,8 +34,16 @@ export function useClubRegistration() {
   // The club selected in the "add to existing חוג" dropdown.
   const [selectedClub, setSelectedClub] = useState("");
 
-  const registered = useMemo(() => registeredClubsFor(clubs), [clubs]);
-  const available = useMemo(() => availableClubsFor(clubs), [clubs]);
+  const { data: allCourses } = useCollection<Course>("courses");
+
+  const registered = useMemo(
+    () => registeredCoursesFor(clubs, allCourses),
+    [clubs, allCourses],
+  );
+  const available = useMemo(
+    () => availableCoursesFor(clubs, allCourses),
+    [clubs, allCourses],
+  );
 
   const openFor = useCallback(({ id, name, clubs: clubNames }: OpenForArgs) => {
     setPlayerId(id);
@@ -70,18 +80,22 @@ export function useClubRegistration() {
 
   const confirmRemove = useCallback(() => {
     if (!pendingRemoval) return;
-    const next = clubs.filter((c) => c !== pendingRemoval);
-    setClubs(next);
+    setClubs((prev) => prev.filter((c) => c !== pendingRemoval));
+    void removeRelation("player_course", playerId, pendingRemoval);
     setPendingRemoval(null);
-    void updatePlayer(playerId, { clubs: next });
-  }, [pendingRemoval, clubs, playerId]);
+  }, [pendingRemoval, playerId]);
 
   const addClub = useCallback(() => {
     if (!selectedClub || clubs.includes(selectedClub)) return;
-    const next = [...clubs, selectedClub];
-    setClubs(next);
+    setClubs((prev) => [...prev, selectedClub]);
+    void addRelation({
+      kind: "player_course",
+      subjectType: "player",
+      subjectId: playerId,
+      targetType: "course",
+      targetId: selectedClub,
+    });
     setSelectedClub("");
-    void updatePlayer(playerId, { clubs: next });
   }, [selectedClub, clubs, playerId]);
 
   return {

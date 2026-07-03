@@ -18,7 +18,7 @@
  * the bottom and CONFLICTS in the seed output.
  */
 import { deriveDetails } from "@/lib/player-details";
-import type { Player, PlayerBase } from "@/lib/players-data";
+import type { PlayerBase } from "@/lib/players-data";
 import { courseOccupancy, type Course, type WeeklyTimes } from "@/lib/courses-data";
 import type { CoachRecord } from "@/lib/coaches-data";
 import type { Room, Equipment } from "@/lib/rooms-data";
@@ -49,14 +49,13 @@ function keyByName<T extends { name: string }>(items: T[]): T[] {
 
 // ── Coaches (6) ──────────────────────────────────────────────────────────────
 const rawSeedCoaches: CoachRecord[] = [
-  { id: "coach-1", name: "אבי לוי", phone: "050-1000001", clubs: ["שחמט מתחילים"], competitions: 2, notes: "" },
-  { id: "coach-2", name: "מירב כהן", phone: "054-1000002", clubs: ["מועדון אחה״צ"], competitions: 3, notes: "" },
-  { id: "coach-3", name: "יוסי בן עמי", phone: "052-1000003", clubs: ["שחמט מתקדמים"], competitions: 1, notes: "" },
-  { id: "coach-4", name: "דנה אביב", phone: "053-1000004", clubs: ["חוג גן"], competitions: 0, notes: "" },
-  { id: "coach-5", name: "רון פרידמן", phone: "050-1000005", clubs: ["שחמט בוגרים"], competitions: 4, notes: "" },
-  { id: "coach-6", name: "שירה גל", phone: "054-1000006", clubs: ["סדנת פתיחות"], competitions: 2, notes: "" },
+  { id: "coach-1", name: "אבי לוי", phone: "050-1000001", email: "avi.levi@example.com", notes: "" },
+  { id: "coach-2", name: "מירב כהן", phone: "054-1000002", email: "meirav.cohen@example.com", notes: "" },
+  { id: "coach-3", name: "יוסי בן עמי", phone: "052-1000003", email: "yossi.benami@example.com", notes: "" },
+  { id: "coach-4", name: "דנה אביב", phone: "053-1000004", email: "dana.aviv@example.com", notes: "" },
+  { id: "coach-5", name: "רון פרידמן", phone: "050-1000005", email: "ron.friedman@example.com", notes: "" },
+  { id: "coach-6", name: "שירה גל", phone: "054-1000006", email: "shira.gal@example.com", notes: "" },
 ];
-const coachNameById = nameByIdOf(rawSeedCoaches);
 export const seedCoaches: CoachRecord[] = keyByName(rawSeedCoaches);
 
 // ── Rooms (3) ────────────────────────────────────────────────────────────────
@@ -74,31 +73,30 @@ const rawSeedEquipment: Equipment[] = [
   { id: "equipment-2", name: "לוחות הדגמה", quantity: 8, notes: "—" },
   { id: "equipment-3", name: "סטים מגנטיים", quantity: 20, notes: "—" },
 ];
-const equipmentNameById = nameByIdOf(rawSeedEquipment);
 export const seedEquipment: Equipment[] = keyByName(rawSeedEquipment);
 
 // ── Players (20, every age band) ─────────────────────────────────────────────
 const basePlayers: PlayerBase[] = [
-  { id: "player-1",  name: "אורי גולן",   age: 7,  grade: "כיתה ב",  israeliRating: 480,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000001", clubs: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-2",  name: "נועם כץ",      age: 9,  grade: "כיתה ד",  israeliRating: 720,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000002", clubs: ["שחמט מתחילים"], tournaments: ["אליפות הקיץ"], leagueTeam: null, status: "פעיל" },
-  { id: "player-3",  name: "מיה שפירא",    age: 11, grade: "כיתה ו",  israeliRating: 1050, fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000003", clubs: ["שחמט מתקדמים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-4",  name: "דניאל ברק",    age: 13, grade: "כיתה ח",  israeliRating: 1340, fideRating: 1300, ratingUpdatedRecently: true,  phone: "050-2000004", clubs: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-5",  name: "יעל אבני",     age: 14, grade: "כיתה ט",  israeliRating: 1180, fideRating: null, ratingUpdatedRecently: false, phone: "050-2000005", clubs: ["שחמט מתקדמים"], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
-  { id: "player-6",  name: "איתי רגב",     age: 16, grade: "כיתה יא", israeliRating: 1620, fideRating: 1580, ratingUpdatedRecently: true,  phone: "050-2000006", clubs: [], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
-  { id: "player-7",  name: "רוני שמש",     age: 17, grade: "כיתה יב", israeliRating: 1750, fideRating: 1700, ratingUpdatedRecently: true,  phone: "050-2000007", clubs: [], tournaments: [], leagueTeam: "נבחרת הנוער", status: "ליגה בלבד" },
-  { id: "player-8",  name: "גיא אורן",     age: 19, grade: "בוגר",   israeliRating: 1880, fideRating: 1850, ratingUpdatedRecently: true,  phone: "050-2000008", clubs: ["סדנת פתיחות"], tournaments: [], leagueTeam: "נבחרת ב'", status: "פעיל" },
-  { id: "player-9",  name: "תמר כהן",      age: 22, grade: "בוגר",   israeliRating: 2010, fideRating: 1980, ratingUpdatedRecently: true,  phone: "050-2000009", clubs: [], tournaments: [], leagueTeam: "נבחרת הנשים", status: "ליגה בלבד" },
-  { id: "player-10", name: "עידן פרץ",     age: 27, grade: "בוגר",   israeliRating: 2180, fideRating: 2150, ratingUpdatedRecently: false, phone: "050-2000010", clubs: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת ב'", status: "פעיל" },
-  { id: "player-11", name: "נדב אורן",     age: 33, grade: "בוגר",   israeliRating: 2310, fideRating: 2290, ratingUpdatedRecently: true,  phone: "050-2000011", clubs: [], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת המאסטרים", status: "ליגה בלבד" },
-  { id: "player-12", name: "שירה גל",      age: 40, grade: "בוגר",   israeliRating: 1950, fideRating: 1920, ratingUpdatedRecently: true,  phone: "050-2000012", clubs: ["סדנת פתיחות"], tournaments: [], leagueTeam: "נשים עילית", status: "פעיל" },
-  { id: "player-13", name: "רון פרידמן",   age: 48, grade: "בוגר",   israeliRating: 2240, fideRating: 2210, ratingUpdatedRecently: false, phone: "050-2000013", clubs: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת המאסטרים", status: "ליגה בלבד" },
-  { id: "player-14", name: "אבי שלום",     age: 55, grade: "בוגר",   israeliRating: 1700, fideRating: 1650, ratingUpdatedRecently: true,  phone: "050-2000014", clubs: ["שחמט בוגרים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-15", name: "דליה אביב",    age: 63, grade: "בוגר",   israeliRating: 1450, fideRating: null, ratingUpdatedRecently: false, phone: "050-2000015", clubs: [], tournaments: [], leagueTeam: "נשים עילית", status: "לא פעיל" },
-  { id: "player-16", name: "יוסף בן עמי",  age: 70, grade: "בוגר",   israeliRating: 1880, fideRating: 1820, ratingUpdatedRecently: true,  phone: "050-2000016", clubs: ["שחמט בוגרים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-17", name: "ליאת מור",     age: 12, grade: "כיתה ז",  israeliRating: 900,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000017", clubs: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-18", name: "עומר טל",      age: 15, grade: "כיתה י",  israeliRating: 1500, fideRating: 1460, ratingUpdatedRecently: true,  phone: "050-2000018", clubs: [], tournaments: [], leagueTeam: "נבחרת הנוער", status: "ליגה בלבד" },
-  { id: "player-19", name: "נועה ברק",     age: 25, grade: "בוגר",   israeliRating: 2090, fideRating: 2050, ratingUpdatedRecently: true,  phone: "050-2000019", clubs: [], tournaments: [], leagueTeam: "נבחרת הנשים", status: "ליגה בלבד" },
-  { id: "player-20", name: "אלון זיו",     age: 36, grade: "בוגר",   israeliRating: 2150, fideRating: 2120, ratingUpdatedRecently: false, phone: "050-2000020", clubs: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת ב'", status: "פעיל" },
+  { id: "player-1",  name: "אורי גולן",   age: 7,  grade: "כיתה ב",  israeliRating: 480,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000001", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-2",  name: "נועם כץ",      age: 9,  grade: "כיתה ד",  israeliRating: 720,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000002", courses: ["שחמט מתחילים"], tournaments: ["אליפות הקיץ"], leagueTeam: null, status: "פעיל" },
+  { id: "player-3",  name: "מיה שפירא",    age: 11, grade: "כיתה ו",  israeliRating: 1050, fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000003", courses: ["שחמט מתקדמים"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-4",  name: "דניאל ברק",    age: 13, grade: "כיתה ח",  israeliRating: 1340, fideRating: 1300, ratingUpdatedRecently: true,  phone: "050-2000004", courses: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-5",  name: "יעל אבני",     age: 14, grade: "כיתה ט",  israeliRating: 1180, fideRating: null, ratingUpdatedRecently: false, phone: "050-2000005", courses: ["שחמט מתקדמים"], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
+  { id: "player-6",  name: "איתי רגב",     age: 16, grade: "כיתה יא", israeliRating: 1620, fideRating: 1580, ratingUpdatedRecently: true,  phone: "050-2000006", courses: [], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
+  { id: "player-7",  name: "רוני שמש",     age: 17, grade: "כיתה יב", israeliRating: 1750, fideRating: 1700, ratingUpdatedRecently: true,  phone: "050-2000007", courses: [], tournaments: [], leagueTeam: "נבחרת הנוער", status: "ליגה בלבד" },
+  { id: "player-8",  name: "גיא אורן",     age: 19, grade: "בוגר",   israeliRating: 1880, fideRating: 1850, ratingUpdatedRecently: true,  phone: "050-2000008", courses: ["סדנת פתיחות"], tournaments: [], leagueTeam: "נבחרת ב'", status: "פעיל" },
+  { id: "player-9",  name: "תמר כהן",      age: 22, grade: "בוגר",   israeliRating: 2010, fideRating: 1980, ratingUpdatedRecently: true,  phone: "050-2000009", courses: [], tournaments: [], leagueTeam: "נבחרת הנשים", status: "ליגה בלבד" },
+  { id: "player-10", name: "עידן פרץ",     age: 27, grade: "בוגר",   israeliRating: 2180, fideRating: 2150, ratingUpdatedRecently: false, phone: "050-2000010", courses: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת ב'", status: "פעיל" },
+  { id: "player-11", name: "נדב אורן",     age: 33, grade: "בוגר",   israeliRating: 2310, fideRating: 2290, ratingUpdatedRecently: true,  phone: "050-2000011", courses: [], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת המאסטרים", status: "ליגה בלבד" },
+  { id: "player-12", name: "שירה גל",      age: 40, grade: "בוגר",   israeliRating: 1950, fideRating: 1920, ratingUpdatedRecently: true,  phone: "050-2000012", courses: ["סדנת פתיחות"], tournaments: [], leagueTeam: "נשים עילית", status: "פעיל" },
+  { id: "player-13", name: "רון פרידמן",   age: 48, grade: "בוגר",   israeliRating: 2240, fideRating: 2210, ratingUpdatedRecently: false, phone: "050-2000013", courses: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת המאסטרים", status: "ליגה בלבד" },
+  { id: "player-14", name: "אבי שלום",     age: 55, grade: "בוגר",   israeliRating: 1700, fideRating: 1650, ratingUpdatedRecently: true,  phone: "050-2000014", courses: ["שחמט בוגרים"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-15", name: "דליה אביב",    age: 63, grade: "בוגר",   israeliRating: 1450, fideRating: null, ratingUpdatedRecently: false, phone: "050-2000015", courses: [], tournaments: [], leagueTeam: "נשים עילית", status: "לא פעיל" },
+  { id: "player-16", name: "יוסף בן עמי",  age: 70, grade: "בוגר",   israeliRating: 1880, fideRating: 1820, ratingUpdatedRecently: true,  phone: "050-2000016", courses: ["שחמט בוגרים"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-17", name: "ליאת מור",     age: 12, grade: "כיתה ז",  israeliRating: 900,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000017", courses: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
+  { id: "player-18", name: "עומר טל",      age: 15, grade: "כיתה י",  israeliRating: 1500, fideRating: 1460, ratingUpdatedRecently: true,  phone: "050-2000018", courses: [], tournaments: [], leagueTeam: "נבחרת הנוער", status: "ליגה בלבד" },
+  { id: "player-19", name: "נועה ברק",     age: 25, grade: "בוגר",   israeliRating: 2090, fideRating: 2050, ratingUpdatedRecently: true,  phone: "050-2000019", courses: [], tournaments: [], leagueTeam: "נבחרת הנשים", status: "ליגה בלבד" },
+  { id: "player-20", name: "אלון זיו",     age: 36, grade: "בוגר",   israeliRating: 2150, fideRating: 2120, ratingUpdatedRecently: false, phone: "050-2000020", courses: ["שחמט בוגרים"], tournaments: ["טורניר המאסטרים"], leagueTeam: "נבחרת ב'", status: "פעיל" },
 ];
 
 // Player documents are keyed by the player's full name (readable ids in
@@ -108,11 +106,24 @@ const playerNameById: Record<string, string> = Object.fromEntries(
   basePlayers.map((p) => [p.id, p.name]),
 );
 
-export const seedPlayers: Player[] = basePlayers.map((p) => ({
-  ...p,
-  id: p.name,
-  ...deriveDetails(p),
-  ratingUpdatedAt: p.ratingUpdatedRecently ? "20.06.2026" : "02.03.2026",
+// Associations (courses / tournaments / league) are NOT stored on the player
+// doc — they live in `relations` (built below). Strip them from the persisted
+// record; the app projects them back in at read time.
+// The associations (courses / tournaments / league) are deliberately omitted —
+// they live in `relations`, not on the player doc. Only the roster columns and
+// the invented personal details are persisted.
+export const seedPlayers = basePlayers.map((player) => ({
+  id: player.name,
+  name: player.name,
+  age: player.age,
+  grade: player.grade,
+  israeliRating: player.israeliRating,
+  fideRating: player.fideRating,
+  ratingUpdatedRecently: player.ratingUpdatedRecently,
+  phone: player.phone,
+  status: player.status,
+  ...deriveDetails(player),
+  ratingUpdatedAt: player.ratingUpdatedRecently ? "20.06.2026" : "02.03.2026",
 }));
 
 // ── League teams (2 per category: בוגרים / נוער / נשים) ───────────────────────
@@ -266,47 +277,67 @@ export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => ({
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
 export const seedRatingTiers = defaultRatingTiers;
 
-// ── Relations (junction — links that drive student/coach/equipment conflicts) ─
-const rawSeedRelations: RelationDoc[] = [
-  // players ↔ courses
-  { id: "relation-1",  kind: "player_course",     subjectType: "player",    subjectId: "player-1",  targetType: "course",     targetId: "course-1" },
-  { id: "relation-2",  kind: "player_course",     subjectType: "player",    subjectId: "player-1",  targetType: "course",     targetId: "course-3" }, // → student conflict
-  { id: "relation-3",  kind: "player_course",     subjectType: "player",    subjectId: "player-2",  targetType: "course",     targetId: "course-1" },
-  { id: "relation-4",  kind: "player_course",     subjectType: "player",    subjectId: "player-3",  targetType: "course",     targetId: "course-2" },
-  { id: "relation-5",  kind: "player_course",     subjectType: "player",    subjectId: "player-5",  targetType: "course",     targetId: "course-2" },
-  { id: "relation-6",  kind: "player_course",     subjectType: "player",    subjectId: "player-17", targetType: "course",     targetId: "course-3" },
-  // coaches ↔ courses / tournaments
-  { id: "relation-7",  kind: "coach_course",      subjectType: "coach",     subjectId: "coach-1",   targetType: "course",     targetId: "course-1", role: "מדריך ראשי" },
-  { id: "relation-8",  kind: "coach_course",      subjectType: "coach",     subjectId: "coach-3",   targetType: "course",     targetId: "course-2", role: "מדריך ראשי" },
-  { id: "relation-9",  kind: "coach_course",      subjectType: "coach",     subjectId: "coach-2",   targetType: "course",     targetId: "course-3", role: "מדריך ראשי" },
-  { id: "relation-10", kind: "coach_tournament",  subjectType: "coach",     subjectId: "coach-1",   targetType: "tournament", targetId: "tournament-1", role: "שופט" }, // → coach conflict
-  // equipment ↔ courses
-  { id: "relation-11", kind: "equipment_course",  subjectType: "equipment", subjectId: "equipment-1", targetType: "course",   targetId: "course-1" },
-  { id: "relation-12", kind: "equipment_course",  subjectType: "equipment", subjectId: "equipment-1", targetType: "course",   targetId: "course-2" }, // → equipment conflict
-  { id: "relation-13", kind: "equipment_course",  subjectType: "equipment", subjectId: "equipment-2", targetType: "course",   targetId: "course-3" },
-];
-
-// Every relation endpoint (subject and target) points at the entity's
-// name-based document id, keyed by its type.
-const nameByType: Record<string, Record<string, string>> = {
-  player: playerNameById,
-  coach: coachNameById,
-  equipment: equipmentNameById,
-  room: roomNameById,
-  course: courseNameById,
-  tournament: tournamentNameById,
-  event: eventNameById,
-};
-
-function toNameId(type: string, id: string): string {
-  return nameByType[type]?.[id] ?? id;
+// ── Relations (junction — the single source of truth for who is linked to what)
+// Built by name (docs are keyed by name), so no id→name mapping is needed here.
+// Deterministic ids match the app's scheme in lib/firebase/data/relations.ts,
+// so a relation seeded here can be removed from the UI (and vice-versa).
+function rel(
+  kind: RelationDoc["kind"],
+  subjectType: RelationDoc["subjectType"],
+  subjectId: string,
+  targetType: RelationDoc["targetType"],
+  targetId: string,
+  extra?: { role?: string; status?: string },
+): RelationDoc {
+  return {
+    id: `${subjectId}__${kind}__${targetId}`.replace(/\//g, "／"),
+    kind,
+    subjectType,
+    subjectId,
+    targetType,
+    targetId,
+    ...extra,
+  };
 }
 
-export const seedRelations: RelationDoc[] = rawSeedRelations.map((rel) => ({
-  ...rel,
-  subjectId: toNameId(rel.subjectType, rel.subjectId),
-  targetId: toNameId(rel.targetType, rel.targetId),
-}));
+// player ↔ course / tournament / league — derived from the roster associations.
+const playerRelations: RelationDoc[] = basePlayers.flatMap((p) => {
+  const out: RelationDoc[] = [];
+  for (const course of p.courses)
+    out.push(rel("player_course", "player", p.name, "course", course));
+  for (const t of p.tournaments)
+    out.push(rel("player_tournament", "player", p.name, "tournament", t));
+  if (p.leagueTeam)
+    out.push(rel("player_league", "player", p.name, "league", p.leagueTeam));
+  return out;
+});
+
+// coach ↔ course — each course names its instructing coach.
+const coachCourseRelations: RelationDoc[] = rawSeedCourses.map((c) =>
+  rel("coach_course", "coach", c.coach, "course", c.name, { role: "מדריך ראשי" }),
+);
+
+// Curated extras that don't fall out of the roster: the intentional conflicts
+// (see the block below) plus the equipment↔course links.
+const curatedRelations: RelationDoc[] = [
+  // STUDENT conflict — אורי גולן is also in course-3, overlapping course-1.
+  rel("player_course", "player", "אורי גולן", "course", "מועדון אחה״צ"),
+  // COACH conflict — אבי לוי judges אליפות הקיץ while running שחמט מתחילים.
+  rel("coach_tournament", "coach", "אבי לוי", "tournament", "אליפות הקיץ", { role: "שופט" }),
+  // EQUIPMENT conflict — שעוני שח used by two overlapping courses.
+  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתחילים"),
+  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתקדמים"),
+  rel("equipment_course", "equipment", "לוחות הדגמה", "course", "מועדון אחה״צ"),
+];
+
+// Dedupe by document id (a derived link may coincide with a curated one).
+export const seedRelations: RelationDoc[] = Array.from(
+  new Map(
+    [...playerRelations, ...coachCourseRelations, ...curatedRelations].map(
+      (r) => [r.id, r],
+    ),
+  ).values(),
+);
 
 /*
  * BUILT CONFLICTS (all on 2026-07-01):

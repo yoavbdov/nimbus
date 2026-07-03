@@ -111,7 +111,7 @@ function CoachRow({
         <span dir="ltr">{c.phone}</span>
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-center">
-        <CountPill value={c.clubs.length} />
+        <CountPill value={c.courses.length} />
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-center">
         <CountPill value={c.competitions} />

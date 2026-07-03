@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/popover";
 import { FilterBuilder } from "@/components/players/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import type { PlayerFilter } from "@/lib/players-filters";
+import type { FieldOptions, PlayerFilter } from "@/lib/players-filters";
 
 interface AddFilterPopoverProps {
   onAdd: (filter: PlayerFilter) => void;
+  options?: FieldOptions;
 }
 
-export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
+export function AddFilterPopover({ onAdd, options }: AddFilterPopoverProps) {
   const { open, setOpen, close } = useDisclosure();
 
   function handleSubmit(filter: PlayerFilter) {
@@ -44,7 +45,7 @@ export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
         onOpenAutoFocus={(e) => e.preventDefault()}
         className="w-auto max-w-[min(95vw,1000px)] p-0 rounded-2xl bg-popover ring-1 ring-foreground/15 shadow-depth-xl overflow-x-auto"
       >
-        <FilterBuilder onSubmit={handleSubmit} onCancel={close} />
+        <FilterBuilder onSubmit={handleSubmit} onCancel={close} options={options} />
       </PopoverContent>
     </Popover>
   );

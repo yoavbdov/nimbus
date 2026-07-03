@@ -52,7 +52,7 @@ function meetingsFor(course: Course): MeetingValues[] {
 
 /** The students already registered to this course (those whose clubs include it). */
 function studentIdsFor(course: Course): string[] {
-  return players.filter((p) => p.clubs.includes(course.name)).map((p) => p.id);
+  return players.filter((p) => p.courses.includes(course.name)).map((p) => p.id);
 }
 
 /** Equipment lines derived from the gear that lives in the course's room. */

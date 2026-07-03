@@ -3,7 +3,9 @@ import {
   availableTournamentsFor,
   registeredTournamentsFor,
 } from "@/lib/tournament-registration";
-import { updatePlayer } from "@/lib/firebase/data/players";
+import { addRelation, removeRelation } from "@/lib/firebase/data/relations";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { Tournament } from "@/lib/tournaments-data";
 
 interface OpenForArgs {
   id: string;
@@ -32,13 +34,15 @@ export function useTournamentRegistration() {
   // The tournament selected in the "add to existing תחרות" dropdown.
   const [selectedTournament, setSelectedTournament] = useState("");
 
+  const { data: allTournaments } = useCollection<Tournament>("tournaments");
+
   const registered = useMemo(
-    () => registeredTournamentsFor(tournaments),
-    [tournaments],
+    () => registeredTournamentsFor(tournaments, allTournaments),
+    [tournaments, allTournaments],
   );
   const available = useMemo(
-    () => availableTournamentsFor(tournaments),
-    [tournaments],
+    () => availableTournamentsFor(tournaments, allTournaments),
+    [tournaments, allTournaments],
   );
 
   const openFor = useCallback(
@@ -79,18 +83,22 @@ export function useTournamentRegistration() {
 
   const confirmRemove = useCallback(() => {
     if (!pendingRemoval) return;
-    const next = tournaments.filter((t) => t !== pendingRemoval);
-    setTournaments(next);
+    setTournaments((prev) => prev.filter((t) => t !== pendingRemoval));
+    void removeRelation("player_tournament", playerId, pendingRemoval);
     setPendingRemoval(null);
-    void updatePlayer(playerId, { tournaments: next });
-  }, [pendingRemoval, tournaments, playerId]);
+  }, [pendingRemoval, playerId]);
 
   const addTournament = useCallback(() => {
     if (!selectedTournament || tournaments.includes(selectedTournament)) return;
-    const next = [...tournaments, selectedTournament];
-    setTournaments(next);
+    setTournaments((prev) => [...prev, selectedTournament]);
+    void addRelation({
+      kind: "player_tournament",
+      subjectType: "player",
+      subjectId: playerId,
+      targetType: "tournament",
+      targetId: selectedTournament,
+    });
     setSelectedTournament("");
-    void updatePlayer(playerId, { tournaments: next });
   }, [selectedTournament, tournaments, playerId]);
 
   return {

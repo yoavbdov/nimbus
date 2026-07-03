@@ -14,7 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFilterBuilder } from "@/hooks/coaches/useFilterBuilder";
-import { FIELD_BY_KEY, FIELD_DEFS, type FilterField, type CoachFilter } from "@/lib/coaches-filters";
+import {
+  FIELD_BY_KEY,
+  FIELD_DEFS,
+  type FieldOptions,
+  type FilterField,
+  type CoachFilter,
+} from "@/lib/coaches-filters";
 
 const stepVariants = {
   initial: { opacity: 0, x: 8 },
@@ -86,15 +92,22 @@ interface FilterBuilderProps {
   initial?: CoachFilter;
   onSubmit: (filter: CoachFilter) => void;
   onCancel: () => void;
+  options?: FieldOptions;
 }
 
-export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProps) {
+export function FilterBuilder({
+  initial,
+  onSubmit,
+  onCancel,
+  options,
+}: FilterBuilderProps) {
   const {
     field,
     op,
     textValue,
     multiValue,
     fieldDef,
+    fieldOptions,
     opDef,
     mode,
     hasOpStep,
@@ -107,7 +120,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     setMultiValue,
     submit,
     isEditing,
-  } = useFilterBuilder({ initial, onSubmit });
+  } = useFilterBuilder({ initial, onSubmit, options });
 
   return (
     <motion.div
@@ -192,7 +205,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                   <SelectValue placeholder="בחר ערך" />
                 </SelectTrigger>
                 <SelectContent position="popper" className={selectContentClass}>
-                  {(fieldDef.options ?? []).map((opt) => (
+                  {fieldOptions.map((opt) => (
                     <SelectItem key={opt} value={opt} className={selectItemClass}>
                       {opt}
                     </SelectItem>
@@ -208,7 +221,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                   onValueChange={setMultiValue}
                   className="flex flex-col gap-0.5 items-stretch w-full"
                 >
-                  {(fieldDef.options ?? []).map((opt) => (
+                  {fieldOptions.map((opt) => (
                     <ToggleGroupItem
                       key={opt}
                       value={opt}

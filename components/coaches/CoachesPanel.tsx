@@ -16,7 +16,7 @@ import { useDeleteCoach } from "@/hooks/coaches/useDeleteCoach";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useCoachClubRegistration } from "@/hooks/coaches/useCoachClubRegistration";
 import { useCoachTournamentRegistration } from "@/hooks/coaches/useCoachTournamentRegistration";
-import { coachFormValuesFor, coachCompetitionsFor } from "@/lib/coach-details";
+import { coachFormValuesFor } from "@/lib/coach-details";
 import { useCoachAvailabilityCheck } from "@/hooks/coaches/useCoachAvailabilityCheck";
 
 export function CoachesPanel() {
@@ -32,6 +32,7 @@ export function CoachesPanel() {
     filterKey,
     coaches,
     toggleStatus,
+    filterOptions,
   } = useCoachesPanel();
 
   const deleteCoach = useDeleteCoach();
@@ -46,19 +47,25 @@ export function CoachesPanel() {
       if (coach) addCoach.openForEdit(coachFormValuesFor(coach));
     } else if (actionId === "clubs") {
       const coach = coaches.find((c) => c.id === coachId);
-      if (coach) clubRegistration.openFor({ name: coach.name, clubs: coach.clubs });
+      if (coach)
+        clubRegistration.openFor({
+          id: coach.id,
+          name: coach.name,
+          clubs: coach.courses,
+        });
     } else if (actionId === "competitions") {
       const coach = coaches.find((c) => c.id === coachId);
       if (coach)
         tournamentRegistration.openFor({
+          id: coach.id,
           name: coach.name,
-          tournaments: coachCompetitionsFor(coach),
+          tournaments: coach.tournaments,
         });
     } else if (actionId === "availability") {
       availability.openWith(coachId ? [coachId] : []);
     } else if (actionId === "delete") {
       const coach = coaches.find((c) => c.id === coachId);
-      if (coach) deleteCoach.openFor([coach.name]);
+      if (coach) deleteCoach.openFor([{ id: coach.id, name: coach.name }]);
     }
   }
 
@@ -66,10 +73,11 @@ export function CoachesPanel() {
     if (actionId === "availability") {
       availability.openWith(coachIds);
     } else if (actionId === "delete") {
-      const names = coachIds
-        .map((id) => coaches.find((c) => c.id === id)?.name)
-        .filter((name): name is string => name != null);
-      deleteCoach.openFor(names);
+      const targets = coachIds
+        .map((id) => coaches.find((c) => c.id === id))
+        .filter((c): c is (typeof coaches)[number] => c != null)
+        .map((c) => ({ id: c.id, name: c.name }));
+      deleteCoach.openFor(targets);
     }
   }
 
@@ -102,6 +110,7 @@ export function CoachesPanel() {
           onUpdate={updateFilter}
           onRemove={removeFilter}
           onClearAll={clearAll}
+          options={filterOptions}
         />
 
         <div className="neu-inset rounded-2xl p-3">

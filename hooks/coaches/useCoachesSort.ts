@@ -17,7 +17,7 @@ function getSortValue(c: Coach, key: SortKey): string | number {
     case "phone":
       return c.phone;
     case "clubs":
-      return c.clubs.length;
+      return c.courses.length;
     case "competitions":
       return c.competitions;
     case "status":

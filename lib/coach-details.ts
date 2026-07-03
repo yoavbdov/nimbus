@@ -1,6 +1,5 @@
-import type { Coach } from "@/lib/coaches-data";
+import type { Coach, CoachRecord } from "@/lib/coaches-data";
 import type { CoachFormValues } from "@/lib/coach-form";
-import { tournaments } from "@/lib/tournaments-data";
 
 /** A small, stable string hash (djb2-ish) with a seed for independent draws. */
 function hash(str: string, seed: number): number {
@@ -12,10 +11,9 @@ function hash(str: string, seed: number): number {
 }
 
 /**
- * The roster data only carries name + phone. The "edit coach" modal needs an
- * email too, which isn't stored — so we invent one from a stable hash of the
- * name, the same way the player details do, so it stays consistent across
- * reloads.
+ * Build the "edit coach" form values from a roster entry. The email is read
+ * from the stored record; for older coaches saved before the field existed we
+ * fall back to a stable hash-derived address so the field is never empty.
  */
 export function coachFormValuesFor(coach: Coach): CoachFormValues {
   const [firstName, ...rest] = coach.name.trim().split(" ");
@@ -27,22 +25,32 @@ export function coachFormValuesFor(coach: Coach): CoachFormValues {
     firstName,
     lastName,
     phone: coach.phone,
-    email: `coach${1000 + (h % 9000)}@gmail.com`,
+    email: coach.email ?? `coach${1000 + (h % 9000)}@gmail.com`,
     notes: coach.notes ?? "",
   };
 }
 
 /**
- * The roster carries only the count of תחרויות a coach is assigned to, not their
- * names. The "שיוך לתחרות" modal needs names, so we pick a stable slice of the
- * tournament list, rotated by a hash of the coach's name so different coaches
- * get different competitions consistently across reloads.
+ * The editable fields from the "edit coach" form, shaped for Firestore. The
+ * modal owns only the personal fields; it leaves club/competition assignments
+ * (which drive the derived status) to their own modals.
  */
-export function coachCompetitionsFor(coach: Coach): string[] {
-  const count = Math.min(coach.competitions, tournaments.length);
-  const offset = hash(coach.name, 7919) % tournaments.length;
-  return Array.from(
-    { length: count },
-    (_, i) => tournaments[(offset + i) % tournaments.length].name,
-  );
+export function coachEditPatch(values: CoachFormValues): Partial<CoachRecord> {
+  return {
+    name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+    phone: values.phone,
+    email: values.email,
+    notes: values.notes,
+  };
+}
+
+/**
+ * Build a full new-coach record for Firestore from the form values. Course /
+ * tournament associations are NOT stored on the coach — a new coach simply has
+ * no `relations` yet.
+ */
+export function coachRecordFromForm(
+  values: CoachFormValues,
+): Omit<CoachRecord, "id"> {
+  return coachEditPatch(values) as Omit<CoachRecord, "id">;
 }

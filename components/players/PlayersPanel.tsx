@@ -34,6 +34,7 @@ export function PlayersPanel() {
     filterKey,
     players,
     total,
+    filterOptions,
   } = usePlayersPanel();
 
   const availability = useAvailabilityCheck(players);
@@ -52,7 +53,7 @@ export function PlayersPanel() {
         clubRegistration.openFor({
           id: player.id,
           name: player.name,
-          clubs: player.clubs,
+          clubs: player.courses,
         });
     } else if (actionId === "tournaments") {
       if (player)
@@ -116,6 +117,7 @@ export function PlayersPanel() {
           onUpdate={updateFilter}
           onRemove={removeFilter}
           onClearAll={clearAll}
+          options={filterOptions}
         />
 
         <div className="neu-inset rounded-2xl p-3">

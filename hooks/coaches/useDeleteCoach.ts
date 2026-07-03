@@ -1,4 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { deleteCoach } from "@/lib/firebase/data/coaches";
+
+/** A coach the modal can delete: its Firestore id plus its display name. */
+export interface DeletableCoach {
+  id: string;
+  name: string;
+}
 
 /**
  * Owns the state for the "delete coach(es)" confirmation modal. Deleting is
@@ -7,24 +14,26 @@ import { useCallback, useState } from "react";
  *   - one coach  → the coach's full name.
  *   - many coaches → "אני מעוניין למחוק N מדריכים".
  *
- * Works off coach names so the table can drive it. The modal stays
- * presentational.
+ * Works off id+name targets so the delete can hit Firestore by id while the
+ * modal still shows names. The modal stays presentational.
  */
 export function useDeleteCoach() {
   const [open, setOpen] = useState(false);
-  const [names, setNames] = useState<string[]>([]);
+  const [targets, setTargets] = useState<DeletableCoach[]>([]);
   const [confirmText, setConfirmText] = useState("");
+
+  const names = useMemo(() => targets.map((t) => t.name), [targets]);
 
   // The exact text the user has to type to enable the delete button.
   const expectedPhrase =
-    names.length > 1
-      ? `אני מעוניין למחוק ${names.length} מדריכים`
+    targets.length > 1
+      ? `אני מעוניין למחוק ${targets.length} מדריכים`
       : (names[0] ?? "");
 
-  const valid = names.length > 0 && confirmText.trim() === expectedPhrase;
+  const valid = targets.length > 0 && confirmText.trim() === expectedPhrase;
 
-  const openFor = useCallback((coachNames: string[]) => {
-    setNames(coachNames);
+  const openFor = useCallback((coaches: DeletableCoach[]) => {
+    setTargets(coaches);
     setConfirmText("");
     setOpen(true);
   }, []);
@@ -35,8 +44,9 @@ export function useDeleteCoach() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — the actual delete is wired up elsewhere later.
-  }, [valid]);
+    for (const target of targets) void deleteCoach(target.id);
+    setOpen(false);
+  }, [valid, targets]);
 
   return {
     open,

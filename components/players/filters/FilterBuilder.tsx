@@ -16,6 +16,7 @@ import {
 import { useFilterBuilder } from "@/hooks/players/useFilterBuilder";
 import {
   FIELD_BY_KEY,
+  type FieldOptions,
   type FilterField,
   type PlayerFilter,
 } from "@/lib/players-filters";
@@ -90,9 +91,15 @@ interface FilterBuilderProps {
   initial?: PlayerFilter;
   onSubmit: (filter: PlayerFilter) => void;
   onCancel: () => void;
+  options?: FieldOptions;
 }
 
-export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProps) {
+export function FilterBuilder({
+  initial,
+  onSubmit,
+  onCancel,
+  options,
+}: FilterBuilderProps) {
   const {
     field,
     op,
@@ -102,6 +109,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     showAdvanced,
     toggleAdvanced,
     fieldDef,
+    fieldOptions,
     opDef,
     mode,
     hasOpStep,
@@ -114,7 +122,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     setMultiValue,
     submit,
     isEditing,
-  } = useFilterBuilder({ initial, onSubmit });
+  } = useFilterBuilder({ initial, onSubmit, options });
 
   return (
     <motion.div
@@ -210,7 +218,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                   <SelectValue placeholder="בחר ערך" />
                 </SelectTrigger>
                 <SelectContent position="popper" className={selectContentClass}>
-                  {(fieldDef.options ?? []).map((opt) => (
+                  {fieldOptions.map((opt) => (
                     <SelectItem key={opt} value={opt} className={selectItemClass}>
                       {opt}
                     </SelectItem>
@@ -226,7 +234,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                   onValueChange={setMultiValue}
                   className="flex flex-col gap-0.5 items-stretch w-full"
                 >
-                  {(fieldDef.options ?? []).map((opt) => (
+                  {fieldOptions.map((opt) => (
                     <ToggleGroupItem
                       key={opt}
                       value={opt}

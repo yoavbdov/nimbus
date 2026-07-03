@@ -184,13 +184,14 @@ export function playerEditPatch(values: PlayerFormValues): Partial<Player> {
   };
 }
 
-/** Build a full new-player record for Firestore from the form values. */
+/**
+ * Build a full new-player record for Firestore from the form values. Course /
+ * tournament / league associations are NOT stored on the player — a new player
+ * simply has no `relations` yet.
+ */
 export function playerRecordFromForm(values: PlayerFormValues): Omit<Player, "id"> {
   return {
     ...(playerEditPatch(values) as Omit<Player, "id">),
-    clubs: [],
-    tournaments: [],
-    leagueTeam: null,
     status: "פעיל",
     ratingUpdatedRecently: true,
     ratingUpdatedAt: todayStamp(),
