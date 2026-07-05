@@ -54,7 +54,10 @@ export function UnsavedCloseBar({
           <TriangleAlert className="size-4 shrink-0" />
           יש שינויים שלא נשמרו. לצאת בלי לשמור?
         </span>
-        <div className="flex shrink-0 gap-2">
+        {/* ms-auto keeps the buttons pinned to the inline-end (left in RTL) even
+            in a narrow modal where the bar wraps them onto their own line —
+            without it, a wrapped line's lone item falls back to the start. */}
+        <div className="flex shrink-0 gap-2 ms-auto">
           <Button
             type="button"
             variant="destructive"

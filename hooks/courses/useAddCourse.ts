@@ -37,12 +37,22 @@ export function useAddCourse() {
   const [mode, setMode] = useState<CourseModalMode>("add");
   const [tab, setTab] = useState<CourseTab>("details");
   const [values, setValues] = useState<CourseFormValues>(EMPTY_COURSE_FORM);
+  // Snapshot of the form as it was on open (JSON), to detect unsaved edits.
+  const [baseline, setBaseline] = useState<string>(() =>
+    JSON.stringify(EMPTY_COURSE_FORM),
+  );
+  // Whether a close attempt is awaiting the "discard unsaved edits" confirm, and
+  // a counter bumped on each repeated attempt to replay the warning's shake.
+  const [confirmingClose, setConfirmingClose] = useState(false);
+  const [closeNudge, setCloseNudge] = useState(0);
 
   // The club roster, read live — the students picker and criteria checks all
   // work off real players, not the legacy mock.
   const { data: players } = useCollection<Player>("players");
 
   const valid = isCourseFormValid(values);
+  // Read-only (view) never counts as dirty; otherwise compare against the open snapshot.
+  const dirty = mode !== "view" && JSON.stringify(values) !== baseline;
 
   const updateField = useCallback(
     <K extends keyof CourseFormValues>(field: K, value: CourseFormValues[K]) => {
@@ -226,6 +236,9 @@ export function useAddCourse() {
   const openModal = useCallback(() => {
     setMode("add");
     setValues(EMPTY_COURSE_FORM);
+    setBaseline(JSON.stringify(EMPTY_COURSE_FORM));
+    setConfirmingClose(false);
+    setCloseNudge(0);
     setTab("details");
     setOpen(true);
   }, []);
@@ -234,6 +247,9 @@ export function useAddCourse() {
   const openForEdit = useCallback((next: CourseFormValues) => {
     setMode("edit");
     setValues(next);
+    setBaseline(JSON.stringify(next));
+    setConfirmingClose(false);
+    setCloseNudge(0);
     setTab("details");
     setOpen(true);
   }, []);
@@ -242,11 +258,41 @@ export function useAddCourse() {
   const openForView = useCallback((next: CourseFormValues) => {
     setMode("view");
     setValues(next);
+    setBaseline(JSON.stringify(next));
+    setConfirmingClose(false);
+    setCloseNudge(0);
     setTab("details");
     setOpen(true);
   }, []);
 
-  const handleOpenChange = useCallback((next: boolean) => setOpen(next), []);
+  // Actually closes. The warning state is NOT reset here, so the bar stays put
+  // through the close animation (no flash of the normal buttons); the next open
+  // clears it.
+  const doClose = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  // Close requests (X / Escape / backdrop / ביטול) route through here: with
+  // unsaved edits, ask before discarding instead of closing.
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (next) {
+        setOpen(true);
+        return;
+      }
+      if (dirty) {
+        setConfirmingClose((was) => {
+          if (was) setCloseNudge((n) => n + 1);
+          return true;
+        });
+        return;
+      }
+      doClose();
+    },
+    [dirty, doClose],
+  );
+
+  const cancelClose = useCallback(() => setConfirmingClose(false), []);
 
   const confirm = useCallback(() => {
     if (!valid) return;
@@ -286,8 +332,8 @@ export function useAddCourse() {
       ]);
     };
     void persist();
-    setOpen(false);
-  }, [valid, values]);
+    doClose();
+  }, [valid, values, doClose]);
 
   return {
     open,
@@ -298,6 +344,11 @@ export function useAddCourse() {
     openForEdit,
     openForView,
     handleOpenChange,
+    dirty,
+    confirmingClose,
+    closeNudge,
+    confirmClose: doClose,
+    cancelClose,
     values,
     updateField,
     valid,

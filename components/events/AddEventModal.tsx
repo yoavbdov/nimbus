@@ -50,6 +50,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -521,6 +522,10 @@ interface AddEventModalProps {
   open: boolean;
   mode: EventModalMode;
   onOpenChange: (open: boolean) => void;
+  confirmingClose: boolean;
+  closeNudge: number;
+  onConfirmClose: () => void;
+  onCancelClose: () => void;
   tab: EventTab;
   onTabChange: (tab: EventTab) => void;
   values: EventFormValues;
@@ -559,6 +564,10 @@ export function AddEventModal({
   open,
   mode,
   onOpenChange,
+  confirmingClose,
+  closeNudge,
+  onConfirmClose,
+  onCancelClose,
   tab,
   onTabChange,
   values,
@@ -1037,7 +1046,22 @@ export function AddEventModal({
           </div>
         </Tabs>
 
-        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
+        <DialogFooter
+          className={cn(
+            "gap-2",
+            confirmingClose
+              ? "sm:justify-start"
+              : "sm:flex-row-reverse sm:justify-end",
+          )}
+        >
+          {confirmingClose ? (
+            <UnsavedCloseBar
+              nudge={closeNudge}
+              onConfirmClose={onConfirmClose}
+              onCancelClose={onCancelClose}
+            />
+          ) : (
+            <>
           {!readOnly && tab === "players" && (
             <Button
               type="button"
@@ -1068,6 +1092,8 @@ export function AddEventModal({
           >
             {readOnly ? "סגירה" : "ביטול"}
           </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
 

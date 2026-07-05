@@ -18,6 +18,10 @@ export function TournamentFormModal({
       open={addTournament.open}
       mode={addTournament.mode}
       onOpenChange={addTournament.handleOpenChange}
+      confirmingClose={addTournament.confirmingClose}
+      closeNudge={addTournament.closeNudge}
+      onConfirmClose={addTournament.confirmClose}
+      onCancelClose={addTournament.cancelClose}
       tab={addTournament.tab}
       onTabChange={addTournament.setTab}
       values={addTournament.values}

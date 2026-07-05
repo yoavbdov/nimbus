@@ -18,6 +18,10 @@ export function EventFormModal({
       open={addEvent.open}
       mode={addEvent.mode}
       onOpenChange={addEvent.handleOpenChange}
+      confirmingClose={addEvent.confirmingClose}
+      closeNudge={addEvent.closeNudge}
+      onConfirmClose={addEvent.confirmClose}
+      onCancelClose={addEvent.cancelClose}
       tab={addEvent.tab}
       onTabChange={addEvent.setTab}
       values={addEvent.values}

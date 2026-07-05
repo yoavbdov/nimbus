@@ -52,6 +52,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -694,6 +695,10 @@ interface AddTournamentModalProps {
   open: boolean;
   mode: TournamentModalMode;
   onOpenChange: (open: boolean) => void;
+  confirmingClose: boolean;
+  closeNudge: number;
+  onConfirmClose: () => void;
+  onCancelClose: () => void;
   tab: TournamentTab;
   onTabChange: (tab: TournamentTab) => void;
   values: TournamentFormValues;
@@ -737,6 +742,10 @@ export function AddTournamentModal({
   open,
   mode,
   onOpenChange,
+  confirmingClose,
+  closeNudge,
+  onConfirmClose,
+  onCancelClose,
   tab,
   onTabChange,
   values,
@@ -1293,7 +1302,22 @@ export function AddTournamentModal({
           </div>
         </Tabs>
 
-        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
+        <DialogFooter
+          className={cn(
+            "gap-2",
+            confirmingClose
+              ? "sm:justify-start"
+              : "sm:flex-row-reverse sm:justify-end",
+          )}
+        >
+          {confirmingClose ? (
+            <UnsavedCloseBar
+              nudge={closeNudge}
+              onConfirmClose={onConfirmClose}
+              onCancelClose={onCancelClose}
+            />
+          ) : (
+            <>
           {!readOnly && tab === "players" && (
             <Button
               type="button"
@@ -1324,6 +1348,8 @@ export function AddTournamentModal({
           >
             {readOnly ? "סגירה" : "ביטול"}
           </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
 

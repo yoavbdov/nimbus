@@ -51,6 +51,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -686,6 +687,10 @@ interface AddCourseModalProps {
   open: boolean;
   mode: CourseModalMode;
   onOpenChange: (open: boolean) => void;
+  confirmingClose: boolean;
+  closeNudge: number;
+  onConfirmClose: () => void;
+  onCancelClose: () => void;
   tab: CourseTab;
   onTabChange: (tab: CourseTab) => void;
   values: CourseFormValues;
@@ -729,6 +734,10 @@ export function AddCourseModal({
   open,
   mode,
   onOpenChange,
+  confirmingClose,
+  closeNudge,
+  onConfirmClose,
+  onCancelClose,
   tab,
   onTabChange,
   values,
@@ -1126,7 +1135,22 @@ export function AddCourseModal({
           </div>
         </Tabs>
 
-        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
+        <DialogFooter
+          className={cn(
+            "gap-2",
+            confirmingClose
+              ? "sm:justify-start"
+              : "sm:flex-row-reverse sm:justify-end",
+          )}
+        >
+          {confirmingClose ? (
+            <UnsavedCloseBar
+              nudge={closeNudge}
+              onConfirmClose={onConfirmClose}
+              onCancelClose={onCancelClose}
+            />
+          ) : (
+            <>
           {!readOnly && tab === "students" && (
             <Button
               type="button"
@@ -1157,6 +1181,8 @@ export function AddCourseModal({
           >
             {readOnly ? "סגירה" : "ביטול"}
           </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
 

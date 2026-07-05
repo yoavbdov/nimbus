@@ -16,11 +16,16 @@ import {
   getDocs,
   query,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
+import {
+  collectionPath,
+  DEMO_CLUB_ID,
+  type CollectionName,
+} from "@/lib/firebase/collections";
 import type {
   RelationDoc,
   RelationKind,
@@ -37,23 +42,60 @@ function relationId(kind: RelationKind, subjectId: string, targetId: string): st
   return `${subjectId}__${kind}__${targetId}`.replace(/\//g, "／");
 }
 
+/**
+ * Enrollment kinds whose live count is mirrored onto a field of the target
+ * entity, so the doc's own number stays in sync with the relations that are the
+ * source of truth. Kinds not listed here (coach/equipment links) mirror nothing.
+ */
+const ENROLLMENT_COUNT: Partial<
+  Record<RelationKind, { collection: CollectionName; field: string }>
+> = {
+  player_course: { collection: "courses", field: "enrolled" },
+  player_tournament: { collection: "tournaments", field: "participants" },
+};
+
+/**
+ * Recount the relations of an enrollment `kind` pointing at `targetId` and write
+ * that number onto the target entity's count field. No-op for non-enrollment
+ * kinds. Called after any add/remove so the denormalised count never drifts.
+ */
+async function syncEnrollmentCount(
+  kind: RelationKind,
+  targetId: string,
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  const mirror = ENROLLMENT_COUNT[kind];
+  if (!mirror) return;
+  const snapshot = await getDocs(
+    query(
+      relationsRef(clubId),
+      where("kind", "==", kind),
+      where("targetId", "==", targetId),
+    ),
+  );
+  const ref = doc(collection(db, collectionPath(clubId, mirror.collection)), targetId);
+  await updateDoc(ref, { [mirror.field]: snapshot.size });
+}
+
 /** Create (or overwrite) a relation. Idempotent thanks to the deterministic id. */
-export function addRelation(
+export async function addRelation(
   rel: Omit<RelationDoc, "id">,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
   const id = relationId(rel.kind, rel.subjectId, rel.targetId);
-  return setDoc(doc(relationsRef(clubId), id), rel);
+  await setDoc(doc(relationsRef(clubId), id), rel);
+  await syncEnrollmentCount(rel.kind, rel.targetId, clubId);
 }
 
 /** Remove a single relation by its subject/kind/target. */
-export function removeRelation(
+export async function removeRelation(
   kind: RelationKind,
   subjectId: string,
   targetId: string,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
-  return deleteDoc(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)));
+  await deleteDoc(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)));
+  await syncEnrollmentCount(kind, targetId, clubId);
 }
 
 /**
@@ -124,6 +166,7 @@ export async function replaceTargetRelations(
     batch.set(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)), rel);
   });
   await batch.commit();
+  await syncEnrollmentCount(kind, targetId, clubId);
 }
 
 /**

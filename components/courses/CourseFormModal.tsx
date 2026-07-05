@@ -18,6 +18,10 @@ export function CourseFormModal({
       open={addCourse.open}
       mode={addCourse.mode}
       onOpenChange={addCourse.handleOpenChange}
+      confirmingClose={addCourse.confirmingClose}
+      closeNudge={addCourse.closeNudge}
+      onConfirmClose={addCourse.confirmClose}
+      onCancelClose={addCourse.cancelClose}
       tab={addCourse.tab}
       onTabChange={addCourse.setTab}
       values={addCourse.values}
