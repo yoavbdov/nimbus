@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeagueRankBadge } from "@/components/leagues/LeagueRankBadge";
+import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import { cn } from "@/lib/utils";
 import {
   leagueCategories,
@@ -237,10 +238,16 @@ interface LeagueModalProps {
   onCategoryFilterChange: (value: LeagueCategory | null) => void;
   query: string;
   onQueryChange: (value: string) => void;
+  dirty: boolean;
+  confirmingClose: boolean;
+  closeNudge: number;
   onRequestRemove: () => void;
   onCancelRemove: () => void;
   onConfirmRemove: () => void;
   onRegister: (name: string) => void;
+  onCommit: () => void;
+  onConfirmClose: () => void;
+  onCancelClose: () => void;
 }
 
 export function LeagueModal({
@@ -254,10 +261,16 @@ export function LeagueModal({
   onCategoryFilterChange,
   query,
   onQueryChange,
+  dirty,
+  confirmingClose,
+  closeNudge,
   onRequestRemove,
   onCancelRemove,
   onConfirmRemove,
   onRegister,
+  onCommit,
+  onConfirmClose,
+  onCancelClose,
 }: LeagueModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -356,14 +369,33 @@ export function LeagueModal({
         </div>
 
         <DialogFooter className="gap-2 sm:justify-start">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            סגור
-          </Button>
+          {confirmingClose ? (
+            <UnsavedCloseBar
+              nudge={closeNudge}
+              onConfirmClose={onConfirmClose}
+              onCancelClose={onCancelClose}
+            />
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                className="rounded-xl"
+              >
+                {dirty ? "ביטול" : "סגור"}
+              </Button>
+              <Button
+                type="button"
+                disabled={!dirty}
+                onClick={onCommit}
+                className="gap-1.5 rounded-xl"
+              >
+                <Check className="size-4" />
+                עדכן
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

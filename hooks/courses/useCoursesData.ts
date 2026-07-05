@@ -26,15 +26,18 @@ export function useCoursesData() {
         coach.set(rel.targetId, rel.subjectId);
       }
     }
-    return records.map((course) => {
-      const count = enrolled.get(course.id) ?? 0;
-      return {
-        ...course,
-        coach: coach.get(course.id) ?? course.coach ?? "",
-        enrolled: count,
-        occupancy: courseOccupancy(count, course.capacity),
-      };
-    });
+    return records
+      // Archived courses live only in the Tools archive, not the main list.
+      .filter((course) => course.status !== "ארכיון")
+      .map((course) => {
+        const count = enrolled.get(course.id) ?? 0;
+        return {
+          ...course,
+          coach: coach.get(course.id) ?? course.coach ?? "",
+          enrolled: count,
+          occupancy: courseOccupancy(count, course.capacity),
+        };
+      });
   }, [records, relations]);
 
   return { courses, loading: loading || relationsLoading };

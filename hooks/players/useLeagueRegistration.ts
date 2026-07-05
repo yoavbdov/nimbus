@@ -22,13 +22,20 @@ interface OpenForArgs {
  * the current team before they can register to a different one. The player's
  * `leagueTeam` name is the source of truth: even if it isn't found in the live
  * teams (e.g. an unseeded name), the modal still treats them as registered.
+ *
+ * Register/remove only stage the choice locally against the `baseline` (the
+ * persisted team); nothing is written until "עדכן", which diffs staged vs.
+ * baseline and persists. Closing with an unsaved change asks first
+ * (`confirmingClose`) before discarding it.
  */
 export function useLeagueRegistration() {
   const { data: teams } = useCollection<LeagueTeam>("leagues");
   const [open, setOpen] = useState(false);
   const [playerId, setPlayerId] = useState("");
   const [playerName, setPlayerName] = useState("");
+  // The staged team, and the persisted team to diff against.
   const [leagueTeam, setLeagueTeam] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState<string | null>(null);
   // Whether the current team's removal is awaiting an inline "are you sure" confirm.
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   // The category the available-teams list is filtered to (null = all categories).
@@ -37,6 +44,10 @@ export function useLeagueRegistration() {
   );
   // Free-text query that narrows the available-teams list by name.
   const [query, setQuery] = useState("");
+  // Whether a close request is awaiting the "discard unsaved change" confirm.
+  const [confirmingClose, setConfirmingClose] = useState(false);
+  // Bumped on each repeated close attempt while confirming, to replay the shake.
+  const [closeNudge, setCloseNudge] = useState(0);
 
   const registered = useMemo<LeagueTeam | null>(() => {
     if (!leagueTeam) return null;
@@ -63,24 +74,53 @@ export function useLeagueRegistration() {
     );
   }, [teams, leagueTeam, categoryFilter, query]);
 
+  const dirty = leagueTeam !== baseline;
+
   const openFor = useCallback(({ id, name, leagueTeam: team }: OpenForArgs) => {
     setPlayerId(id);
     setPlayerName(name);
     setLeagueTeam(team);
+    setBaseline(team);
     setConfirmingRemoval(false);
     setCategoryFilter(null);
     setQuery("");
+    setConfirmingClose(false);
+    setCloseNudge(0);
     setOpen(true);
   }, []);
 
-  const handleOpenChange = useCallback((next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      setConfirmingRemoval(false);
-      setCategoryFilter(null);
-      setQuery("");
-    }
-  }, []);
+  // Discards any staged change and closes the modal.
+  const doClose = useCallback(() => {
+    setOpen(false);
+    setConfirmingRemoval(false);
+    setCategoryFilter(null);
+    setQuery("");
+    setConfirmingClose(false);
+    setLeagueTeam(baseline);
+  }, [baseline]);
+
+  // Radix close requests (Escape / backdrop / סגור) route through here: with an
+  // unsaved change, ask before discarding instead of closing.
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (next) {
+        setOpen(true);
+        return;
+      }
+      if (dirty) {
+        if (confirmingClose) {
+          setCloseNudge((n) => n + 1);
+        } else {
+          setConfirmingClose(true);
+        }
+        return;
+      }
+      doClose();
+    },
+    [dirty, confirmingClose, doClose],
+  );
+
+  const cancelClose = useCallback(() => setConfirmingClose(false), []);
 
   const requestRemove = useCallback(() => setConfirmingRemoval(true), []);
 
@@ -89,29 +129,37 @@ export function useLeagueRegistration() {
   const confirmRemove = useCallback(() => {
     setLeagueTeam(null);
     setConfirmingRemoval(false);
-    void removeRelationsForSubject("player_league", playerId);
-  }, [playerId]);
+  }, []);
 
   // Guard: refuse to register while already on a team; the player must be
-  // removed from their current team first. League membership is single-valued,
-  // so clear any stray relation before adding the new one.
+  // removed from their current team first.
   const register = useCallback(
     (team: string) => {
       if (leagueTeam) return;
       setLeagueTeam(team);
       setQuery("");
-      void removeRelationsForSubject("player_league", playerId).then(() =>
-        addRelation({
-          kind: "player_league",
-          subjectType: "player",
-          subjectId: playerId,
-          targetType: "league",
-          targetId: team,
-        }),
-      );
     },
-    [leagueTeam, playerId],
+    [leagueTeam],
   );
+
+  // "עדכן": persist the staged team against baseline, then close. League
+  // membership is single-valued, so clear any stray relation before adding.
+  const commit = useCallback(() => {
+    if (leagueTeam !== baseline) {
+      void removeRelationsForSubject("player_league", playerId).then(() => {
+        if (leagueTeam) {
+          return addRelation({
+            kind: "player_league",
+            subjectType: "player",
+            subjectId: playerId,
+            targetType: "league",
+            targetId: leagueTeam,
+          });
+        }
+      });
+    }
+    doClose();
+  }, [leagueTeam, baseline, playerId, doClose]);
 
   return {
     open,
@@ -123,11 +171,17 @@ export function useLeagueRegistration() {
     setCategoryFilter,
     query,
     setQuery,
+    dirty,
+    confirmingClose,
+    closeNudge,
     openFor,
     handleOpenChange,
     requestRemove,
     cancelRemove,
     confirmRemove,
     register,
+    commit,
+    confirmClose: doClose,
+    cancelClose,
   };
 }

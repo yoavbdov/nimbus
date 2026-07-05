@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { CourseStatusBadge } from "@/components/courses/CourseStatusBadge";
 import { cn } from "@/lib/utils";
@@ -332,8 +333,13 @@ interface ClubsModalProps {
   pendingRemoval: string | null;
   selectedClub: string;
   onSelectedClubChange: (value: string) => void;
+  dirty: boolean;
+  confirmingClose: boolean;
+  closeNudge: number;
   onStartEditing: () => void;
-  onStopEditing: () => void;
+  onCommit: () => void;
+  onConfirmClose: () => void;
+  onCancelClose: () => void;
   onRequestRemove: (name: string) => void;
   onCancelRemove: () => void;
   onConfirmRemove: () => void;
@@ -350,8 +356,13 @@ export function ClubsModal({
   pendingRemoval,
   selectedClub,
   onSelectedClubChange,
+  dirty,
+  confirmingClose,
+  closeNudge,
   onStartEditing,
-  onStopEditing,
+  onCommit,
+  onConfirmClose,
+  onCancelClose,
   onRequestRemove,
   onCancelRemove,
   onConfirmRemove,
@@ -434,25 +445,34 @@ export function ClubsModal({
         </div>
 
         <DialogFooter className="gap-2 sm:justify-start">
-          {editing ? (
-            <Button
-              type="button"
-              onClick={onStopEditing}
-              className="gap-1.5 rounded-xl"
-            >
-              <Check className="size-4" />
-              סיום עריכה
-            </Button>
-          ) : (
+          {confirmingClose ? (
+            <UnsavedCloseBar
+              nudge={closeNudge}
+              onConfirmClose={onConfirmClose}
+              onCancelClose={onCancelClose}
+            />
+          ) : editing ? (
             <>
               <Button
                 type="button"
-                onClick={onStartEditing}
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                className="rounded-xl"
+              >
+                ביטול
+              </Button>
+              <Button
+                type="button"
+                disabled={!dirty}
+                onClick={onCommit}
                 className="gap-1.5 rounded-xl"
               >
-                <Pencil className="size-4" />
-                עריכה
+                <Check className="size-4" />
+                עדכן
               </Button>
+            </>
+          ) : (
+            <>
               <Button
                 type="button"
                 variant="ghost"
@@ -460,6 +480,14 @@ export function ClubsModal({
                 className="rounded-xl"
               >
                 סגור
+              </Button>
+              <Button
+                type="button"
+                onClick={onStartEditing}
+                className="gap-1.5 rounded-xl"
+              >
+                <Pencil className="size-4" />
+                עריכה
               </Button>
             </>
           )}

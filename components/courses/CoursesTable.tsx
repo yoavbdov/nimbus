@@ -305,6 +305,8 @@ export function CoursesTable({ courses }: CoursesTableProps) {
       open={archive.open}
       count={archive.count}
       noun="חוגים"
+      names={archive.names}
+      warnFinal
       onCancel={archive.cancel}
       onConfirm={archive.confirm}
     />

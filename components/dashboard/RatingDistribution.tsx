@@ -400,8 +400,13 @@ export function RatingDistribution() {
         pendingRemoval={clubRegistration.pendingRemoval}
         selectedClub={clubRegistration.selectedClub}
         onSelectedClubChange={clubRegistration.setSelectedClub}
+        dirty={clubRegistration.dirty}
+        confirmingClose={clubRegistration.confirmingClose}
+        closeNudge={clubRegistration.closeNudge}
         onStartEditing={clubRegistration.startEditing}
-        onStopEditing={clubRegistration.stopEditing}
+        onCommit={clubRegistration.commit}
+        onConfirmClose={clubRegistration.confirmClose}
+        onCancelClose={clubRegistration.cancelClose}
         onRequestRemove={clubRegistration.requestRemove}
         onCancelRemove={clubRegistration.cancelRemove}
         onConfirmRemove={clubRegistration.confirmRemove}
@@ -418,8 +423,13 @@ export function RatingDistribution() {
         pendingRemoval={tournamentRegistration.pendingRemoval}
         selectedTournament={tournamentRegistration.selectedTournament}
         onSelectedTournamentChange={tournamentRegistration.setSelectedTournament}
+        dirty={tournamentRegistration.dirty}
+        confirmingClose={tournamentRegistration.confirmingClose}
+        closeNudge={tournamentRegistration.closeNudge}
         onStartEditing={tournamentRegistration.startEditing}
-        onStopEditing={tournamentRegistration.stopEditing}
+        onCommit={tournamentRegistration.commit}
+        onConfirmClose={tournamentRegistration.confirmClose}
+        onCancelClose={tournamentRegistration.cancelClose}
         onRequestRemove={tournamentRegistration.requestRemove}
         onCancelRemove={tournamentRegistration.cancelRemove}
         onConfirmRemove={tournamentRegistration.confirmRemove}
@@ -437,10 +447,16 @@ export function RatingDistribution() {
         onCategoryFilterChange={leagueRegistration.setCategoryFilter}
         query={leagueRegistration.query}
         onQueryChange={leagueRegistration.setQuery}
+        dirty={leagueRegistration.dirty}
+        confirmingClose={leagueRegistration.confirmingClose}
+        closeNudge={leagueRegistration.closeNudge}
         onRequestRemove={leagueRegistration.requestRemove}
         onCancelRemove={leagueRegistration.cancelRemove}
         onConfirmRemove={leagueRegistration.confirmRemove}
         onRegister={leagueRegistration.register}
+        onCommit={leagueRegistration.commit}
+        onConfirmClose={leagueRegistration.confirmClose}
+        onCancelClose={leagueRegistration.cancelClose}
       />
     </Card>
   );

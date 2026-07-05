@@ -16,6 +16,10 @@ interface ArchiveConfirmDialogProps {
   count: number;
   /** Plural noun for the archived items, e.g. "חוגים" / "תחרויות" / "אירועים". */
   noun: string;
+  /** Names of the rows being archived — listed in the dialog when provided. */
+  names?: string[];
+  /** Show the "final, irreversible" warning. */
+  warnFinal?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -24,6 +28,8 @@ export function ArchiveConfirmDialog({
   open,
   count,
   noun,
+  names,
+  warnFinal,
   onCancel,
   onConfirm,
 }: ArchiveConfirmDialogProps) {
@@ -33,10 +39,32 @@ export function ArchiveConfirmDialog({
         <DialogHeader>
           <DialogTitle>העברה לארכיון?</DialogTitle>
           <DialogDescription>
-            {count} {noun} יועברו לארכיון.
-            <br />
+            {names && names.length > 0 ? (
+              <>
+                {count === 1 ? `"${names[0]}" יועבר` : `${count} ${noun} יועברו`}{" "}
+                לארכיון:
+                <br />
+                <span className="font-medium text-foreground">
+                  {names.join(", ")}
+                </span>
+                <br />
+              </>
+            ) : (
+              <>
+                {count} {noun} יועברו לארכיון.
+                <br />
+              </>
+            )}
             כל האלמנטים המשוייכים ישתחררו בשעות שהתפנו(מדריכים, תלמידים, חדרים,
             ציוד פיזי וכו')
+            {warnFinal && (
+              <>
+                <br />
+                <span className="font-medium text-destructive">
+                  פעולה זו היא סופית ולא ניתנת להחזרה.
+                </span>
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">

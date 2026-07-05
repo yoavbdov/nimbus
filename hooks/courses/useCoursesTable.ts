@@ -5,6 +5,7 @@ import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useAddCourse } from "@/hooks/courses/useAddCourse";
 import { useDeleteCourse } from "@/hooks/courses/useDeleteCourse";
+import { archiveCourse } from "@/lib/firebase/data/courses";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { coaches } from "@/lib/coaches-data";
@@ -53,15 +54,28 @@ export function useCoursesTable(courses: Course[]) {
         );
       }
     } else if (action.id === "archive") {
-      archive.openFor(1);
+      if (course)
+        archive.openFor(1, {
+          names: [course.name],
+          onConfirm: () => void archiveCourse(course.id),
+        });
     } else if (action.id === "delete") {
       if (course) deleteCourse.openFor([{ id: course.id, name: course.name }]);
     }
     menu.onSelect(action);
+    setActiveId(null);
   }
 
   function handleSelectAction(action: CourseAction, selectedIds: string[]) {
-    if (action.id === "archive") archive.openFor(selectedIds.length);
+    if (action.id === "archive")
+      archive.openFor(selectedIds.length, {
+        names: selectedIds.map(
+          (id) => courses.find((c) => c.id === id)?.name ?? id,
+        ),
+        onConfirm: () => {
+          for (const id of selectedIds) void archiveCourse(id);
+        },
+      });
     else if (action.id === "delete") {
       deleteCourse.openFor(
         selectedIds.map((id) => ({

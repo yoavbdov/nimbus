@@ -1,4 +1,4 @@
-import { courses } from "@/lib/courses-data";
+import type { Course } from "@/lib/courses-data";
 import { events } from "@/lib/events-data";
 import { tournaments } from "@/lib/tournaments-data";
 
@@ -40,9 +40,9 @@ function timeRange(id: string): string {
   return `${String(start).padStart(2, "0")}:${half}–${String(end + 1).padStart(2, "0")}:${half}`;
 }
 
-const endedClasses: CompletedCourse[] = courses
-  .filter((a) => a.status === "לא פעיל")
-  .map((a) => ({
+/** Map a live archived course onto the unified archive row shape. */
+export function courseToCompleted(a: Course): CompletedCourse {
+  return {
     id: a.id,
     kind: "חוג",
     name: a.name,
@@ -53,7 +53,8 @@ const endedClasses: CompletedCourse[] = courses
     timeRange: timeRange(a.id),
     rangeLabel: `מד״כ ${a.fitnessMin}–${a.fitnessMax} · גיל ${a.ageMin}–${a.ageMax}`,
     detailLabel: `מדריך: ${a.coach}`,
-  }));
+  };
+}
 
 const endedEvents: CompletedCourse[] = events
   .filter((e) => e.status === "הסתיים")
@@ -85,8 +86,11 @@ const endedTournaments: CompletedCourse[] = tournaments
     detailLabel: `שופט: ${t.judge} · ${t.rounds} סיבובים · ${t.participants} משתתפים`,
   }));
 
-export const completedCourses: CompletedCourse[] = [
-  ...endedClasses,
+/**
+ * Ended events + tournaments. These modules are not yet migrated to Firestore,
+ * so they stay mock. Archived חוגים are read live and merged in by the hook.
+ */
+export const nonCourseCompleted: CompletedCourse[] = [
   ...endedEvents,
   ...endedTournaments,
 ];
