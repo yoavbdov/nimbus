@@ -327,7 +327,10 @@ export function useAddCourse() {
           courseId,
           values.equipment
             .filter((e) => e.equipmentId)
-            .map((e) => ({ subjectId: e.equipmentId, role: e.quantity })),
+            .map((e) => ({
+              subjectId: e.equipmentId,
+              quantity: Number(e.quantity) || 1,
+            })),
         ),
       ]);
     };

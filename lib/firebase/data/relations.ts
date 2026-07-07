@@ -125,6 +125,8 @@ export interface RelationSubject {
   subjectId: string;
   role?: string;
   status?: string;
+  /** Allocated units — used by `equipment_*` links. */
+  quantity?: number;
 }
 
 /**
@@ -153,7 +155,7 @@ export async function replaceTargetRelations(
   snapshot.docs.forEach((d) => {
     if (!desired.has((d.data() as RelationDoc).subjectId)) batch.delete(d.ref);
   });
-  subjects.forEach(({ subjectId, role, status }) => {
+  subjects.forEach(({ subjectId, role, status, quantity }) => {
     const rel: Omit<RelationDoc, "id"> = {
       kind,
       subjectType,
@@ -162,6 +164,7 @@ export async function replaceTargetRelations(
       targetId,
       ...(role != null ? { role } : {}),
       ...(status != null ? { status } : {}),
+      ...(quantity != null ? { quantity } : {}),
     };
     batch.set(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)), rel);
   });

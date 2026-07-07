@@ -17,13 +17,23 @@ export type RelationTargetType =
   | "event"
   | "session";
 
+// NOTE: there is deliberately no `room_*` kind. A room is not an activity-level
+// association — different sessions of the same activity can use different rooms
+// (e.g. a Sunday session in room A, a Monday session in room B). Room therefore
+// lives per-session on `sessions.roomId` (which is also how room double-booking
+// conflicts are detected). Equipment, by contrast, is an activity-level resource
+// used across all its sessions, so it stays here.
 export type RelationKind =
   | "player_course"
   | "player_tournament"
   | "player_league"
   | "coach_course"
   | "coach_tournament"
-  | "equipment_course";
+  // equipment ↔ activity — physical gear a course / tournament / event uses,
+  // each carrying the allocated `quantity`.
+  | "equipment_course"
+  | "equipment_tournament"
+  | "equipment_event";
 
 export interface RelationDoc {
   id: string;
@@ -35,6 +45,8 @@ export interface RelationDoc {
   /** Optional per-kind extras. */
   role?: string;
   status?: string;
+  /** How many units are allocated — set on `equipment_*` links only. */
+  quantity?: number;
 }
 
 export const relations: RelationDoc[] = [

@@ -178,7 +178,7 @@ export function courseFormValuesFromLive(
     .map((r, i) => ({
       id: `equip-${course.id}-${i}`,
       equipmentId: r.subjectId,
-      quantity: r.role ?? "1",
+      quantity: r.quantity != null ? String(r.quantity) : "1",
     }));
   return {
     id: course.id,

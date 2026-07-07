@@ -211,8 +211,10 @@ export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => (
 }));
 
 // ── Events (1 one-off, next week) ────────────────────────────────────────────
+// Meets weekly on TWO weekdays, each in a DIFFERENT room — demonstrating that
+// room is per-session (see sessions below), not a single activity-level value.
 const rawSeedEvents: ClubEvent[] = [
-  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["שני"], nextDate: "06.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
+  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["ראשון", "שני"], nextDate: "05.07.2026", status: "מתוכנן", recurrence: "קבוע", room: "אולם ראשי", notes: "" },
 ];
 const eventNameById = nameByIdOf(rawSeedEvents);
 export const seedEvents: ClubEvent[] = keyByName(rawSeedEvents);
@@ -258,7 +260,10 @@ const rawSeedSessions: SessionDoc[] = [
   { id: "session-3", parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
   { id: "session-4", parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "18:00", roomId: "room-3" },
   { id: "session-5", parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
-  { id: "session-6", parentType: "event",      parentId: "event-1",      date: "2026-07-06", start: "18:00", end: "20:00", roomId: "room-1" }, // next-week event, no conflict
+  // event-1 meets every Sunday in room-2 and every Monday in room-1 — two
+  // sessions, two rooms, one activity (this is why room is per-session).
+  { id: "session-6", parentType: "event",      parentId: "event-1",      date: "2026-07-05", start: "18:00", end: "20:00", roomId: "room-2" }, // Sunday, room-2
+  { id: "session-7", parentType: "event",      parentId: "event-1",      date: "2026-07-06", start: "18:00", end: "20:00", roomId: "room-1" }, // Monday,  room-1
 ];
 
 // Name lookups per parent type, so session parents/rooms point at name ids.
@@ -300,7 +305,7 @@ function rel(
   subjectId: string,
   targetType: RelationDoc["targetType"],
   targetId: string,
-  extra?: { role?: string; status?: string },
+  extra?: { role?: string; status?: string; quantity?: number },
 ): RelationDoc {
   return {
     id: `${subjectId}__${kind}__${targetId}`.replace(/\//g, "／"),
@@ -330,6 +335,10 @@ const coachCourseRelations: RelationDoc[] = rawSeedCourses.map((c) =>
   rel("coach_course", "coach", c.coach, "course", c.name, { role: "מדריך ראשי" }),
 );
 
+// NOTE: room is NOT modelled as a relation — it lives per-session on
+// `sessions.roomId`, so each session can use a different room. See the seeded
+// sessions below.
+
 // Curated extras that don't fall out of the roster: the intentional conflicts
 // (see the block below) plus the equipment↔course links.
 const curatedRelations: RelationDoc[] = [
@@ -338,9 +347,14 @@ const curatedRelations: RelationDoc[] = [
   // COACH conflict — אבי לוי judges אליפות הקיץ while running שחמט מתחילים.
   rel("coach_tournament", "coach", "אבי לוי", "tournament", "אליפות הקיץ", { role: "שופט" }),
   // EQUIPMENT conflict — שעוני שח used by two overlapping courses.
-  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתחילים"),
-  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתקדמים"),
-  rel("equipment_course", "equipment", "לוחות הדגמה", "course", "מועדון אחה״צ"),
+  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתחילים", { quantity: 14 }),
+  rel("equipment_course", "equipment", "שעוני שח", "course", "שחמט מתקדמים", { quantity: 12 }),
+  rel("equipment_course", "equipment", "לוחות הדגמה", "course", "מועדון אחה״צ", { quantity: 2 }),
+  // equipment ↔ tournament — gear allocated to competitions.
+  rel("equipment_tournament", "equipment", "שעוני שח", "tournament", "אליפות הקיץ", { quantity: 16 }),
+  rel("equipment_tournament", "equipment", "לוחות הדגמה", "tournament", "טורניר המאסטרים", { quantity: 4 }),
+  // equipment ↔ event — gear allocated to one-off events.
+  rel("equipment_event", "equipment", "סטים מגנטיים", "event", "ערב פתיחת מועדון קיץ", { quantity: 10 }),
 ];
 
 // Dedupe by document id (a derived link may coincide with a curated one).
