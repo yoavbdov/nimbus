@@ -3,7 +3,7 @@ import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
-export type EventStatus = "פעיל" | "הסתיים" | "מתוכנן";
+export type EventStatus = "פעיל" | "הסתיים" | "מתוכנן" | "ארכיון";
 
 /** קבוע = recurring, חד פעמי = one-off. */
 export type EventRecurrence = "קבוע" | "חד פעמי";

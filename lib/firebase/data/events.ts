@@ -11,6 +11,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
+import { deleteSessionsForParent } from "@/lib/firebase/data/sessions";
+import { removeRelationsForTarget } from "@/lib/firebase/data/relations";
 import type { ClubEvent } from "@/lib/events-data";
 
 function eventsRef(clubId: string = DEMO_CLUB_ID) {
@@ -35,9 +37,33 @@ export function updateEvent(
   return updateDoc(doc(eventsRef(clubId), id), patch);
 }
 
+/** Move an event to the archive (a status, not a deletion). */
+export function archiveEvent(
+  id: string,
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  return updateEvent(id, { status: "ארכיון" }, clubId);
+}
+
 export function deleteEvent(
   id: string,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
   return deleteDoc(doc(eventsRef(clubId), id));
+}
+
+/**
+ * Delete an event AND everything hanging off it: its sessions and every
+ * relation that points at it (enrolled players, its equipment). Leaves no
+ * dangling links.
+ */
+export async function deleteEventCascade(
+  id: string,
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  await Promise.all([
+    deleteSessionsForParent(id, clubId),
+    removeRelationsForTarget(id, clubId),
+  ]);
+  await deleteEvent(id, clubId);
 }

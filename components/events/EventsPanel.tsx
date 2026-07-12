@@ -9,7 +9,6 @@ import { EventsTable } from "@/components/events/EventsTable";
 import { EventFormModal } from "@/components/events/EventFormModal";
 import { useEventsPanel } from "@/hooks/events/useEventsPanel";
 import { useAddEvent } from "@/hooks/events/useAddEvent";
-import { events as allEvents } from "@/lib/events-data";
 
 export function EventsPanel() {
   const {
@@ -23,7 +22,9 @@ export function EventsPanel() {
     toggleToday,
     clearAll,
     filtered,
+    total,
     filterKey,
+    filterOptions,
   } = useEventsPanel();
 
   const addEvent = useAddEvent();
@@ -36,7 +37,7 @@ export function EventsPanel() {
             ניהול אירועים
           </h1>
           <p className="text-xs text-muted-foreground/80 num">
-            {filtered.length} מתוך {allEvents.length} אירועים
+            {filtered.length} מתוך {total} אירועים
           </p>
         </div>
         <EventsActions onAddEvent={addEvent.openModal} />
@@ -54,6 +55,7 @@ export function EventsPanel() {
         onRemove={removeFilter}
         onToggleToday={toggleToday}
         onClearAll={clearAll}
+        options={filterOptions}
       />
 
       <div className="neu-inset rounded-2xl p-3">

@@ -1,6 +1,9 @@
 import { players } from "@/lib/players-data";
 import { rooms, equipment } from "@/lib/rooms-data";
+import { COURSE_DAYS, type CourseDay } from "@/lib/courses-data";
 import type { Tournament } from "@/lib/tournaments-data";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 import {
   addWeeks,
   makeRound,
@@ -79,6 +82,185 @@ function equipmentFor(tournament: Tournament): EquipmentLineValues[] {
     }
   });
   return lines;
+}
+
+/** "2026-06-07" → "07.06.2026"; invalid → "—". */
+function nextDateFromIso(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : "—";
+}
+
+const HEBREW_DAY_BY_JS: CourseDay[] = [
+  "ראשון",
+  "שני",
+  "שלישי",
+  "רביעי",
+  "חמישי",
+  "שישי",
+  "שבת",
+];
+
+/** The Hebrew weekday of an ISO date ("2026-07-01" → "שלישי"); "" when invalid. */
+function hebrewDayFromIso(iso: string): CourseDay | "" {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "" : HEBREW_DAY_BY_JS[date.getDay()];
+}
+
+/** Deterministic id for a tournament's Nth slot (matches the seed/replace scheme). */
+function slotId(parentId: string, index: number): string {
+  return `${parentId}__slot__${index}`.replace(/\//g, "／");
+}
+
+/**
+ * The tournament's scheduled slots (sessions) derived from the form: one dated
+ * session per round, or a single recurring session for the "fixed" format.
+ */
+export function tournamentSessionsFromForm(
+  id: string,
+  values: TournamentFormValues,
+): SessionDoc[] {
+  if (values.format === "fixed") {
+    return [
+      {
+        id: slotId(id, 0),
+        parentType: "tournament",
+        parentId: id,
+        date: values.fixedStartDate,
+        start: values.fixedStartTime,
+        end: values.fixedEndTime,
+        roomId: values.fixedRoom,
+        day: hebrewDayFromIso(values.fixedStartDate) || undefined,
+        frequency: values.fixedFrequency,
+        noEndDate: !values.fixedHasEndDate,
+        endDate: values.fixedHasEndDate ? values.fixedEndDate : "",
+      },
+    ];
+  }
+  return values.rounds.map((round, i) => ({
+    id: slotId(id, i),
+    parentType: "tournament",
+    parentId: id,
+    date: round.date,
+    start: round.startTime,
+    end: round.endTime,
+    roomId: round.room,
+    day: hebrewDayFromIso(round.date) || undefined,
+  }));
+}
+
+/** The distinct weekdays the tournament's slots run on, in week order. */
+function daysFromSessions(sessions: SessionDoc[]): CourseDay[] {
+  const set = new Set(sessions.map((s) => s.day).filter(Boolean));
+  return COURSE_DAYS.filter((d) => set.has(d));
+}
+
+/** The scalar tournament fields to persist, derived from the form + its slots. */
+function tournamentScalarsFromForm(values: TournamentFormValues) {
+  const id = values.name.trim();
+  const sessions = tournamentSessionsFromForm(id, values);
+  const dates = sessions.map((s) => s.date).filter(Boolean).sort();
+  return {
+    name: id,
+    judge: values.judge,
+    rounds: values.format === "rounds" ? values.rounds.length : 1,
+    days: daysFromSessions(sessions),
+    nextDate: dates.length ? nextDateFromIso(dates[0]) : "—",
+    ratingMin: Number(values.fitnessMin) || 0,
+    ratingMax: Number(values.fitnessMax) || 0,
+    room: sessions[0]?.roomId ?? "",
+    notes: values.notes,
+  };
+}
+
+/** A full new-tournament document (participant count is projected on read). */
+export function tournamentRecordFromForm(
+  values: TournamentFormValues,
+): Omit<Tournament, "id"> {
+  return {
+    ...tournamentScalarsFromForm(values),
+    participants: values.playerIds.length,
+    status: "מתוכננת",
+  };
+}
+
+/** The patch applied when editing a tournament (derived counts projected on read). */
+export function tournamentEditPatch(
+  values: TournamentFormValues,
+): Partial<Tournament> {
+  return tournamentScalarsFromForm(values);
+}
+
+/** Rebuild a form round from a stored dated session (edit prefill). */
+function roundFromSession(session: SessionDoc): RoundValues {
+  return {
+    ...makeRound(),
+    id: session.id,
+    room: session.roomId,
+    startTime: session.start,
+    endTime: session.end,
+    date: session.date,
+  };
+}
+
+/**
+ * Builds the "edit tournament" form from LIVE Firestore data: rounds come from
+ * the tournament's `sessions`, enrolled players and equipment from its
+ * `relations`. This is the tournaments-page path; the mock-derived
+ * {@link tournamentFormValuesFor} stays for modules not yet migrated.
+ */
+export function tournamentFormValuesFromLive(
+  tournament: Tournament,
+  sessions: SessionDoc[],
+  relations: RelationDoc[],
+): TournamentFormValues {
+  const slots = sessions.filter((s) => s.parentId === tournament.id);
+  const recurring = slots.find((s) => s.frequency);
+  const playerIds = relations
+    .filter((r) => r.kind === "player_tournament" && r.targetId === tournament.id)
+    .map((r) => r.subjectId);
+  const equipmentLines: EquipmentLineValues[] = relations
+    .filter(
+      (r) => r.kind === "equipment_tournament" && r.targetId === tournament.id,
+    )
+    .map((r, i) => ({
+      id: `equip-${tournament.id}-${i}`,
+      equipmentId: r.subjectId,
+      quantity: r.quantity != null ? String(r.quantity) : "1",
+    }));
+
+  if (recurring) {
+    return {
+      ...tournamentFormValuesFor(tournament),
+      id: tournament.id,
+      playerIds,
+      equipment: equipmentLines,
+      format: "fixed",
+      roundsCount: "",
+      rounds: [],
+      fixedStartDate: recurring.date,
+      fixedHasEndDate: !recurring.noEndDate,
+      fixedEndDate: recurring.endDate ?? "",
+      fixedRoom: recurring.roomId,
+      fixedStartTime: recurring.start,
+      fixedEndTime: recurring.end,
+      fixedFrequency:
+        recurring.frequency && recurring.frequency !== "once"
+          ? recurring.frequency
+          : "weekly",
+    };
+  }
+
+  const rounds = slots.map(roundFromSession);
+  return {
+    ...tournamentFormValuesFor(tournament),
+    id: tournament.id,
+    playerIds,
+    equipment: equipmentLines,
+    format: "rounds",
+    roundsCount: rounds.length ? String(rounds.length) : "",
+    rounds: rounds.length ? rounds : tournamentFormValuesFor(tournament).rounds,
+  };
 }
 
 /**

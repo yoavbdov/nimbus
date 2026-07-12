@@ -6,9 +6,17 @@ import {
   type EquipmentLineValues,
   type EventFormValues,
 } from "@/lib/event-form";
-import { players, type Player } from "@/lib/players-data";
+import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
-import { updateEvent } from "@/lib/firebase/data/events";
+import { useCollection } from "@/lib/firebase/useCollection";
+import { addEvent, updateEvent } from "@/lib/firebase/data/events";
+import { replaceParentSessions } from "@/lib/firebase/data/sessions";
+import { replaceTargetRelations } from "@/lib/firebase/data/relations";
+import {
+  eventRecordFromForm,
+  eventEditPatch,
+  eventSessionsFromForm,
+} from "@/lib/event-details";
 
 /**
  * Owns all state for the "add event" modal: the scalar fields, the chosen
@@ -38,6 +46,10 @@ export function useAddEvent() {
   // a counter bumped on each repeated attempt to replay the warning's shake.
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [closeNudge, setCloseNudge] = useState(0);
+
+  // The club roster, read live — the players picker works off real players
+  // (docs keyed by name), not the legacy mock.
+  const { data: players } = useCollection<Player>("players");
 
   const valid = isEventFormValid(values);
   // Read-only (view) never counts as dirty; otherwise compare against the open snapshot.
@@ -98,7 +110,7 @@ export function useAddEvent() {
     setSourceChoiceOpen(false);
     setCheckedPlayerIds([]);
     setPlayerPickerOpen(true);
-  }, [values.playerIds]);
+  }, [players, values.playerIds]);
 
   const choosePlayersFromRoster = useCallback(() => {
     setSourceChoiceOpen(false);
@@ -129,7 +141,7 @@ export function useAddEvent() {
       setRosterChoiceOpen(false);
       setPlayerPickerOpen(true);
     },
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   const toggleCheckedPlayer = useCallback((id: string) => {
@@ -148,12 +160,12 @@ export function useAddEvent() {
 
   const enrolledPlayers = useMemo(
     () => players.filter((p) => values.playerIds.includes(p.id)),
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   const availablePlayers = useMemo(
     () => players.filter((p) => !values.playerIds.includes(p.id)),
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   // ---- Equipment ----------------------------------------------------------
@@ -246,15 +258,37 @@ export function useAddEvent() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // Persist edited fields to Firestore (merge patch); add-mode comes later.
-    if (values.id) {
-      void updateEvent(values.id, {
-        name: values.name.trim(),
-        notes: values.notes,
-        room:
-          values.format === "oneoff" ? values.oneoffRoom : values.recurringRoom,
-      });
-    }
+    // Persist the whole event: the scalar doc, then its slot (session) and its
+    // associations (players / equipment) in the `relations` junction. Add
+    // creates the doc; edit patches it.
+    const persist = async () => {
+      const eventId = values.id
+        ? (await updateEvent(values.id, eventEditPatch(values)), values.id)
+        : await addEvent(eventRecordFromForm(values));
+      await Promise.all([
+        replaceParentSessions(eventId, eventSessionsFromForm(eventId, values)),
+        replaceTargetRelations(
+          "player_event",
+          "player",
+          "event",
+          eventId,
+          values.playerIds.map((subjectId) => ({ subjectId })),
+        ),
+        replaceTargetRelations(
+          "equipment_event",
+          "equipment",
+          "event",
+          eventId,
+          values.equipment
+            .filter((e) => e.equipmentId)
+            .map((e) => ({
+              subjectId: e.equipmentId,
+              quantity: Number(e.quantity) || 1,
+            })),
+        ),
+      ]);
+    };
+    void persist();
     doClose();
   }, [valid, values, doClose]);
 

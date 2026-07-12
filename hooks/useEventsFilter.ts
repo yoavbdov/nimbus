@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { filterEvents, type EventFilter } from "@/lib/events-filters";
+import type { ClubEvent } from "@/lib/events-data";
 
-export function useEventsFilter() {
+export function useEventsFilter(events: ClubEvent[]) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<EventFilter[]>([]);
   const [todayOnly, setTodayOnly] = useState(false);
@@ -29,8 +30,8 @@ export function useEventsFilter() {
   }
 
   const filtered = useMemo(
-    () => filterEvents(search, filters, todayOnly),
-    [search, filters, todayOnly],
+    () => filterEvents(events, search, filters, todayOnly),
+    [events, search, filters, todayOnly],
   );
 
   return {

@@ -46,6 +46,12 @@ export interface CourseFilter {
   value: string | number | string[] | null;
 }
 
+/**
+ * Live option overrides per field. Used to replace the static mock-derived
+ * dropdown options (מדריך/חדר) with the real values read from Firestore.
+ */
+export type FieldOptions = Partial<Record<FilterField, string[]>>;
+
 const numericOps: OperatorDef[] = [
   { op: "equals", label: "שווה ל", valueMode: "number" },
   { op: "gt", label: "גדול מ", valueMode: "number" },

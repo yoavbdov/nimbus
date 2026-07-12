@@ -9,7 +9,6 @@ import { TournamentsTable } from "@/components/tournaments/TournamentsTable";
 import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
 import { useTournamentsPanel } from "@/hooks/tournaments/useTournamentsPanel";
 import { useAddTournament } from "@/hooks/tournaments/useAddTournament";
-import { tournaments as allTournaments } from "@/lib/tournaments-data";
 
 export function TournamentsPanel() {
   const {
@@ -23,7 +22,9 @@ export function TournamentsPanel() {
     toggleToday,
     clearAll,
     filtered,
+    total,
     filterKey,
+    filterOptions,
   } = useTournamentsPanel();
 
   const addTournament = useAddTournament();
@@ -38,7 +39,7 @@ export function TournamentsPanel() {
               ניהול תחרויות
             </h1>
             <p className="text-xs text-muted-foreground/80 num">
-              {filtered.length} מתוך {allTournaments.length} תחרויות
+              {filtered.length} מתוך {total} תחרויות
             </p>
           </div>
           <TournamentsActions onAddTournament={addTournament.openModal} />
@@ -56,6 +57,7 @@ export function TournamentsPanel() {
           onRemove={removeFilter}
           onToggleToday={toggleToday}
           onClearAll={clearAll}
+          options={filterOptions}
         />
 
         <div className="neu-inset rounded-2xl p-3">

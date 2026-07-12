@@ -16,15 +16,17 @@ import {
   formatValue,
   getOperator,
   type EventFilter,
+  type FieldOptions,
 } from "@/lib/events-filters";
 
 interface FilterChipProps {
   filter: EventFilter;
   onUpdate: (filter: EventFilter) => void;
   onRemove: () => void;
+  options?: FieldOptions;
 }
 
-export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
+export function FilterChip({ filter, onUpdate, onRemove, options }: FilterChipProps) {
   const { open, setOpen, close } = useDisclosure();
   const cfg = FIELD_BY_KEY[filter.field];
   const opDef = getOperator(filter.field, filter.op);
@@ -96,6 +98,7 @@ export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
           initial={filter}
           onSubmit={handleSubmit}
           onCancel={close}
+          options={options}
         />
       </PopoverContent>
     </Popover>

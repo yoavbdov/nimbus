@@ -95,6 +95,31 @@ export async function replaceCourseSessions(
   await batch.commit();
 }
 
+/** Deterministic id for a parent's Nth slot so replace stays idempotent. */
+export function parentSessionId(parentId: string, index: number): string {
+  return `${parentId}__slot__${index}`.replace(/\//g, "／");
+}
+
+/**
+ * Replace a parent's whole session set: delete the sessions it had, then write
+ * the supplied ones. Runs in a single batch so the swap is atomic. Used for
+ * tournament rounds and event slots (course meetings use
+ * {@link replaceCourseSessions}).
+ */
+export async function replaceParentSessions(
+  parentId: string,
+  sessions: SessionDoc[],
+  clubId: string = DEMO_CLUB_ID,
+): Promise<void> {
+  const existing = await sessionsForParent(parentId, clubId);
+  const batch = writeBatch(db);
+  existing.docs.forEach((d) => batch.delete(d.ref));
+  sessions.forEach((session) => {
+    batch.set(doc(sessionsRef(clubId), session.id), session);
+  });
+  await batch.commit();
+}
+
 /** Delete every session belonging to a parent (used when the parent is deleted). */
 export async function deleteSessionsForParent(
   parentId: string,

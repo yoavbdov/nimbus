@@ -8,6 +8,7 @@ const statusOrder: Record<ClubEvent["status"], number> = {
   "פעיל": 0,
   "מתוכנן": 1,
   "הסתיים": 2,
+  "ארכיון": 3,
 };
 
 function getSortValue(e: ClubEvent, key: SortKey): string | number {

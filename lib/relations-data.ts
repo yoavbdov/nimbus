@@ -26,6 +26,7 @@ export type RelationTargetType =
 export type RelationKind =
   | "player_course"
   | "player_tournament"
+  | "player_event"
   | "player_league"
   | "coach_course"
   | "coach_tournament"

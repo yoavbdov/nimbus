@@ -1,5 +1,4 @@
 import {
-  events,
   allEventStatuses,
   allEventRecurrences,
   allEventRooms,
@@ -34,6 +33,12 @@ export interface EventFilter {
   op: string;
   value: string | number | string[] | null;
 }
+
+/**
+ * Live option overrides per field. Used to replace the static mock-derived
+ * dropdown options (חדר) with the real room names read from Firestore.
+ */
+export type FieldOptions = Partial<Record<FilterField, string[]>>;
 
 const enumOps: OperatorDef[] = [
   { op: "is", label: "הוא", valueMode: "single-enum" },
@@ -141,12 +146,13 @@ function matchesSearch(e: ClubEvent, query: string): boolean {
 }
 
 export function filterEvents(
+  list: ClubEvent[],
   query: string,
   filters: EventFilter[],
   todayOnly: boolean,
 ): ClubEvent[] {
   const today = todayOnly ? todayHebrewDay() : null;
-  return events.filter(
+  return list.filter(
     (e) =>
       matchesSearch(e, query) &&
       filters.every((f) => applyFilter(e, f)) &&

@@ -17,6 +17,7 @@ import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { TournamentStatusBadge } from "@/components/tournaments/TournamentStatusBadge";
 import { TournamentActionsMenuContent } from "@/components/tournaments/TournamentActionsMenu";
 import { TournamentFormModal } from "@/components/tournaments/TournamentFormModal";
+import { DeleteTournamentModal } from "@/components/tournaments/DeleteTournamentModal";
 import { PossibleEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
@@ -29,6 +30,9 @@ import { useTournamentsTable } from "@/hooks/tournaments/useTournamentsTable";
 import type { SortDir, SortKey } from "@/hooks/tournaments/useTournamentsSort";
 import { cn } from "@/lib/utils";
 import type { Tournament } from "@/lib/tournaments-data";
+
+/** "רישומים אפשריים" is a per-tournament action, so it never appears in the bulk menu. */
+const bulkActions = tournamentActions.filter((a) => a.id !== "enrollments");
 
 function RangePill({ from, to }: { from: number; to: number }) {
   return (
@@ -178,6 +182,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     onSelectAction,
     onRowAction,
     archive,
+    deleteTournament,
     tournamentEdit,
     enrollments,
     coachEdit,
@@ -249,7 +254,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       </div>
       {bulkMode ? (
         <BulkActionsMenuContent
-          actions={tournamentActions}
+          actions={bulkActions}
           count={selection.selectedCount}
           onSelect={onBulkSelect}
         />
@@ -258,6 +263,16 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       )}
     </Popover>
     <TournamentFormModal addTournament={tournamentEdit} />
+    <DeleteTournamentModal
+      open={deleteTournament.open}
+      onOpenChange={deleteTournament.handleOpenChange}
+      tournamentNames={deleteTournament.names}
+      expectedPhrase={deleteTournament.expectedPhrase}
+      confirmText={deleteTournament.confirmText}
+      onConfirmTextChange={deleteTournament.setConfirmText}
+      valid={deleteTournament.valid}
+      onConfirm={deleteTournament.confirm}
+    />
     <PossibleEnrollmentsModal
       open={enrollments.open}
       onOpenChange={enrollments.onOpenChange}
@@ -278,6 +293,8 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       open={archive.open}
       count={archive.count}
       noun="תחרויות"
+      names={archive.names}
+      warnFinal
       onCancel={archive.cancel}
       onConfirm={archive.confirm}
     />

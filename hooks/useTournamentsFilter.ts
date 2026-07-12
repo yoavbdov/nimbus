@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { filterTournaments, type TournamentFilter } from "@/lib/tournaments-filters";
+import type { Tournament } from "@/lib/tournaments-data";
 
-export function useTournamentsFilter() {
+export function useTournamentsFilter(tournaments: Tournament[]) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<TournamentFilter[]>([]);
   const [todayOnly, setTodayOnly] = useState(false);
@@ -29,8 +30,8 @@ export function useTournamentsFilter() {
   }
 
   const filtered = useMemo(
-    () => filterTournaments(search, filters, todayOnly),
-    [search, filters, todayOnly],
+    () => filterTournaments(tournaments, search, filters, todayOnly),
+    [tournaments, search, filters, todayOnly],
   );
 
   return {

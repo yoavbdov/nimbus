@@ -20,6 +20,7 @@ import { useFilterBuilder } from "@/hooks/events/useFilterBuilder";
 import {
   FIELD_BY_KEY,
   FIELD_DEFS,
+  type FieldOptions,
   type FilterField,
   type EventFilter,
 } from "@/lib/events-filters";
@@ -94,15 +95,22 @@ interface FilterBuilderProps {
   initial?: EventFilter;
   onSubmit: (filter: EventFilter) => void;
   onCancel: () => void;
+  options?: FieldOptions;
 }
 
-export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProps) {
+export function FilterBuilder({
+  initial,
+  onSubmit,
+  onCancel,
+  options,
+}: FilterBuilderProps) {
   const {
     field,
     op,
     textValue,
     multiValue,
     fieldDef,
+    fieldOptions,
     opDef,
     mode,
     hasOpStep,
@@ -115,7 +123,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     setMultiValue,
     submit,
     isEditing,
-  } = useFilterBuilder({ initial, onSubmit });
+  } = useFilterBuilder({ initial, onSubmit, options });
 
   return (
     <motion.div
@@ -203,14 +211,14 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
             )}
             {mode === "single-enum" && (
               <SingleEnumPicker
-                options={fieldDef.options ?? []}
+                options={fieldOptions}
                 value={textValue}
                 onChange={setTextValue}
               />
             )}
             {mode === "multi-enum" && (
               <MultiEnumPicker
-                options={fieldDef.options ?? []}
+                options={fieldOptions}
                 value={multiValue}
                 onChange={setMultiValue}
               />

@@ -16,6 +16,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { EventStatusBadge } from "@/components/events/EventStatusBadge";
 import { EventFormModal } from "@/components/events/EventFormModal";
+import { DeleteEventModal } from "@/components/events/DeleteEventModal";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
 import { eventActions } from "@/lib/row-actions";
 import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
@@ -155,6 +156,7 @@ export function EventsTable({ events }: EventsTableProps) {
     onSelectAction,
     onRowAction,
     archive,
+    deleteEvent,
     eventEdit,
     activeId,
     handleRowClick,
@@ -229,10 +231,22 @@ export function EventsTable({ events }: EventsTableProps) {
       )}
     </Popover>
     <EventFormModal addEvent={eventEdit} />
+    <DeleteEventModal
+      open={deleteEvent.open}
+      onOpenChange={deleteEvent.handleOpenChange}
+      eventNames={deleteEvent.names}
+      expectedPhrase={deleteEvent.expectedPhrase}
+      confirmText={deleteEvent.confirmText}
+      onConfirmTextChange={deleteEvent.setConfirmText}
+      valid={deleteEvent.valid}
+      onConfirm={deleteEvent.confirm}
+    />
     <ArchiveConfirmDialog
       open={archive.open}
       count={archive.count}
       noun="אירועים"
+      names={archive.names}
+      warnFinal
       onCancel={archive.cancel}
       onConfirm={archive.confirm}
     />

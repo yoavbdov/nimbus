@@ -10,9 +10,17 @@ import {
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
-import { players, type Player } from "@/lib/players-data";
+import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
-import { updateTournament } from "@/lib/firebase/data/tournaments";
+import { useCollection } from "@/lib/firebase/useCollection";
+import { addTournament, updateTournament } from "@/lib/firebase/data/tournaments";
+import { replaceParentSessions } from "@/lib/firebase/data/sessions";
+import { replaceTargetRelations } from "@/lib/firebase/data/relations";
+import {
+  tournamentRecordFromForm,
+  tournamentEditPatch,
+  tournamentSessionsFromForm,
+} from "@/lib/tournament-details";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -47,6 +55,10 @@ export function useAddTournament() {
   // a counter bumped on each repeated attempt to replay the warning's shake.
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [closeNudge, setCloseNudge] = useState(0);
+
+  // The club roster, read live — the players picker and criteria checks all
+  // work off real players (docs keyed by name), not the legacy mock.
+  const { data: players } = useCollection<Player>("players");
 
   const valid = isTournamentFormValid(values);
   // Read-only (view) never counts as dirty; otherwise compare against the open snapshot.
@@ -147,7 +159,7 @@ export function useAddTournament() {
     setSourceChoiceOpen(false);
     setCheckedPlayerIds([]);
     setPlayerPickerOpen(true);
-  }, [values.playerIds]);
+  }, [players, values.playerIds]);
 
   const choosePlayersFromRoster = useCallback(() => {
     setSourceChoiceOpen(false);
@@ -178,7 +190,7 @@ export function useAddTournament() {
       setRosterChoiceOpen(false);
       setPlayerPickerOpen(true);
     },
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   const toggleCheckedPlayer = useCallback((id: string) => {
@@ -197,12 +209,12 @@ export function useAddTournament() {
 
   const enrolledPlayers = useMemo(
     () => players.filter((p) => values.playerIds.includes(p.id)),
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   const availablePlayers = useMemo(
     () => players.filter((p) => !values.playerIds.includes(p.id)),
-    [values.playerIds],
+    [players, values.playerIds],
   );
 
   // ---- Equipment ----------------------------------------------------------
@@ -239,7 +251,7 @@ export function useAddTournament() {
       const player = players.find((p) => p.id === playerId);
       return player ? !meetsTournamentCriteria(player, values) : false;
     },
-    [values],
+    [players, values],
   );
 
   const openModal = useCallback(() => {
@@ -305,16 +317,49 @@ export function useAddTournament() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // Persist edited fields to Firestore (merge patch); add-mode comes later.
-    if (values.id) {
-      void updateTournament(values.id, {
-        name: values.name.trim(),
-        judge: values.judge,
-        notes: values.notes,
-        ratingMin: Number(values.fitnessMin) || 0,
-        ratingMax: Number(values.fitnessMax) || 0,
-      });
-    }
+    // Persist the whole tournament: the scalar doc, then its rounds (sessions)
+    // and its associations (judge / players / equipment) in the `relations`
+    // junction. Add creates the doc; edit patches it. Derived counts
+    // (participants) are projected on read, so the patch skips them.
+    const persist = async () => {
+      const tournamentId = values.id
+        ? (await updateTournament(values.id, tournamentEditPatch(values)),
+          values.id)
+        : await addTournament(tournamentRecordFromForm(values));
+      await Promise.all([
+        replaceParentSessions(
+          tournamentId,
+          tournamentSessionsFromForm(tournamentId, values),
+        ),
+        replaceTargetRelations(
+          "coach_tournament",
+          "coach",
+          "tournament",
+          tournamentId,
+          values.judge ? [{ subjectId: values.judge, role: "שופט" }] : [],
+        ),
+        replaceTargetRelations(
+          "player_tournament",
+          "player",
+          "tournament",
+          tournamentId,
+          values.playerIds.map((subjectId) => ({ subjectId })),
+        ),
+        replaceTargetRelations(
+          "equipment_tournament",
+          "equipment",
+          "tournament",
+          tournamentId,
+          values.equipment
+            .filter((e) => e.equipmentId)
+            .map((e) => ({
+              subjectId: e.equipmentId,
+              quantity: Number(e.quantity) || 1,
+            })),
+        ),
+      ]);
+    };
+    void persist();
     doClose();
   }, [valid, values, doClose]);
 

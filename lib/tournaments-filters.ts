@@ -1,5 +1,4 @@
 import {
-  tournaments,
   allTournamentJudges,
   allTournamentStatuses,
   allTournamentRooms,
@@ -44,6 +43,12 @@ export interface TournamentFilter {
   op: string;
   value: string | number | string[] | null;
 }
+
+/**
+ * Live option overrides per field. Used to replace the static mock-derived
+ * dropdown options (שופט/חדר) with the real values read from Firestore.
+ */
+export type FieldOptions = Partial<Record<FilterField, string[]>>;
 
 const numericOps: OperatorDef[] = [
   { op: "equals", label: "שווה ל", valueMode: "number" },
@@ -188,12 +193,13 @@ function matchesSearch(t: Tournament, query: string): boolean {
 }
 
 export function filterTournaments(
+  list: Tournament[],
   query: string,
   filters: TournamentFilter[],
   todayOnly: boolean,
 ): Tournament[] {
   const today = todayOnly ? todayHebrewDay() : null;
-  return tournaments.filter(
+  return list.filter(
     (t) =>
       matchesSearch(t, query) &&
       filters.every((f) => applyFilter(t, f)) &&

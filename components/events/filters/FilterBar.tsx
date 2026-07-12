@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { AddFilterPopover } from "@/components/events/filters/AddFilterPopover";
 import { FilterChip } from "@/components/events/filters/FilterChip";
 import { cn } from "@/lib/utils";
-import type { EventFilter } from "@/lib/events-filters";
+import type { EventFilter, FieldOptions } from "@/lib/events-filters";
 
 interface FilterBarProps {
   search: string;
@@ -20,6 +20,8 @@ interface FilterBarProps {
   onRemove: (id: string) => void;
   onToggleToday: () => void;
   onClearAll: () => void;
+  /** Live dropdown options for the חדר field. */
+  options?: FieldOptions;
 }
 
 export function FilterBar({
@@ -32,6 +34,7 @@ export function FilterBar({
   onRemove,
   onToggleToday,
   onClearAll,
+  options,
 }: FilterBarProps) {
   const hasAny = filters.length > 0 || search.length > 0 || todayOnly;
 
@@ -48,7 +51,7 @@ export function FilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        <AddFilterPopover onAdd={onAdd} />
+        <AddFilterPopover onAdd={onAdd} options={options} />
         <Button
           type="button"
           variant="ghost"
@@ -100,6 +103,7 @@ export function FilterBar({
                       filter={f}
                       onUpdate={(next) => onUpdate(f.id, next)}
                       onRemove={() => onRemove(f.id)}
+                      options={options}
                     />
                   ))}
                 </AnimatePresence>

@@ -16,15 +16,17 @@ import {
   formatValue,
   getOperator,
   type CourseFilter,
+  type FieldOptions,
 } from "@/lib/courses-filters";
 
 interface FilterChipProps {
   filter: CourseFilter;
   onUpdate: (filter: CourseFilter) => void;
   onRemove: () => void;
+  options?: FieldOptions;
 }
 
-export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
+export function FilterChip({ filter, onUpdate, onRemove, options }: FilterChipProps) {
   const { open, setOpen, close } = useDisclosure();
   const cfg = FIELD_BY_KEY[filter.field];
   const opDef = getOperator(filter.field, filter.op);
@@ -96,6 +98,7 @@ export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
           initial={filter}
           onSubmit={handleSubmit}
           onCancel={close}
+          options={options}
         />
       </PopoverContent>
     </Popover>

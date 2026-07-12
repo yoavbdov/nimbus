@@ -24,6 +24,7 @@ export function CoursesPanel() {
     filtered,
     total,
     filterKey,
+    filterOptions,
   } = useCoursesPanel();
 
   const addCourse = useAddCourse();
@@ -56,6 +57,7 @@ export function CoursesPanel() {
           onRemove={removeFilter}
           onToggleToday={toggleToday}
           onClearAll={clearAll}
+          options={filterOptions}
         />
 
         <div className="neu-inset rounded-2xl p-3">
