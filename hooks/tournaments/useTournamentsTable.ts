@@ -8,11 +8,11 @@ import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { archiveTournament } from "@/lib/firebase/data/tournaments";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { useCollection } from "@/lib/firebase/useCollection";
-import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
 import { tournamentFormValuesFromLive } from "@/lib/tournament-details";
 import type { TournamentAction } from "@/lib/tournament-actions";
 import type { Tournament } from "@/lib/tournaments-data";
+import type { CoachRecord } from "@/lib/coaches-data";
 import type { SessionDoc } from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 
@@ -28,6 +28,10 @@ export function useTournamentsTable(tournaments: Tournament[]) {
   // real sessions + relations, not the legacy mock.
   const { data: sessions } = useCollection<SessionDoc>("sessions");
   const { data: relations } = useCollection<RelationDoc>("relations");
+  // Read coaches live so opening a judge's "פרטי מדריך" prefills the note (and
+  // every other field) from Firestore, and edits round-trip to the real doc —
+  // the static mock has neither the saved note nor a persisted target.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {

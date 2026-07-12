@@ -8,11 +8,11 @@ import { useDeleteCourse } from "@/hooks/courses/useDeleteCourse";
 import { archiveCourse } from "@/lib/firebase/data/courses";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { useCollection } from "@/lib/firebase/useCollection";
-import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
 import { courseFormValuesFromLive } from "@/lib/course-details";
 import type { CourseAction } from "@/lib/course-actions";
 import type { Course } from "@/lib/courses-data";
+import type { CoachRecord } from "@/lib/coaches-data";
 import type { SessionDoc } from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 
@@ -28,6 +28,9 @@ export function useCoursesTable(courses: Course[]) {
   // the real sessions + relations, not the legacy mock.
   const { data: sessions } = useCollection<SessionDoc>("sessions");
   const { data: relations } = useCollection<RelationDoc>("relations");
+  // Read coaches live too, so the note edited here reflects (and round-trips)
+  // the persisted Firestore doc rather than the static mock roster.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
   const [activeId, setActiveId] = useState<string | null>(null);
 
   function handleRowClick(id: string, e: MouseEvent) {

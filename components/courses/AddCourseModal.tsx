@@ -37,20 +37,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
@@ -58,7 +49,9 @@ import {
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { COURSE_DAYS, allCourseCoaches } from "@/lib/courses-data";
+import { COURSE_DAYS } from "@/lib/courses-data";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { CoachRecord } from "@/lib/coaches-data";
 import { rooms, equipment } from "@/lib/rooms-data";
 import {
   FREQUENCY_OPTIONS,
@@ -275,157 +268,6 @@ function SearchSelect({
         </div>
       </PopoverContent>
     </Popover>
-  );
-}
-
-const studentHeadClass =
-  "px-3 py-2.5 text-center text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70";
-
-/** A dialog table of available students with checkboxes; confirm adds all checked at once. */
-function StudentPickerDialog({
-  open,
-  onOpenChange,
-  students,
-  checkedIds,
-  disabledIds,
-  onToggle,
-  onConfirm,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  students: Player[];
-  checkedIds: string[];
-  /** Already-enrolled students: shown greyed out and not selectable. */
-  disabledIds: string[];
-  onToggle: (id: string) => void;
-  onConfirm: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const filtered = students.filter((p) =>
-    p.name.toLowerCase().includes(query.trim().toLowerCase()),
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>הוספת תלמידים</DialogTitle>
-          <DialogDescription>
-            סמנו את התלמידים שברצונכם להוסיף בריבוע משמאל, ובסיום לחצו הוסף.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 inset-s-2.5 size-4 -translate-y-1/2 text-foreground/50" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="חיפוש תלמיד…"
-            className="h-9 ps-9 rounded-xl"
-          />
-        </div>
-
-        {filtered.length === 0 ? (
-          <Alert className="border-0 bg-transparent py-10 [&>svg]:hidden">
-            <AlertTitle className="text-center text-sm font-normal text-foreground/60">
-              לא נמצאו תלמידים
-            </AlertTitle>
-          </Alert>
-        ) : (
-          <div className="neu-inset rounded-2xl p-3">
-            <div
-              dir="ltr"
-              className="players-scroll max-h-[50vh] overflow-y-auto overflow-x-hidden"
-            >
-              <div dir="rtl">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className={studentHeadClass}>
-                        שם תלמיד
-                      </TableHead>
-                      <TableHead className={studentHeadClass}>גיל</TableHead>
-                      <TableHead className={studentHeadClass}>
-                        מד כושר
-                      </TableHead>
-                      <TableHead className={cn(studentHeadClass, "w-12")} />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((p, i) => {
-                      const disabled = disabledIds.includes(p.id);
-                      const checked = disabled || checkedIds.includes(p.id);
-                      return (
-                        <TableRow
-                          key={p.id}
-                          onClick={() => !disabled && onToggle(p.id)}
-                          className={cn(
-                            "border-b-2 border-foreground/10 transition-colors duration-150",
-                            i % 2 === 1 && "bg-primary/15",
-                            disabled
-                              ? "cursor-default opacity-45"
-                              : cn(
-                                  "cursor-pointer hover:bg-primary/25",
-                                  checked && "bg-primary/20",
-                                ),
-                          )}
-                        >
-                          <TableCell className="px-3 py-2.5 text-center text-sm font-medium text-foreground">
-                            <span className="inline-flex items-center gap-1.5">
-                              {p.name}
-                              {disabled && (
-                                <span className="text-[0.7rem] font-normal text-muted-foreground">
-                                  (כבר נוסף)
-                                </span>
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
-                            {p.age}
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
-                            {p.israeliRating}
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center">
-                            <div className="flex justify-center">
-                              <SelectCheckbox
-                                checked={checked}
-                                disabled={disabled}
-                                onCheckedChange={() => !disabled && onToggle(p.id)}
-                                ariaLabel={`בחר ${p.name}`}
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
-          <Button
-            type="button"
-            disabled={checkedIds.length === 0}
-            onClick={onConfirm}
-            className="rounded-xl"
-          >
-            הוסף{checkedIds.length > 0 ? ` (${checkedIds.length})` : ""}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            ביטול
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -775,6 +617,12 @@ export function AddCourseModal({
 }: AddCourseModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
+  // The coach picker is fed by the live coach roster (Firestore), so it only
+  // ever lists real coaches — never a stale mock. The dropdown is a strict
+  // SearchSelect, so a course's coach can only be one of these names.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
+  const coachOptions = coaches.map((c) => c.name);
+
   // The cleanup archive opens this modal read-only: every control is disabled
   // (via the wrapping fieldset) and the confirm/export actions are hidden.
   const readOnly = mode === "view";
@@ -884,7 +732,7 @@ export function AddCourseModal({
                           onChange={(v) =>
                             onFieldChange("coach", v === NO_COACH ? "" : v)
                           }
-                          options={[NO_COACH, ...allCourseCoaches]}
+                          options={[NO_COACH, ...coachOptions]}
                           placeholder={NO_COACH}
                           searchPlaceholder="חיפוש מדריך…"
                           container={container}
@@ -1203,14 +1051,15 @@ export function AddCourseModal({
         onBack={onBackToSourceChoice}
       />
 
-      <StudentPickerDialog
+      <PeoplePickerDialog
         open={studentPickerOpen}
         onOpenChange={onStudentPickerOpenChange}
-        students={availableStudents}
+        people={availableStudents}
         checkedIds={checkedStudentIds}
         disabledIds={pickerDisabledIds}
         onToggle={onToggleCheckedStudent}
         onConfirm={onConfirmStudents}
+        noun={{ plural: "תלמידים", singular: "תלמיד" }}
       />
     </Dialog>
   );

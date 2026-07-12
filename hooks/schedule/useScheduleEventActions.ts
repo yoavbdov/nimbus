@@ -15,7 +15,8 @@ import { courses } from "@/lib/courses-data";
 import { tournaments } from "@/lib/tournaments-data";
 import { events as clubEvents } from "@/lib/events-data";
 import { leagueTeams } from "@/lib/leagues-data";
-import { coaches } from "@/lib/coaches-data";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { CoachRecord } from "@/lib/coaches-data";
 import type { ScheduleEvent } from "@/lib/schedule-data";
 
 /** A stable index from a title, so an unmatched event still resolves to a record. */
@@ -43,6 +44,9 @@ export function useScheduleEventActions() {
   const eventEdit = useAddEvent();
   const leagueDetails = useLeagueTeamDetails();
   const coachEdit = useAddCoach();
+  // Read coaches live so an edited note round-trips the Firestore doc, not the
+  // static mock roster.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
   const archive = useArchiveConfirm();
   const [archiveNoun, setArchiveNoun] = useState("פעילויות");
 
@@ -105,6 +109,7 @@ export function useScheduleEventActions() {
       eventEdit,
       leagueDetails,
       coachEdit,
+      coaches,
       archive,
     ],
   );

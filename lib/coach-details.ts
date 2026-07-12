@@ -1,4 +1,4 @@
-import type { Coach, CoachRecord } from "@/lib/coaches-data";
+import type { CoachRecord } from "@/lib/coaches-data";
 import type { CoachFormValues } from "@/lib/coach-form";
 
 /** A small, stable string hash (djb2-ish) with a seed for independent draws. */
@@ -15,7 +15,7 @@ function hash(str: string, seed: number): number {
  * from the stored record; for older coaches saved before the field existed we
  * fall back to a stable hash-derived address so the field is never empty.
  */
-export function coachFormValuesFor(coach: Coach): CoachFormValues {
+export function coachFormValuesFor(coach: CoachRecord): CoachFormValues {
   const [firstName, ...rest] = coach.name.trim().split(" ");
   const lastName = rest.join(" ");
   const h = hash(coach.name, 5381);

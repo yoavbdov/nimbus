@@ -43,17 +43,23 @@ function timeWindow(tournament: Tournament): { start: string; end: string } {
 /**
  * One round per the tournament's round count, all in its room, a week apart
  * starting from the next date.
+ *
+ * A finished tournament (or any without a scheduled next date) has `nextDate`
+ * "—", which yields no ISO date. We fall back to today so the reconstructed
+ * rounds are still complete — otherwise the edit form would be permanently
+ * invalid (empty round dates) and "עדכון" could never enable.
  */
 function roundsFor(tournament: Tournament): RoundValues[] {
   const { start, end } = timeWindow(tournament);
-  const firstDate = isoFromNextDate(tournament.nextDate);
+  const firstDate =
+    isoFromNextDate(tournament.nextDate) || new Date().toISOString().slice(0, 10);
   return Array.from({ length: tournament.rounds }, (_, i) => ({
     ...makeRound(),
     id: `round-${tournament.id}-${i}`,
     room: tournament.room,
     startTime: start,
     endTime: end,
-    date: firstDate ? addWeeks(firstDate, i) : "",
+    date: addWeeks(firstDate, i),
   }));
 }
 

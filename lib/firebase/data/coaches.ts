@@ -7,7 +7,6 @@ import {
   deleteDoc,
   doc,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
@@ -32,7 +31,11 @@ export function updateCoach(
   patch: Partial<CoachRecord>,
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
-  return updateDoc(doc(coachesRef(clubId), id), patch);
+  // Upsert rather than updateDoc: a coach edited from a tournament/event may not
+  // have a Firestore doc yet (the roster is larger than the seeded set), and
+  // updateDoc throws "No document to update" for a missing doc. The edit patch
+  // carries every CoachRecord field, so a merge writes a complete valid doc.
+  return setDoc(doc(coachesRef(clubId), id), patch, { merge: true });
 }
 
 export function deleteCoach(
