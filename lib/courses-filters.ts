@@ -14,8 +14,8 @@ export type FilterField =
   | "coach"
   | "ageMin"
   | "ageMax"
-  | "fitnessMin"
-  | "fitnessMax"
+  | "ratingMin"
+  | "ratingMax"
   | "enrolled"
   | "capacity"
   | "days"
@@ -84,8 +84,8 @@ export const FIELD_DEFS: FieldDef[] = [
   },
   { field: "ageMin", label: "גיל מינימלי", basic: true, operators: numericOps },
   { field: "ageMax", label: "גיל מקסימלי", operators: numericOps },
-  { field: "fitnessMin", label: "מד כושר מינימלי", basic: true, operators: numericOps },
-  { field: "fitnessMax", label: "מד כושר מקסימלי", operators: numericOps },
+  { field: "ratingMin", label: "מד כושר מינימלי", basic: true, operators: numericOps },
+  { field: "ratingMax", label: "מד כושר מקסימלי", operators: numericOps },
   { field: "enrolled", label: "רשומים", basic: true, operators: numericOps },
   { field: "capacity", label: "קיבולת", operators: numericOps },
   {
@@ -192,10 +192,10 @@ function applyFilter(a: Course, f: CourseFilter): boolean {
       return compareNumber(a.ageMin, f.op, Number(f.value));
     case "ageMax":
       return compareNumber(a.ageMax, f.op, Number(f.value));
-    case "fitnessMin":
-      return compareNumber(a.fitnessMin, f.op, Number(f.value));
-    case "fitnessMax":
-      return compareNumber(a.fitnessMax, f.op, Number(f.value));
+    case "ratingMin":
+      return compareNumber(a.ratingMin, f.op, Number(f.value));
+    case "ratingMax":
+      return compareNumber(a.ratingMax, f.op, Number(f.value));
     case "enrolled":
       return compareNumber(a.enrolled, f.op, Number(f.value));
     case "capacity":

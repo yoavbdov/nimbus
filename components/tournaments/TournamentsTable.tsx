@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SortIcon } from "@/components/shared/SortIcon";
+import { RangePill } from "@/components/shared/RangePill";
 import {
   Table,
   TableBody,
@@ -33,14 +34,6 @@ import type { Tournament } from "@/lib/tournaments-data";
 
 /** "רישומים אפשריים" is a per-tournament action, so it never appears in the bulk menu. */
 const bulkActions = tournamentActions.filter((a) => a.id !== "enrollments");
-
-function RangePill({ from, to }: { from: number; to: number }) {
-  return (
-    <span className="num text-sm text-foreground/85" dir="ltr">
-      {from}–{to}
-    </span>
-  );
-}
 
 function CountPill({ value }: { value: number }) {
   if (value === 0) return <span className="text-foreground/40 num">—</span>;
@@ -148,7 +141,18 @@ function TournamentRow({
         <CountPill value={t.participants} />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <RangePill from={t.ratingMin} to={t.ratingMax} />
+        <RangePill
+          from={t.ageMin ?? 0}
+          to={t.ageMax ?? 0}
+          noLimit={t.noAgeLimit || (t.ageMin == null && t.ageMax == null)}
+        />
+      </TableCell>
+      <TableCell className="px-4 py-3 text-center">
+        <RangePill
+          from={t.ratingMin}
+          to={t.ratingMax}
+          noLimit={t.noRatingLimit}
+        />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <DaysPills days={t.days} />
@@ -229,6 +233,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
                 <SortableHeader {...headerProps("judge")}>שופט</SortableHeader>
                 <SortableHeader {...headerProps("rounds")}>סיבובים</SortableHeader>
                 <SortableHeader {...headerProps("participants")}>משתתפים</SortableHeader>
+                <SortableHeader {...headerProps("age")}>גילאים</SortableHeader>
                 <SortableHeader {...headerProps("rating")}>טווח דירוג</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
                 <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>

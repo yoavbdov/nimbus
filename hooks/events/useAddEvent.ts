@@ -172,7 +172,7 @@ export function useAddEvent() {
   const addEquipmentLine = useCallback(() => {
     setValues((prev) => ({
       ...prev,
-      equipment: [...prev.equipment, makeEquipmentLine()],
+      equipment: [...prev.equipment, makeEquipmentLine(prev.equipment)],
     }));
   }, []);
 

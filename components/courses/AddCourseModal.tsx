@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
+import { NoLimitToggle } from "@/components/shared/NoLimitToggle";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
@@ -55,16 +56,14 @@ import type { CoachRecord } from "@/lib/coaches-data";
 import { rooms, equipment } from "@/lib/rooms-data";
 import {
   FREQUENCY_OPTIONS,
+  availableEquipmentOptions,
   equipmentAvailableNow,
   meetingEndDateValid,
   type CourseFormValues,
   type EquipmentLineValues,
   type MeetingValues,
 } from "@/lib/course-form";
-import type {
-  CourseModalMode,
-  CourseTab,
-} from "@/hooks/courses/useAddCourse";
+import type { CourseModalMode, CourseTab } from "@/hooks/courses/useAddCourse";
 import type { Player } from "@/lib/players-data";
 
 /** The "no coach" choice in the searchable coach dropdown (maps to "" in the form). */
@@ -453,11 +452,13 @@ function EquipmentRow({
   onChange,
   onRemove,
   container,
+  options,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
+  options: string[];
 }) {
   const selected = equipment.find((e) => e.name === line.equipmentId);
   const available = selected ? equipmentAvailableNow(selected.id) : null;
@@ -477,7 +478,7 @@ function EquipmentRow({
           <SearchSelect
             value={line.equipmentId}
             onChange={(v) => onChange({ equipmentId: v })}
-            options={equipment.map((e) => e.name)}
+            options={options}
             placeholder="בחר ציוד"
             searchPlaceholder="חיפוש ציוד…"
             container={container}
@@ -569,6 +570,8 @@ interface AddCourseModalProps {
   onRemoveEquipment: (id: string) => void;
   coachWarning: boolean;
   capacityWarning: boolean;
+  ageRangeInvalid: boolean;
+  ratingRangeInvalid: boolean;
   mismatchReasons: (playerId: string) => string[];
 }
 
@@ -613,6 +616,8 @@ export function AddCourseModal({
   onRemoveEquipment,
   coachWarning,
   capacityWarning,
+  ageRangeInvalid,
+  ratingRangeInvalid,
   mismatchReasons,
 }: AddCourseModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
@@ -636,7 +641,11 @@ export function AddCourseModal({
       >
         <DialogHeader>
           <DialogTitle>
-            {readOnly ? "צפייה בחוג" : mode === "edit" ? "עריכת חוג" : "הוספת חוג"}
+            {readOnly
+              ? "צפייה בחוג"
+              : mode === "edit"
+                ? "עריכת חוג"
+                : "הוספת חוג"}
           </DialogTitle>
           <DialogDescription>
             {readOnly ? (
@@ -694,267 +703,341 @@ export function AddCourseModal({
             {/* A disabled fieldset turns the whole form read-only in "view"
                 mode (cleanup archive) — every nested control is inert. */}
             <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={tab}
-                dir="rtl"
-                variants={bodyVariants}
-                initial="hidden"
-                animate="show"
-                exit={{
-                  opacity: 0,
-                  x: -16,
-                  filter: "blur(4px)",
-                  transition: { duration: 0.18 },
-                }}
-                // Clip the entrance transform (children start at y:10) so it
-                // doesn't briefly extend the scroll area and flash a scrollbar.
-                className="space-y-4 overflow-hidden"
-              >
-                {tab === "details" && (
-                  <>
-                    <div className="grid grid-cols-[1fr_1fr_3.5rem] gap-3">
-                      <Field>
-                        <FieldLabel required>שם החוג</FieldLabel>
-                        <Input
-                          value={values.name}
-                          onChange={(e) =>
-                            onFieldChange("name", e.target.value)
-                          }
-                          className={fieldClass}
-                        />
-                      </Field>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={tab}
+                  dir="rtl"
+                  variants={bodyVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit={{
+                    opacity: 0,
+                    x: -16,
+                    filter: "blur(4px)",
+                    transition: { duration: 0.18 },
+                  }}
+                  // Clip the entrance transform (children start at y:10) so it
+                  // doesn't briefly extend the scroll area and flash a scrollbar.
+                  className="space-y-4 overflow-hidden"
+                >
+                  {tab === "details" && (
+                    <>
+                      <div className="grid grid-cols-[1fr_1fr_3.5rem] gap-3">
+                        <Field>
+                          <FieldLabel required>שם החוג</FieldLabel>
+                          <Input
+                            value={values.name}
+                            onChange={(e) =>
+                              onFieldChange("name", e.target.value)
+                            }
+                            className={fieldClass}
+                          />
+                        </Field>
 
-                      <Field>
-                        <FieldLabel className="ps-1">מדריך</FieldLabel>
-                        <SearchSelect
-                          value={values.coach || NO_COACH}
-                          onChange={(v) =>
-                            onFieldChange("coach", v === NO_COACH ? "" : v)
-                          }
-                          options={[NO_COACH, ...coachOptions]}
-                          placeholder={NO_COACH}
-                          searchPlaceholder="חיפוש מדריך…"
-                          container={container}
-                          dangerOption={NO_COACH}
-                        />
-                      </Field>
+                        <Field>
+                          <FieldLabel className="ps-1">מדריך</FieldLabel>
+                          <SearchSelect
+                            value={values.coach || NO_COACH}
+                            onChange={(v) =>
+                              onFieldChange("coach", v === NO_COACH ? "" : v)
+                            }
+                            options={[NO_COACH, ...coachOptions]}
+                            placeholder={NO_COACH}
+                            searchPlaceholder="חיפוש מדריך…"
+                            container={container}
+                            dangerOption={NO_COACH}
+                          />
+                        </Field>
 
-                      <Field>
-                        <FieldLabel>קיבולת</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.capacity}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "capacity",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "px-2 text-center num")}
-                        />
-                      </Field>
-                    </div>
+                        <Field>
+                          <FieldLabel>קיבולת</FieldLabel>
+                          <Input
+                            inputMode="numeric"
+                            value={values.capacity}
+                            onChange={(e) =>
+                              onFieldChange(
+                                "capacity",
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                            className={cn(fieldClass, "px-2 text-center num")}
+                          />
+                        </Field>
+                      </div>
 
-                    {/* Fixed-height slot so the coach warning doesn't grow the modal.
+                      {/* Fixed-height slot so the coach warning doesn't grow the modal.
                         Mirrors the row's columns so it sits under the coach field. */}
-                    <div className="-mt-2.5 grid h-4 grid-cols-[1fr_1fr_3.5rem] gap-3">
-                      <div />
-                      {coachWarning && (
-                        <div className="ps-3">
-                          <WarningNote>החוג יווצר ללא מדריך</WarningNote>
+                      <div className="-mt-2.5 grid h-4 grid-cols-[1fr_1fr_3.5rem] gap-3">
+                        <div />
+                        {coachWarning && (
+                          <div className="ps-3">
+                            <WarningNote>החוג יווצר ללא מדריך</WarningNote>
+                          </div>
+                        )}
+                      </div>
+
+                      <Field>
+                        <div className="flex items-end gap-2.5">
+                          <NoLimitToggle
+                            checked={values.noRatingLimit}
+                            onCheckedChange={(v) =>
+                              onFieldChange("noRatingLimit", v)
+                            }
+                            label="ללא הגבלה"
+                          />
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>מד כושר מינ׳</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noRatingLimit}
+                              value={
+                                values.noRatingLimit ? "" : values.ratingMin
+                              }
+                              placeholder={
+                                values.noRatingLimit ? "ללא הגבלה" : ""
+                              }
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ratingMin",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>מד כושר מקס׳</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noRatingLimit}
+                              value={
+                                values.noRatingLimit ? "" : values.ratingMax
+                              }
+                              placeholder={
+                                values.noRatingLimit ? "ללא הגבלה" : ""
+                              }
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ratingMax",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </Field>
+
+                      {ratingRangeInvalid && (
+                        <div className="-mt-2">
+                          <WarningNote>
+                            מד כושר מקסימלי לא יכול להיות נמוך מהמינימלי.
+                          </WarningNote>
                         </div>
                       )}
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
                       <Field>
-                        <FieldLabel>מד כושר מינימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.fitnessMin}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "fitnessMin",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel>מד כושר מקסימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.fitnessMax}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "fitnessMax",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field>
-                        <FieldLabel>גיל מינימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.ageMin}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "ageMin",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel>גיל מקסימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.ageMax}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "ageMax",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                    </div>
-
-                    <Field>
-                      <FieldLabel>הערות</FieldLabel>
-                      <Textarea
-                        value={values.notes}
-                        onChange={(e) => onFieldChange("notes", e.target.value)}
-                        className={cn(fieldClass, "h-auto min-h-20 py-2")}
-                      />
-                    </Field>
-                  </>
-                )}
-
-                {tab === "meetings" && (
-                  <>
-                    <Field className="flex flex-col items-center">
-                      <FieldLabel required>תאריך התחלה</FieldLabel>
-                      <Input
-                        type="date"
-                        value={values.startDate}
-                        onChange={(e) =>
-                          onFieldChange("startDate", e.target.value)
-                        }
-                        className={cn(dateFieldClass, "w-40")}
-                      />
-                    </Field>
-
-                    {values.meetings.map((m) => (
-                      <MeetingCard
-                        key={m.id}
-                        meeting={m}
-                        onChange={(patch) => onUpdateMeeting(m.id, patch)}
-                        onRemove={() => onRemoveMeeting(m.id)}
-                        container={container}
-                      />
-                    ))}
-
-                    <motion.div variants={itemVariants}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={onAddMeeting}
-                        className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
-                      >
-                        <Plus className="size-4 text-primary/70" />
-                        הוסף מפגש קבוע
-                      </Button>
-                    </motion.div>
-                  </>
-                )}
-
-                {tab === "students" && (
-                  <>
-                    <Field>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={onOpenStudentPicker}
-                        className="h-9 w-fit justify-center gap-1.5 rounded-xl px-3.5 text-sm font-normal neu-raised-xs neu-interactive"
-                      >
-                        <Plus className="size-4 text-primary/70" />
-                        הוסף תלמידים
-                      </Button>
-                    </Field>
-
-                    {students.length === 0 ? (
-                      <motion.p
-                        variants={itemVariants}
-                        className="py-8 text-center text-sm text-muted-foreground"
-                      >
-                        אין תלמידים רשומים עדיין.
-                      </motion.p>
-                    ) : (
-                      <motion.div
-                        variants={itemVariants}
-                        className="space-y-1.5"
-                      >
-                        {students.map((p) => (
-                          <EnrolledPersonRow
-                            key={p.id}
-                            person={p}
-                            mismatchReasons={mismatchReasons(p.id)}
-                            onRemove={() => onRemoveStudent(p.id)}
-                            removeLabel={`הסר ${p.name}`}
-                            container={container}
+                        <div className="flex items-end gap-2.5">
+                          <NoLimitToggle
+                            checked={values.noAgeLimit}
+                            onCheckedChange={(v) =>
+                              onFieldChange("noAgeLimit", v)
+                            }
+                            label="ללא הגבלה"
                           />
-                        ))}
-                      </motion.div>
-                    )}
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>גיל מינימלי</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noAgeLimit}
+                              value={values.noAgeLimit ? "" : values.ageMin}
+                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ageMin",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>גיל מקסימלי</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noAgeLimit}
+                              value={values.noAgeLimit ? "" : values.ageMax}
+                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ageMax",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </Field>
 
-                    {capacityWarning && (
+                      {ageRangeInvalid && (
+                        <div className="-mt-2">
+                          <WarningNote>
+                            גיל מקסימלי לא יכול להיות נמוך מהמינימלי.
+                          </WarningNote>
+                        </div>
+                      )}
+
+                      <Field>
+                        <FieldLabel>הערות</FieldLabel>
+                        <Textarea
+                          value={values.notes}
+                          onChange={(e) =>
+                            onFieldChange("notes", e.target.value)
+                          }
+                          className={cn(fieldClass, "h-auto min-h-20 py-2")}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {tab === "meetings" && (
+                    <>
+                      <Field className="flex flex-col items-center">
+                        <FieldLabel required>תאריך התחלה</FieldLabel>
+                        <Input
+                          type="date"
+                          value={values.startDate}
+                          onChange={(e) =>
+                            onFieldChange("startDate", e.target.value)
+                          }
+                          className={cn(dateFieldClass, "w-40")}
+                        />
+                      </Field>
+
+                      {values.meetings.map((m) => (
+                        <MeetingCard
+                          key={m.id}
+                          meeting={m}
+                          onChange={(patch) => onUpdateMeeting(m.id, patch)}
+                          onRemove={() => onRemoveMeeting(m.id)}
+                          container={container}
+                        />
+                      ))}
+
                       <motion.div variants={itemVariants}>
-                        <WarningNote>
-                          מספר התלמידים ({students.length}) חורג מהקיבולת (
-                          {values.capacity}).
-                        </WarningNote>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={onAddMeeting}
+                          className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
+                        >
+                          <Plus className="size-4 text-primary/70" />
+                          הוסף מפגש קבוע
+                        </Button>
                       </motion.div>
-                    )}
-                  </>
-                )}
+                    </>
+                  )}
 
-                {tab === "equipment" && (
-                  <>
-                    {values.equipment.map((line) => (
-                      <EquipmentRow
-                        key={line.id}
-                        line={line}
-                        onChange={(patch) => onUpdateEquipment(line.id, patch)}
-                        onRemove={() => onRemoveEquipment(line.id)}
-                        container={container}
-                      />
-                    ))}
+                  {tab === "students" && (
+                    <>
+                      <Field>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={onOpenStudentPicker}
+                          className="h-9 w-fit justify-center gap-1.5 rounded-xl px-3.5 text-sm font-normal neu-raised-xs neu-interactive"
+                        >
+                          <Plus className="size-4 text-primary/70" />
+                          הוסף תלמידים
+                        </Button>
+                      </Field>
 
-                    <motion.div variants={itemVariants}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={onAddEquipment}
-                        className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
-                      >
-                        <Plus className="size-4 text-primary/70" />
-                        הוסף ציוד
-                      </Button>
-                    </motion.div>
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                      {students.length === 0 ? (
+                        <motion.p
+                          variants={itemVariants}
+                          className="py-8 text-center text-sm text-muted-foreground"
+                        >
+                          אין תלמידים רשומים עדיין.
+                        </motion.p>
+                      ) : (
+                        <motion.div
+                          variants={itemVariants}
+                          className="space-y-1.5"
+                        >
+                          {students.map((p) => (
+                            <EnrolledPersonRow
+                              key={p.id}
+                              person={p}
+                              mismatchReasons={mismatchReasons(p.id)}
+                              onRemove={() => onRemoveStudent(p.id)}
+                              removeLabel={`הסר ${p.name}`}
+                              container={container}
+                            />
+                          ))}
+                        </motion.div>
+                      )}
+
+                      {capacityWarning && (
+                        <motion.div variants={itemVariants}>
+                          <WarningNote>
+                            מספר התלמידים ({students.length}) חורג מהקיבולת (
+                            {values.capacity}).
+                          </WarningNote>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+
+                  {tab === "equipment" && (
+                    <>
+                      {values.equipment.map((line) => (
+                        <EquipmentRow
+                          key={line.id}
+                          line={line}
+                          onChange={(patch) =>
+                            onUpdateEquipment(line.id, patch)
+                          }
+                          onRemove={() => onRemoveEquipment(line.id)}
+                          container={container}
+                          options={availableEquipmentOptions(
+                            values.equipment,
+                            line.id,
+                          )}
+                        />
+                      ))}
+
+                      <motion.div variants={itemVariants}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={onAddEquipment}
+                          disabled={
+                            availableEquipmentOptions(values.equipment, "")
+                              .length === 0
+                          }
+                          className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
+                        >
+                          <Plus className="size-4 text-primary/70" />
+                          הוסף ציוד
+                        </Button>
+                      </motion.div>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </fieldset>
           </div>
         </Tabs>
@@ -975,36 +1058,36 @@ export function AddCourseModal({
             />
           ) : (
             <>
-          {!readOnly && tab === "students" && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {}}
-              className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
-            >
-              <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-              <FileDown className="size-4 text-[#217346]" />
-              ייצוא לאקסל
-            </Button>
-          )}
-          {!readOnly && (
-            <Button
-              type="button"
-              disabled={!valid}
-              onClick={onConfirm}
-              className="rounded-xl"
-            >
-              {mode === "edit" ? "עדכון" : "אישור"}
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant={readOnly ? "default" : "ghost"}
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            {readOnly ? "סגירה" : "ביטול"}
-          </Button>
+              {!readOnly && tab === "students" && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {}}
+                  className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
+                >
+                  <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+                  <FileDown className="size-4 text-[#217346]" />
+                  ייצוא לאקסל
+                </Button>
+              )}
+              {!readOnly && (
+                <Button
+                  type="button"
+                  disabled={!valid}
+                  onClick={onConfirm}
+                  className="rounded-xl"
+                >
+                  {mode === "edit" ? "עדכון" : "אישור"}
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant={readOnly ? "default" : "ghost"}
+                onClick={() => onOpenChange(false)}
+                className="rounded-xl"
+              >
+                {readOnly ? "סגירה" : "ביטול"}
+              </Button>
             </>
           )}
         </DialogFooter>

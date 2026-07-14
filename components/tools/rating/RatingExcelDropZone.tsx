@@ -5,7 +5,7 @@ import { FileSpreadsheet, UploadCloud, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface FitnessExcelDropZoneProps {
+interface RatingExcelDropZoneProps {
   /** Name of the file currently dropped in, or null when empty. */
   fileName: string | null;
   onFileDrop: (file: File) => void;
@@ -17,11 +17,11 @@ interface FitnessExcelDropZoneProps {
  * from the computer. The drag-over highlight is local presentation only; the
  * chosen file is handed up via props.
  */
-export function FitnessExcelDropZone({
+export function RatingExcelDropZone({
   fileName,
   onFileDrop,
   onClear,
-}: FitnessExcelDropZoneProps) {
+}: RatingExcelDropZoneProps) {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

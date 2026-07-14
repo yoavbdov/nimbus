@@ -55,6 +55,8 @@ export function CourseFormModal({
       onRemoveEquipment={addCourse.removeEquipmentLine}
       coachWarning={addCourse.coachWarning}
       capacityWarning={addCourse.capacityWarning}
+      ageRangeInvalid={addCourse.ageRangeInvalid}
+      ratingRangeInvalid={addCourse.ratingRangeInvalid}
       mismatchReasons={addCourse.mismatchReasons}
     />
   );

@@ -10,9 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FitnessExcelDropZone } from "@/components/tools/fitness/FitnessExcelDropZone";
+import { RatingExcelDropZone } from "@/components/tools/rating/RatingExcelDropZone";
 
-interface FitnessExcelModalProps {
+interface RatingExcelModalProps {
   open: boolean;
   fileName: string | null;
   onOpenChange: (open: boolean) => void;
@@ -35,7 +35,7 @@ function StepBadge({ n }: { n: number }) {
  * Two-step Excel flow shown side by side: step 1 (export) on the right, a dashed
  * divider, then step 2 (fill & drop back) on the left with an indigo background.
  */
-export function FitnessExcelModal({
+export function RatingExcelModal({
   open,
   fileName,
   onOpenChange,
@@ -43,7 +43,7 @@ export function FitnessExcelModal({
   onFileDrop,
   onClearFile,
   onConfirm,
-}: FitnessExcelModalProps) {
+}: RatingExcelModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="max-w-2xl" showCloseButton>
@@ -96,7 +96,7 @@ export function FitnessExcelModal({
             <p className="text-xs leading-relaxed text-muted-foreground">
               נא לגרור את הקובץ המעודכן לאזור המסומן.
             </p>
-            <FitnessExcelDropZone
+            <RatingExcelDropZone
               fileName={fileName}
               onFileDrop={onFileDrop}
               onClear={onClearFile}

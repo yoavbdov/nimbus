@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SortIcon } from "@/components/shared/SortIcon";
+import { RangePill } from "@/components/shared/RangePill";
 import {
   Table,
   TableBody,
@@ -36,14 +37,6 @@ import type { Course } from "@/lib/courses-data";
 
 /** "רישומים אפשריים" is a per-course action, so it never appears in the bulk menu. */
 const bulkActions = courseActions.filter((a) => a.id !== "enrollments");
-
-function RangePill({ from, to }: { from: number; to: number }) {
-  return (
-    <span className="num text-sm text-foreground/85" dir="ltr">
-      {from}–{to}
-    </span>
-  );
-}
 
 function CountPill({ value }: { value: number }) {
   if (value === 0)
@@ -146,10 +139,14 @@ function CourseRow({
         {a.coach}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <RangePill from={a.ageMin} to={a.ageMax} />
+        <RangePill from={a.ageMin} to={a.ageMax} noLimit={a.noAgeLimit} />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <RangePill from={a.fitnessMin} to={a.fitnessMax} />
+        <RangePill
+          from={a.ratingMin}
+          to={a.ratingMax}
+          noLimit={a.noRatingLimit}
+        />
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <CountPill value={a.enrolled} />
@@ -238,7 +235,7 @@ export function CoursesTable({ courses }: CoursesTableProps) {
                 <SortableHeader {...headerProps("name")}>שם החוג</SortableHeader>
                 <SortableHeader {...headerProps("coach")}>מדריך</SortableHeader>
                 <SortableHeader {...headerProps("age")}>גילאים</SortableHeader>
-                <SortableHeader {...headerProps("fitness")}>מד כושר</SortableHeader>
+                <SortableHeader {...headerProps("rating")}>מד כושר</SortableHeader>
                 <SortableHeader {...headerProps("enrolled")}>רשומים</SortableHeader>
                 <SortableHeader {...headerProps("capacity")}>קיבולת</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>

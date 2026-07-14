@@ -9,6 +9,7 @@ export type SortKey =
   | "days"
   | "nextDate"
   | "participants"
+  | "age"
   | "rating"
   | "room";
 export type SortDir = "asc" | "desc";
@@ -36,6 +37,8 @@ function getSortValue(t: Tournament, key: SortKey): string | number {
       return t.nextDate;
     case "participants":
       return t.participants;
+    case "age":
+      return t.ageMin ?? 0;
     case "rating":
       return t.ratingMin;
     case "room":

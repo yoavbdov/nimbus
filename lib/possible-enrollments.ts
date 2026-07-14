@@ -16,17 +16,18 @@ export interface EnrollmentCandidate {
  * Returns the students who could be enrolled in the given course.
  *
  * NOTE: this is placeholder data — it filters the roster by the course's age
- * and fitness ranges so the table looks plausible. The real version will also
+ * and rating ranges so the table looks plausible. The real version will also
  * check that each student is free on the course's day and time.
  */
 export function possibleEnrollments(course: Course): EnrollmentCandidate[] {
   return players
     .filter(
       (p) =>
-        p.age >= course.ageMin &&
-        p.age <= course.ageMax &&
-        p.israeliRating >= course.fitnessMin &&
-        p.israeliRating <= course.fitnessMax &&
+        (course.noAgeLimit ||
+          (p.age >= course.ageMin && p.age <= course.ageMax)) &&
+        (course.noRatingLimit ||
+          (p.israeliRating >= course.ratingMin &&
+            p.israeliRating <= course.ratingMax)) &&
         !p.courses.includes(course.name),
     )
     .map((p) => ({
@@ -51,8 +52,9 @@ export function possibleTournamentEnrollments(
   return players
     .filter(
       (p) =>
-        p.israeliRating >= tournament.ratingMin &&
-        p.israeliRating <= tournament.ratingMax &&
+        (tournament.noRatingLimit ||
+          (p.israeliRating >= tournament.ratingMin &&
+            p.israeliRating <= tournament.ratingMax)) &&
         !p.tournaments.includes(tournament.name),
     )
     .map((p) => ({

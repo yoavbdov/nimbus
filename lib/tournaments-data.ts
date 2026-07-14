@@ -18,6 +18,12 @@ export interface Tournament {
   participants: number;
   ratingMin: number;
   ratingMax: number;
+  /** Age range the tournament is open to (optional: legacy rows omit it). */
+  ageMin?: number;
+  ageMax?: number;
+  /** When true, the tournament accepts any age / rating (the min/max are ignored). */
+  noAgeLimit?: boolean;
+  noRatingLimit?: boolean;
   room: string;
   /** Free-text notes, persisted in Firestore. */
   notes?: string;

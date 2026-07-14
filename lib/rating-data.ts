@@ -1,15 +1,15 @@
 import { clubPlayers } from "@/lib/rosters-data";
 
-// ── Bulk fitness update ────────────────────────────────────────────
+// ── Bulk rating update ────────────────────────────────────────────
 // The data behind the "עדכון מד כושר מרוכז" tool: every club player with
-// their current fitness rating and when it was last updated. Mock data —
+// their current rating rating and when it was last updated. Mock data —
 // the table only collects new values, it does not persist anything yet.
 
-export interface FitnessPlayer {
+export interface RatingPlayer {
   id: string;
   name: string;
   currentRating: number;
-  /** Formatted dd.MM.yyyy — when the fitness rating was last updated. */
+  /** Formatted dd.MM.yyyy — when the rating rating was last updated. */
   lastUpdated: string;
 }
 
@@ -27,7 +27,7 @@ function lastUpdatedFor(seed: string): string {
   return `${dd}.${mm}.${d.getFullYear()}`;
 }
 
-export const fitnessPlayers: FitnessPlayer[] = clubPlayers.map((p) => ({
+export const ratingPlayers: RatingPlayer[] = clubPlayers.map((p) => ({
   id: p.id,
   name: p.name,
   currentRating: p.rating,

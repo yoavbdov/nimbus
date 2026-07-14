@@ -49,10 +49,13 @@ export interface TournamentFormValues {
   id?: string;
   name: string;
   judge: string;
-  fitnessMin: string;
-  fitnessMax: string;
+  ratingMin: string;
+  ratingMax: string;
   ageMin: string;
   ageMax: string;
+  /** When on, the age / rating range imposes no limit and its inputs are ignored. */
+  noAgeLimit: boolean;
+  noRatingLimit: boolean;
   notes: string;
   format: TournamentFormat;
   /** Numeric string controlling how many round cards exist. */
@@ -73,10 +76,12 @@ export interface TournamentFormValues {
 export const EMPTY_TOURNAMENT_FORM: TournamentFormValues = {
   name: "",
   judge: "",
-  fitnessMin: "",
-  fitnessMax: "",
+  ratingMin: "",
+  ratingMax: "",
   ageMin: "",
   ageMax: "",
+  noAgeLimit: false,
+  noRatingLimit: false,
   notes: "",
   format: "rounds",
   roundsCount: "",
@@ -158,15 +163,15 @@ export function isTournamentFormValid(values: TournamentFormValues): boolean {
   return true;
 }
 
-/** Whether a player falls within the tournament's age and fitness ranges. */
+/** Whether a player falls within the tournament's age and rating ranges. */
 export function meetsTournamentCriteria(
   player: Player,
   values: TournamentFormValues,
 ): boolean {
   const ageMin = values.ageMin ? Number(values.ageMin) : null;
   const ageMax = values.ageMax ? Number(values.ageMax) : null;
-  const fitMin = values.fitnessMin ? Number(values.fitnessMin) : null;
-  const fitMax = values.fitnessMax ? Number(values.fitnessMax) : null;
+  const fitMin = values.ratingMin ? Number(values.ratingMin) : null;
+  const fitMax = values.ratingMax ? Number(values.ratingMax) : null;
 
   if (ageMin != null && player.age < ageMin) return false;
   if (ageMax != null && player.age > ageMax) return false;

@@ -43,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
+import { NoLimitToggle } from "@/components/shared/NoLimitToggle";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
@@ -51,7 +52,10 @@ import {
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
 import { equipment, OUTSIDE_CLUB_ROOM, type Room } from "@/lib/rooms-data";
-import { equipmentAvailableNow } from "@/lib/course-form";
+import {
+  availableEquipmentOptions,
+  equipmentAvailableNow,
+} from "@/lib/course-form";
 import {
   roundComplete,
   TOURNAMENT_FREQUENCY_OPTIONS,
@@ -422,11 +426,13 @@ function EquipmentRow({
   onChange,
   onRemove,
   container,
+  options,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
+  options: string[];
 }) {
   const selected = equipment.find((e) => e.name === line.equipmentId);
   const available = selected ? equipmentAvailableNow(selected.id) : null;
@@ -446,7 +452,7 @@ function EquipmentRow({
           <SearchSelect
             value={line.equipmentId}
             onChange={(v) => onChange({ equipmentId: v })}
-            options={equipment.map((e) => e.name)}
+            options={options}
             placeholder="בחר ציוד"
             searchPlaceholder="חיפוש ציוד…"
             container={container}
@@ -582,6 +588,8 @@ interface AddTournamentModalProps {
   onUpdateEquipment: (id: string, patch: Partial<EquipmentLineValues>) => void;
   onRemoveEquipment: (id: string) => void;
   judgeWarning: boolean;
+  ageRangeInvalid: boolean;
+  ratingRangeInvalid: boolean;
   mismatchReasons: (playerId: string) => string[];
 }
 
@@ -626,6 +634,8 @@ export function AddTournamentModal({
   onUpdateEquipment,
   onRemoveEquipment,
   judgeWarning,
+  ageRangeInvalid,
+  ratingRangeInvalid,
   mismatchReasons,
 }: AddTournamentModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
@@ -717,423 +727,507 @@ export function AddTournamentModal({
             {/* A disabled fieldset turns the whole form read-only in "view"
                 mode (cleanup archive) — every nested control is inert. */}
             <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={tab}
-                dir="rtl"
-                variants={bodyVariants}
-                initial="hidden"
-                animate="show"
-                exit={{
-                  opacity: 0,
-                  x: -16,
-                  filter: "blur(4px)",
-                  transition: { duration: 0.18 },
-                }}
-                className="space-y-4 overflow-hidden"
-              >
-                {tab === "details" && (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field>
-                        <FieldLabel required>שם התחרות</FieldLabel>
-                        <Input
-                          value={values.name}
-                          onChange={(e) =>
-                            onFieldChange("name", e.target.value)
-                          }
-                          className={fieldClass}
-                        />
-                      </Field>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={tab}
+                  dir="rtl"
+                  variants={bodyVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit={{
+                    opacity: 0,
+                    x: -16,
+                    filter: "blur(4px)",
+                    transition: { duration: 0.18 },
+                  }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  {tab === "details" && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field>
+                          <FieldLabel required>שם התחרות</FieldLabel>
+                          <Input
+                            value={values.name}
+                            onChange={(e) =>
+                              onFieldChange("name", e.target.value)
+                            }
+                            className={fieldClass}
+                          />
+                        </Field>
 
-                      <Field>
-                        <FieldLabel className="ps-1">שופט</FieldLabel>
-                        <SearchSelect
-                          value={values.judge || NO_JUDGE}
-                          onChange={(v) =>
-                            onFieldChange("judge", v === NO_JUDGE ? "" : v)
-                          }
-                          options={[NO_JUDGE, ...judgeOptions]}
-                          placeholder={NO_JUDGE}
-                          searchPlaceholder="חיפוש שופט…"
-                          container={container}
-                          dangerOption={NO_JUDGE}
-                        />
-                      </Field>
-                    </div>
+                        <Field>
+                          <FieldLabel className="ps-1">שופט</FieldLabel>
+                          <SearchSelect
+                            value={values.judge || NO_JUDGE}
+                            onChange={(v) =>
+                              onFieldChange("judge", v === NO_JUDGE ? "" : v)
+                            }
+                            options={[NO_JUDGE, ...judgeOptions]}
+                            placeholder={NO_JUDGE}
+                            searchPlaceholder="חיפוש שופט…"
+                            container={container}
+                            dangerOption={NO_JUDGE}
+                          />
+                        </Field>
+                      </div>
 
-                    {/* Fixed-height slot so the judge warning doesn't grow the
+                      {/* Fixed-height slot so the judge warning doesn't grow the
                         modal. Mirrors the row's columns so it sits under the
                         judge field. */}
-                    <div className="-mt-2.5 grid h-4 grid-cols-2 gap-3">
-                      <div />
-                      {judgeWarning && (
-                        <div className="ps-3">
-                          <WarningNote>התחרות תיווצר ללא שופט</WarningNote>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field>
-                        <FieldLabel>מד כושר מינימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.fitnessMin}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "fitnessMin",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel>מד כושר מקסימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.fitnessMax}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "fitnessMax",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field>
-                        <FieldLabel>גיל מינימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.ageMin}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "ageMin",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel>גיל מקסימלי</FieldLabel>
-                        <Input
-                          inputMode="numeric"
-                          value={values.ageMax}
-                          onChange={(e) =>
-                            onFieldChange(
-                              "ageMax",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          className={cn(fieldClass, "num")}
-                        />
-                      </Field>
-                    </div>
-
-                    <Field>
-                      <FieldLabel>הערות</FieldLabel>
-                      <Textarea
-                        value={values.notes}
-                        onChange={(e) => onFieldChange("notes", e.target.value)}
-                        className={cn(fieldClass, "h-auto min-h-20 py-2")}
-                      />
-                    </Field>
-                  </>
-                )}
-
-                {tab === "rounds" && (
-                  <>
-                    <Field>
-                      <FormatToggle
-                        value={values.format}
-                        onChange={onFormatChange}
-                      />
-                    </Field>
-
-                    <AnimatePresence mode="wait" initial={false}>
-                      {values.format === "rounds" ? (
-                        <motion.div
-                          key="rounds"
-                          initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-                          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                          exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
-                          transition={{ duration: 0.25, ease }}
-                          className="space-y-4"
-                        >
-                          <div className="flex items-end gap-2.5">
-                            <div className="flex-1 space-y-1.5">
-                              <FieldLabel required>מספר סיבובים</FieldLabel>
-                              <Input
-                                inputMode="numeric"
-                                value={values.roundsCount}
-                                onChange={(e) =>
-                                  onRoundsCountChange(e.target.value)
-                                }
-                                placeholder="לדוגמה: 7"
-                                className={cn(fieldClass, "text-center num")}
-                              />
-                            </div>
-                            <MagicCompleteButton
-                              rounds={values.rounds}
-                              onComplete={onCompleteFromRound}
-                              container={container}
-                            />
+                      <div className="-mt-2.5 grid h-4 grid-cols-2 gap-3">
+                        <div />
+                        {judgeWarning && (
+                          <div className="ps-3">
+                            <WarningNote>התחרות תיווצר ללא שופט</WarningNote>
                           </div>
+                        )}
+                      </div>
 
-                          {values.rounds.length === 0 ? (
-                            <p className="py-8 text-center text-sm text-muted-foreground">
-                              הזינו מספר סיבובים כדי להתחיל.
-                            </p>
-                          ) : (
-                            values.rounds.map((round, index) => (
-                              <RoundCard
-                                key={round.id}
-                                index={index}
-                                round={round}
-                                onChange={(patch) =>
-                                  onUpdateRound(round.id, patch)
-                                }
-                                container={container}
-                                roomOptions={roomOptions}
-                              />
-                            ))
-                          )}
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="fixed"
-                          initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-                          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                          exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
-                          transition={{ duration: 0.25, ease }}
-                          className="space-y-4"
-                        >
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div className="space-y-1.5">
-                              <FieldLabel required>חדר</FieldLabel>
-                              <SearchSelect
-                                value={values.fixedRoom}
-                                onChange={(v) => onFieldChange("fixedRoom", v)}
-                                options={roomOptions}
-                                placeholder="בחר חדר"
-                                searchPlaceholder="חיפוש חדר…"
-                                container={container}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <FieldLabel required>תדירות</FieldLabel>
-                              <Select
-                                value={values.fixedFrequency}
-                                onValueChange={(v) =>
-                                  onFieldChange(
-                                    "fixedFrequency",
-                                    v as TournamentFrequency,
-                                  )
-                                }
-                              >
-                                <SelectTrigger
-                                  className={cn(
-                                    selectTriggerClass,
-                                    "whitespace-nowrap",
-                                  )}
-                                >
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent
-                                  dir="rtl"
-                                  position="popper"
-                                  className={selectContentClass}
-                                >
-                                  {TOURNAMENT_FREQUENCY_OPTIONS.map((f) => (
-                                    <SelectItem key={f.value} value={f.value}>
-                                      {f.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div className="space-y-1.5">
-                              <FieldLabel required>שעת התחלה</FieldLabel>
-                              <Input
-                                type="time"
-                                dir="rtl"
-                                value={values.fixedStartTime}
-                                onChange={(e) =>
-                                  onFieldChange(
-                                    "fixedStartTime",
-                                    e.target.value,
-                                  )
-                                }
-                                className={dateFieldClass}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <FieldLabel required>שעת סיום</FieldLabel>
-                              <Input
-                                type="time"
-                                dir="rtl"
-                                value={values.fixedEndTime}
-                                onChange={(e) =>
-                                  onFieldChange("fixedEndTime", e.target.value)
-                                }
-                                className={dateFieldClass}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-end gap-2.5">
-                            <div className="flex-1 space-y-1.5">
-                              <FieldLabel required>תאריך התחלה</FieldLabel>
-                              <Input
-                                type="date"
-                                value={values.fixedStartDate}
-                                onChange={(e) =>
-                                  onFieldChange(
-                                    "fixedStartDate",
-                                    e.target.value,
-                                  )
-                                }
-                                className={dateFieldClass}
-                              />
-                            </div>
-                            <div className="flex-1 space-y-1.5">
-                              <FieldLabel required={values.fixedHasEndDate}>
-                                תאריך סיום
-                              </FieldLabel>
-                              <Input
-                                type="date"
-                                value={values.fixedEndDate}
-                                disabled={!values.fixedHasEndDate}
-                                onChange={(e) =>
-                                  onFieldChange("fixedEndDate", e.target.value)
-                                }
-                                className={cn(
-                                  dateFieldClass,
-                                  "disabled:opacity-40",
-                                  values.fixedHasEndDate &&
-                                    values.fixedEndDate &&
-                                    "bg-primary/15! font-medium text-primary ring-1 ring-primary/30",
-                                )}
-                              />
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              onClick={() =>
+                      <Field>
+                        <div className="flex items-end gap-2.5">
+                          <NoLimitToggle
+                            checked={values.noRatingLimit}
+                            onCheckedChange={(v) =>
+                              onFieldChange("noRatingLimit", v)
+                            }
+                            label="ללא הגבלה"
+                          />
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>מד כושר מינ׳</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noRatingLimit}
+                              value={
+                                values.noRatingLimit ? "" : values.ratingMin
+                              }
+                              placeholder={
+                                values.noRatingLimit ? "ללא הגבלה" : ""
+                              }
+                              onChange={(e) =>
                                 onFieldChange(
-                                  "fixedHasEndDate",
-                                  !values.fixedHasEndDate,
+                                  "ratingMin",
+                                  e.target.value.replace(/\D/g, ""),
                                 )
                               }
-                              aria-pressed={values.fixedHasEndDate}
                               className={cn(
-                                "group/btn relative h-9 shrink-0 overflow-hidden rounded-xl px-3 text-xs font-medium neu-raised-xs neu-interactive tint-indigo",
-                                values.fixedHasEndDate
-                                  ? "bg-primary/20! text-primary ring-1 ring-primary/40"
-                                  : "text-foreground/70",
+                                fieldClass,
+                                "num disabled:opacity-45",
                               )}
-                            >
-                              <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-                              {/* Reserve the width of the longer label so the
-                                  button doesn't resize when toggled. */}
-                              <span className="grid">
-                                <span
-                                  aria-hidden
-                                  className="invisible col-start-1 row-start-1"
-                                >
-                                  הוסף תאריך סיום
-                                </span>
-                                <span className="col-start-1 row-start-1 text-center">
-                                  {values.fixedHasEndDate
-                                    ? "הסר תאריך סיום"
-                                    : "הוסף תאריך סיום"}
-                                </span>
-                              </span>
-                            </Button>
+                            />
                           </div>
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>מד כושר מקס׳</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noRatingLimit}
+                              value={
+                                values.noRatingLimit ? "" : values.ratingMax
+                              }
+                              placeholder={
+                                values.noRatingLimit ? "ללא הגבלה" : ""
+                              }
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ratingMax",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </Field>
+
+                      {ratingRangeInvalid && (
+                        <div className="-mt-2">
+                          <WarningNote>
+                            מד כושר מקסימלי לא יכול להיות נמוך מהמינימלי.
+                          </WarningNote>
+                        </div>
+                      )}
+
+                      <Field>
+                        <div className="flex items-end gap-2.5">
+                          <NoLimitToggle
+                            checked={values.noAgeLimit}
+                            onCheckedChange={(v) =>
+                              onFieldChange("noAgeLimit", v)
+                            }
+                            label="ללא הגבלה"
+                          />
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>גיל מינימלי</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noAgeLimit}
+                              value={values.noAgeLimit ? "" : values.ageMin}
+                              placeholder={
+                                values.noAgeLimit ? "ללא הגבלה " : ""
+                              }
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ageMin",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <FieldLabel>גיל מקסימלי</FieldLabel>
+                            <Input
+                              inputMode="numeric"
+                              disabled={values.noAgeLimit}
+                              value={values.noAgeLimit ? "" : values.ageMax}
+                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  "ageMax",
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
+                              className={cn(
+                                fieldClass,
+                                "num disabled:opacity-45",
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </Field>
+
+                      {ageRangeInvalid && (
+                        <div className="-mt-2">
+                          <WarningNote>
+                            גיל מקסימלי לא יכול להיות נמוך מהמינימלי.
+                          </WarningNote>
+                        </div>
+                      )}
+
+                      <Field>
+                        <FieldLabel>הערות</FieldLabel>
+                        <Textarea
+                          value={values.notes}
+                          onChange={(e) =>
+                            onFieldChange("notes", e.target.value)
+                          }
+                          className={cn(fieldClass, "h-auto min-h-20 py-2")}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {tab === "rounds" && (
+                    <>
+                      <Field>
+                        <FormatToggle
+                          value={values.format}
+                          onChange={onFormatChange}
+                        />
+                      </Field>
+
+                      <AnimatePresence mode="wait" initial={false}>
+                        {values.format === "rounds" ? (
+                          <motion.div
+                            key="rounds"
+                            initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                            exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                            transition={{ duration: 0.25, ease }}
+                            className="space-y-4"
+                          >
+                            <div className="flex items-end gap-2.5">
+                              <div className="flex-1 space-y-1.5">
+                                <FieldLabel required>מספר סיבובים</FieldLabel>
+                                <Input
+                                  inputMode="numeric"
+                                  value={values.roundsCount}
+                                  onChange={(e) =>
+                                    onRoundsCountChange(e.target.value)
+                                  }
+                                  placeholder="לדוגמה: 7"
+                                  className={cn(fieldClass, "text-center num")}
+                                />
+                              </div>
+                              <MagicCompleteButton
+                                rounds={values.rounds}
+                                onComplete={onCompleteFromRound}
+                                container={container}
+                              />
+                            </div>
+
+                            {values.rounds.length === 0 ? (
+                              <p className="py-8 text-center text-sm text-muted-foreground">
+                                הזינו מספר סיבובים כדי להתחיל.
+                              </p>
+                            ) : (
+                              values.rounds.map((round, index) => (
+                                <RoundCard
+                                  key={round.id}
+                                  index={index}
+                                  round={round}
+                                  onChange={(patch) =>
+                                    onUpdateRound(round.id, patch)
+                                  }
+                                  container={container}
+                                  roomOptions={roomOptions}
+                                />
+                              ))
+                            )}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="fixed"
+                            initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                            exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                            transition={{ duration: 0.25, ease }}
+                            className="space-y-4"
+                          >
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="space-y-1.5">
+                                <FieldLabel required>חדר</FieldLabel>
+                                <SearchSelect
+                                  value={values.fixedRoom}
+                                  onChange={(v) =>
+                                    onFieldChange("fixedRoom", v)
+                                  }
+                                  options={roomOptions}
+                                  placeholder="בחר חדר"
+                                  searchPlaceholder="חיפוש חדר…"
+                                  container={container}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <FieldLabel required>תדירות</FieldLabel>
+                                <Select
+                                  value={values.fixedFrequency}
+                                  onValueChange={(v) =>
+                                    onFieldChange(
+                                      "fixedFrequency",
+                                      v as TournamentFrequency,
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      selectTriggerClass,
+                                      "whitespace-nowrap",
+                                    )}
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent
+                                    dir="rtl"
+                                    position="popper"
+                                    className={selectContentClass}
+                                  >
+                                    {TOURNAMENT_FREQUENCY_OPTIONS.map((f) => (
+                                      <SelectItem key={f.value} value={f.value}>
+                                        {f.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="space-y-1.5">
+                                <FieldLabel required>שעת התחלה</FieldLabel>
+                                <Input
+                                  type="time"
+                                  dir="rtl"
+                                  value={values.fixedStartTime}
+                                  onChange={(e) =>
+                                    onFieldChange(
+                                      "fixedStartTime",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className={dateFieldClass}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <FieldLabel required>שעת סיום</FieldLabel>
+                                <Input
+                                  type="time"
+                                  dir="rtl"
+                                  value={values.fixedEndTime}
+                                  onChange={(e) =>
+                                    onFieldChange(
+                                      "fixedEndTime",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className={dateFieldClass}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-end gap-2.5">
+                              <div className="flex-1 space-y-1.5">
+                                <FieldLabel required>תאריך התחלה</FieldLabel>
+                                <Input
+                                  type="date"
+                                  value={values.fixedStartDate}
+                                  onChange={(e) =>
+                                    onFieldChange(
+                                      "fixedStartDate",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className={dateFieldClass}
+                                />
+                              </div>
+                              <div className="flex-1 space-y-1.5">
+                                <FieldLabel required={values.fixedHasEndDate}>
+                                  תאריך סיום
+                                </FieldLabel>
+                                <Input
+                                  type="date"
+                                  value={values.fixedEndDate}
+                                  disabled={!values.fixedHasEndDate}
+                                  onChange={(e) =>
+                                    onFieldChange(
+                                      "fixedEndDate",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className={cn(
+                                    dateFieldClass,
+                                    "disabled:opacity-40",
+                                    values.fixedHasEndDate &&
+                                      values.fixedEndDate &&
+                                      "bg-primary/15! font-medium text-primary ring-1 ring-primary/30",
+                                  )}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                  onFieldChange(
+                                    "fixedHasEndDate",
+                                    !values.fixedHasEndDate,
+                                  )
+                                }
+                                aria-pressed={values.fixedHasEndDate}
+                                className={cn(
+                                  "group/btn relative h-9 shrink-0 overflow-hidden rounded-xl px-3 text-xs font-medium neu-raised-xs neu-interactive tint-indigo",
+                                  values.fixedHasEndDate
+                                    ? "bg-primary/20! text-primary ring-1 ring-primary/40"
+                                    : "text-foreground/70",
+                                )}
+                              >
+                                <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+                                {/* Reserve the width of the longer label so the
+                                  button doesn't resize when toggled. */}
+                                <span className="grid">
+                                  <span
+                                    aria-hidden
+                                    className="invisible col-start-1 row-start-1"
+                                  >
+                                    הוסף תאריך סיום
+                                  </span>
+                                  <span className="col-start-1 row-start-1 text-center">
+                                    {values.fixedHasEndDate
+                                      ? "הסר תאריך סיום"
+                                      : "הוסף תאריך סיום"}
+                                  </span>
+                                </span>
+                              </Button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  )}
+
+                  {tab === "players" && (
+                    <>
+                      <Field>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={onOpenPlayerPicker}
+                          className="h-9 w-fit justify-center gap-1.5 rounded-xl px-3.5 text-sm font-normal neu-raised-xs neu-interactive"
+                        >
+                          <Plus className="size-4 text-primary/70" />
+                          הוסף שחקנים
+                        </Button>
+                      </Field>
+
+                      {players.length === 0 ? (
+                        <motion.p
+                          variants={itemVariants}
+                          className="py-8 text-center text-sm text-muted-foreground"
+                        >
+                          אין שחקנים רשומים עדיין.
+                        </motion.p>
+                      ) : (
+                        <motion.div
+                          variants={itemVariants}
+                          className="space-y-1.5"
+                        >
+                          {players.map((p) => (
+                            <EnrolledPersonRow
+                              key={p.id}
+                              person={p}
+                              mismatchReasons={mismatchReasons(p.id)}
+                              onRemove={() => onRemovePlayer(p.id)}
+                              removeLabel={`הסר ${p.name}`}
+                              container={container}
+                            />
+                          ))}
                         </motion.div>
                       )}
-                    </AnimatePresence>
-                  </>
-                )}
+                    </>
+                  )}
 
-                {tab === "players" && (
-                  <>
-                    <Field>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={onOpenPlayerPicker}
-                        className="h-9 w-fit justify-center gap-1.5 rounded-xl px-3.5 text-sm font-normal neu-raised-xs neu-interactive"
-                      >
-                        <Plus className="size-4 text-primary/70" />
-                        הוסף שחקנים
-                      </Button>
-                    </Field>
+                  {tab === "equipment" && (
+                    <>
+                      {values.equipment.map((line) => (
+                        <EquipmentRow
+                          key={line.id}
+                          line={line}
+                          onChange={(patch) =>
+                            onUpdateEquipment(line.id, patch)
+                          }
+                          onRemove={() => onRemoveEquipment(line.id)}
+                          container={container}
+                          options={availableEquipmentOptions(
+                            values.equipment,
+                            line.id,
+                          )}
+                        />
+                      ))}
 
-                    {players.length === 0 ? (
-                      <motion.p
-                        variants={itemVariants}
-                        className="py-8 text-center text-sm text-muted-foreground"
-                      >
-                        אין שחקנים רשומים עדיין.
-                      </motion.p>
-                    ) : (
-                      <motion.div
-                        variants={itemVariants}
-                        className="space-y-1.5"
-                      >
-                        {players.map((p) => (
-                          <EnrolledPersonRow
-                            key={p.id}
-                            person={p}
-                            mismatchReasons={mismatchReasons(p.id)}
-                            onRemove={() => onRemovePlayer(p.id)}
-                            removeLabel={`הסר ${p.name}`}
-                            container={container}
-                          />
-                        ))}
+                      <motion.div variants={itemVariants}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={onAddEquipment}
+                          disabled={
+                            availableEquipmentOptions(values.equipment, "")
+                              .length === 0
+                          }
+                          className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
+                        >
+                          <Plus className="size-4 text-primary/70" />
+                          הוסף ציוד
+                        </Button>
                       </motion.div>
-                    )}
-                  </>
-                )}
-
-                {tab === "equipment" && (
-                  <>
-                    {values.equipment.map((line) => (
-                      <EquipmentRow
-                        key={line.id}
-                        line={line}
-                        onChange={(patch) => onUpdateEquipment(line.id, patch)}
-                        onRemove={() => onRemoveEquipment(line.id)}
-                        container={container}
-                      />
-                    ))}
-
-                    <motion.div variants={itemVariants}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={onAddEquipment}
-                        className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
-                      >
-                        <Plus className="size-4 text-primary/70" />
-                        הוסף ציוד
-                      </Button>
-                    </motion.div>
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </fieldset>
           </div>
         </Tabs>
@@ -1154,36 +1248,36 @@ export function AddTournamentModal({
             />
           ) : (
             <>
-          {!readOnly && tab === "players" && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {}}
-              className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
-            >
-              <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-              <FileDown className="size-4 text-[#217346]" />
-              ייצוא לאקסל
-            </Button>
-          )}
-          {!readOnly && (
-            <Button
-              type="button"
-              disabled={!valid}
-              onClick={onConfirm}
-              className="rounded-xl"
-            >
-              {mode === "edit" ? "עדכון" : "אישור"}
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant={readOnly ? "default" : "ghost"}
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            {readOnly ? "סגירה" : "ביטול"}
-          </Button>
+              {!readOnly && tab === "players" && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {}}
+                  className="group/btn relative ms-auto h-9 w-fit justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 text-xs font-medium neu-raised-xs neu-interactive tint-indigo"
+                >
+                  <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+                  <FileDown className="size-4 text-[#217346]" />
+                  ייצוא לאקסל
+                </Button>
+              )}
+              {!readOnly && (
+                <Button
+                  type="button"
+                  disabled={!valid}
+                  onClick={onConfirm}
+                  className="rounded-xl"
+                >
+                  {mode === "edit" ? "עדכון" : "אישור"}
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant={readOnly ? "default" : "ghost"}
+                onClick={() => onOpenChange(false)}
+                className="rounded-xl"
+              >
+                {readOnly ? "סגירה" : "ביטול"}
+              </Button>
             </>
           )}
         </DialogFooter>

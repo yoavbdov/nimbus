@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { PageShell } from "@/components/layout/PageShell";
-import { FitnessUpdateView } from "@/components/tools/fitness/FitnessUpdateView";
+import { RatingUpdateView } from "@/components/tools/rating/RatingUpdateView";
 
-export default function FitnessUpdatePage() {
+export default function RatingUpdatePage() {
   return (
     <PageShell title="עדכון מד כושר מרוכז">
       <motion.div
@@ -13,7 +13,7 @@ export default function FitnessUpdatePage() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="bloom bloom-indigo rounded-3xl"
       >
-        <FitnessUpdateView />
+        <RatingUpdateView />
       </motion.div>
     </PageShell>
   );

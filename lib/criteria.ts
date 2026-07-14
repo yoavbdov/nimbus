@@ -1,15 +1,28 @@
 import type { Player } from "@/lib/players-data";
 
 /**
- * The age / fitness bounds an activity (course or tournament) can impose on the
+ * The age / rating bounds an activity (course or tournament) can impose on the
  * players it enrolls. Bounds arrive as raw form strings — a blank string means
  * "no limit".
  */
 export interface CriteriaBounds {
   ageMin: string;
   ageMax: string;
-  fitnessMin: string;
-  fitnessMax: string;
+  ratingMin: string;
+  ratingMax: string;
+  /** When set, the matching range imposes no limit (its min/max are ignored). */
+  noAgeLimit?: boolean;
+  noRatingLimit?: boolean;
+}
+
+/**
+ * Whether a max bound is set below its matching min bound (e.g. a maximum age
+ * lower than the minimum age) — an impossible range the form must reject. Blank
+ * bounds impose no limit, so a missing side is never invalid.
+ */
+export function maxBelowMin(min: string, max: string): boolean {
+  if (min === "" || max === "") return false;
+  return Number(max) < Number(min);
 }
 
 /**
@@ -21,10 +34,12 @@ export function criteriaMismatchReasons(
   player: Player,
   bounds: CriteriaBounds,
 ): string[] {
-  const ageMin = bounds.ageMin ? Number(bounds.ageMin) : null;
-  const ageMax = bounds.ageMax ? Number(bounds.ageMax) : null;
-  const fitMin = bounds.fitnessMin ? Number(bounds.fitnessMin) : null;
-  const fitMax = bounds.fitnessMax ? Number(bounds.fitnessMax) : null;
+  const ageMin = bounds.noAgeLimit || !bounds.ageMin ? null : Number(bounds.ageMin);
+  const ageMax = bounds.noAgeLimit || !bounds.ageMax ? null : Number(bounds.ageMax);
+  const fitMin =
+    bounds.noRatingLimit || !bounds.ratingMin ? null : Number(bounds.ratingMin);
+  const fitMax =
+    bounds.noRatingLimit || !bounds.ratingMax ? null : Number(bounds.ratingMax);
 
   const reasons: string[] = [];
   if (ageMin != null && player.age < ageMin)

@@ -9,7 +9,7 @@ import {
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
-import { criteriaMismatchReasons } from "@/lib/criteria";
+import { criteriaMismatchReasons, maxBelowMin } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
@@ -60,7 +60,13 @@ export function useAddTournament() {
   // work off real players (docs keyed by name), not the legacy mock.
   const { data: players } = useCollection<Player>("players");
 
-  const valid = isTournamentFormValid(values);
+  // A max bound below its min is an impossible range — block it and flag it.
+  const ageRangeInvalid =
+    !values.noAgeLimit && maxBelowMin(values.ageMin, values.ageMax);
+  const ratingRangeInvalid =
+    !values.noRatingLimit && maxBelowMin(values.ratingMin, values.ratingMax);
+  const valid =
+    isTournamentFormValid(values) && !ageRangeInvalid && !ratingRangeInvalid;
   // Read-only (view) never counts as dirty; otherwise compare against the open snapshot.
   const dirty = mode !== "view" && JSON.stringify(values) !== baseline;
 
@@ -221,7 +227,7 @@ export function useAddTournament() {
   const addEquipmentLine = useCallback(() => {
     setValues((prev) => ({
       ...prev,
-      equipment: [...prev.equipment, makeEquipmentLine()],
+      equipment: [...prev.equipment, makeEquipmentLine(prev.equipment)],
     }));
   }, []);
 
@@ -409,6 +415,8 @@ export function useAddTournament() {
     updateEquipmentLine,
     removeEquipmentLine,
     judgeWarning,
+    ageRangeInvalid,
+    ratingRangeInvalid,
     mismatchReasons,
   };
 }

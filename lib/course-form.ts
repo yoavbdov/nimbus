@@ -44,10 +44,13 @@ export interface CourseFormValues {
   name: string;
   coach: string;
   capacity: string;
-  fitnessMin: string;
-  fitnessMax: string;
+  ratingMin: string;
+  ratingMax: string;
   ageMin: string;
   ageMax: string;
+  /** When on, the age / rating range imposes no limit and its inputs are ignored. */
+  noAgeLimit: boolean;
+  noRatingLimit: boolean;
   notes: string;
   startDate: string;
   meetings: MeetingValues[];
@@ -59,10 +62,12 @@ export const EMPTY_COURSE_FORM: CourseFormValues = {
   name: "",
   coach: "",
   capacity: "",
-  fitnessMin: "",
-  fitnessMax: "",
+  ratingMin: "",
+  ratingMax: "",
   ageMin: "",
   ageMax: "",
+  noAgeLimit: false,
+  noRatingLimit: false,
   notes: "",
   startDate: "",
   meetings: [],
@@ -89,8 +94,18 @@ export function makeMeeting(): MeetingValues {
   };
 }
 
-export function makeEquipmentLine(): EquipmentLineValues {
-  return { id: makeId("equip"), equipmentId: "", quantity: "1" };
+export function makeEquipmentLine(
+  existing: { equipmentId: string }[] = [],
+): EquipmentLineValues {
+  // Default to the first item not already picked by another line (each physical
+  // item can be added only once), rather than an empty "בחר ציוד".
+  const taken = new Set(existing.map((l) => l.equipmentId).filter(Boolean));
+  const firstAvailable = equipment.find((e) => !taken.has(e.name));
+  return {
+    id: makeId("equip"),
+    equipmentId: firstAvailable?.name ?? "",
+    quantity: "1",
+  };
 }
 
 /**
@@ -151,12 +166,31 @@ export function equipmentById(equipmentId: string): Equipment | undefined {
   return equipment.find((e) => e.id === equipmentId);
 }
 
-/** Whether a student falls within the course's age and fitness ranges. */
+/**
+ * The equipment names a given line may still choose: every item minus the ones
+ * already picked by the OTHER lines (its own current pick stays visible). Used
+ * so each physical item can be added to an activity only once.
+ */
+export function availableEquipmentOptions(
+  lines: { id: string; equipmentId: string }[],
+  currentLineId: string,
+): string[] {
+  const takenByOthers = new Set(
+    lines
+      .filter((l) => l.id !== currentLineId && l.equipmentId)
+      .map((l) => l.equipmentId),
+  );
+  return equipment
+    .map((e) => e.name)
+    .filter((name) => !takenByOthers.has(name));
+}
+
+/** Whether a student falls within the course's age and rating ranges. */
 export function meetsCriteria(player: Player, values: CourseFormValues): boolean {
   const ageMin = values.ageMin ? Number(values.ageMin) : null;
   const ageMax = values.ageMax ? Number(values.ageMax) : null;
-  const fitMin = values.fitnessMin ? Number(values.fitnessMin) : null;
-  const fitMax = values.fitnessMax ? Number(values.fitnessMax) : null;
+  const fitMin = values.ratingMin ? Number(values.ratingMin) : null;
+  const fitMax = values.ratingMax ? Number(values.ratingMax) : null;
 
   if (ageMin != null && player.age < ageMin) return false;
   if (ageMax != null && player.age > ageMax) return false;

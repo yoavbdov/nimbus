@@ -5,7 +5,7 @@ export type SortKey =
   | "name"
   | "coach"
   | "age"
-  | "fitness"
+  | "rating"
   | "enrolled"
   | "capacity"
   | "days"
@@ -35,8 +35,8 @@ function getSortValue(a: Course, key: SortKey): string | number {
       return a.coach;
     case "age":
       return a.ageMin;
-    case "fitness":
-      return a.fitnessMin;
+    case "rating":
+      return a.ratingMin;
     case "enrolled":
       return a.enrolled;
     case "capacity":

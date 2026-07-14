@@ -1,16 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fitnessPlayers } from "@/lib/fitness-data";
+import { ratingPlayers } from "@/lib/rating-data";
 
 /**
- * Drives the bulk fitness-update tool: holding the new rating typed for each
+ * Drives the bulk rating-update tool: holding the new rating typed for each
  * player, tracking the Excel file dropped back in, and the confirm dialog.
  * Everything is in-memory for the session — confirming just clears the drafts.
  * Any row with a new rating filled in is what gets "updated" on confirm.
  */
-export function useFitnessUpdate() {
-  const players = fitnessPlayers;
+export function useRatingUpdate() {
+  const players = ratingPlayers;
 
   // New rating typed per player id (empty string = nothing entered).
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -29,7 +29,7 @@ export function useFitnessUpdate() {
   }, [players, query]);
 
   const setDraft = (id: string, value: string) => {
-    // A fitness rating is digits only, up to 4 of them.
+    // A rating rating is digits only, up to 4 of them.
     const clean = value.replace(/\D/g, "").slice(0, 4);
     setDrafts((prev) => ({ ...prev, [id]: clean }));
   };

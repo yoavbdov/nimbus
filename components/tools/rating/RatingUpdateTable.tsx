@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { type FitnessPlayer } from "@/lib/fitness-data";
+import { type RatingPlayer } from "@/lib/rating-data";
 import { cn } from "@/lib/utils";
 
 const headClass =
@@ -20,13 +20,13 @@ const cellClass = "px-4 py-3 text-sm text-foreground/80 text-center";
 
 const MotionTableRow = motion.create(TableRow);
 
-function FitnessRow({
+function RatingRow({
   player: p,
   index: i,
   value,
   onDraftChange,
 }: {
-  player: FitnessPlayer;
+  player: RatingPlayer;
   index: number;
   value: string;
   onDraftChange: (id: string, value: string) => void;
@@ -74,18 +74,18 @@ function FitnessRow({
   );
 }
 
-interface FitnessUpdateTableProps {
-  players: FitnessPlayer[];
+interface RatingUpdateTableProps {
+  players: RatingPlayer[];
   /** New rating typed per player id. */
   drafts: Record<string, string>;
   onDraftChange: (id: string, value: string) => void;
 }
 
-export function FitnessUpdateTable({
+export function RatingUpdateTable({
   players,
   drafts,
   onDraftChange,
-}: FitnessUpdateTableProps) {
+}: RatingUpdateTableProps) {
   if (players.length === 0) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
@@ -113,7 +113,7 @@ export function FitnessUpdateTable({
           </TableHeader>
           <TableBody>
             {players.map((p, i) => (
-              <FitnessRow
+              <RatingRow
                 key={p.id}
                 player={p}
                 index={i}

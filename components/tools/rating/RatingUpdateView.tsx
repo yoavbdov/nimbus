@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ToolBackLink } from "@/components/tools/ToolBackLink";
-import { FitnessConfirmDialog } from "@/components/tools/fitness/FitnessConfirmDialog";
-import { FitnessExcelModal } from "@/components/tools/fitness/FitnessExcelModal";
-import { FitnessUpdateTable } from "@/components/tools/fitness/FitnessUpdateTable";
-import { useFitnessUpdate } from "@/hooks/tools/useFitnessUpdate";
+import { RatingConfirmDialog } from "@/components/tools/rating/RatingConfirmDialog";
+import { RatingExcelModal } from "@/components/tools/rating/RatingExcelModal";
+import { RatingUpdateTable } from "@/components/tools/rating/RatingUpdateTable";
+import { useRatingUpdate } from "@/hooks/tools/useRatingUpdate";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -29,7 +29,7 @@ const itemVariants = {
   },
 };
 
-export function FitnessUpdateView() {
+export function RatingUpdateView() {
   const {
     visiblePlayers,
     query,
@@ -50,7 +50,7 @@ export function FitnessUpdateView() {
     handleFileDrop,
     clearDroppedFile,
     confirmExcelImport,
-  } = useFitnessUpdate();
+  } = useRatingUpdate();
 
   return (
     <div className="space-y-4">
@@ -123,7 +123,7 @@ export function FitnessUpdateView() {
 
           {/* ── Table ──────────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>
-            <FitnessUpdateTable
+            <RatingUpdateTable
               players={visiblePlayers}
               drafts={drafts}
               onDraftChange={setDraft}
@@ -132,14 +132,14 @@ export function FitnessUpdateView() {
         </motion.div>
       </Card>
 
-      <FitnessConfirmDialog
+      <RatingConfirmDialog
         open={confirmOpen}
         count={filledCount}
         onConfirm={confirmUpdate}
         onCancel={cancelConfirm}
       />
 
-      <FitnessExcelModal
+      <RatingExcelModal
         open={excelOpen}
         fileName={droppedFileName}
         onOpenChange={(o) => !o && closeExcelModal()}

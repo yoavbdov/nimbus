@@ -15,7 +15,7 @@ export interface InvitableCourse {
   daysLabel: string;
   /** The course's known weekly time window, e.g. "17:00–18:30". */
   timeRange: string;
-  /** Rating range (תחרות) or fitness range (חוג). */
+  /** Rating range (תחרות) or rating range (חוג). */
   rangeLabel: string;
   room: string;
   /** Extra line — judge + rounds for a tournament, coach for a class. */
@@ -58,7 +58,7 @@ const invitableClasses: InvitableCourse[] = courses
     date: a.nextDate,
     daysLabel: a.days.join(", "),
     timeRange: timeRange(a.id),
-    rangeLabel: `${a.fitnessMin}–${a.fitnessMax}`,
+    rangeLabel: `${a.ratingMin}–${a.ratingMax}`,
     room: a.room,
     detailLabel: `מדריך: ${a.coach}`,
   }));

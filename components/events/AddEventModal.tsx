@@ -58,7 +58,10 @@ import {
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
 import { rooms, equipment } from "@/lib/rooms-data";
-import { equipmentAvailableNow } from "@/lib/course-form";
+import {
+  availableEquipmentOptions,
+  equipmentAvailableNow,
+} from "@/lib/course-form";
 import {
   EVENT_FREQUENCY_OPTIONS,
   type EventFormValues,
@@ -400,11 +403,13 @@ function EquipmentRow({
   onChange,
   onRemove,
   container,
+  options,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
+  options: string[];
 }) {
   const selected = equipment.find((e) => e.name === line.equipmentId);
   const available = selected ? equipmentAvailableNow(selected.id) : null;
@@ -424,7 +429,7 @@ function EquipmentRow({
           <SearchSelect
             value={line.equipmentId}
             onChange={(v) => onChange({ equipmentId: v })}
-            options={equipment.map((e) => e.name)}
+            options={options}
             placeholder="בחר ציוד"
             searchPlaceholder="חיפוש ציוד…"
             container={container}
@@ -1024,6 +1029,10 @@ export function AddEventModal({
                         onChange={(patch) => onUpdateEquipment(line.id, patch)}
                         onRemove={() => onRemoveEquipment(line.id)}
                         container={container}
+                        options={availableEquipmentOptions(
+                          values.equipment,
+                          line.id,
+                        )}
                       />
                     ))}
 
@@ -1032,7 +1041,11 @@ export function AddEventModal({
                         type="button"
                         variant="ghost"
                         onClick={onAddEquipment}
-                        className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
+                        disabled={
+                          availableEquipmentOptions(values.equipment, "")
+                            .length === 0
+                        }
+                        className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
                       >
                         <Plus className="size-4 text-primary/70" />
                         הוסף ציוד

@@ -14,20 +14,20 @@ import { Button } from "@/components/ui/button";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-interface FitnessConfirmDialogProps {
+interface RatingConfirmDialogProps {
   open: boolean;
   count: number;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-/** Animated confirm dialog for applying the bulk fitness update. */
-export function FitnessConfirmDialog({
+/** Animated confirm dialog for applying the bulk rating update. */
+export function RatingConfirmDialog({
   open,
   count,
   onConfirm,
   onCancel,
-}: FitnessConfirmDialogProps) {
+}: RatingConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
       <DialogContent dir="rtl" className="max-w-sm" showCloseButton={false}>

@@ -20,7 +20,7 @@ export interface CompletedCourse {
   daysLabel: string;
   /** Known weekly time window, e.g. "17:00–18:30". */
   timeRange: string;
-  /** Rating / fitness range, or "—" when not applicable. */
+  /** Rating / rating range, or "—" when not applicable. */
   rangeLabel: string;
   /** Extra context line for the details dialog. */
   detailLabel: string;
@@ -51,7 +51,7 @@ export function courseToCompleted(a: Course): CompletedCourse {
     room: a.room,
     daysLabel: a.days.join(", "),
     timeRange: timeRange(a.id),
-    rangeLabel: `מד״כ ${a.fitnessMin}–${a.fitnessMax} · גיל ${a.ageMin}–${a.ageMax}`,
+    rangeLabel: `מד״כ ${a.ratingMin}–${a.ratingMax} · גיל ${a.ageMin}–${a.ageMax}`,
     detailLabel: `מדריך: ${a.coach}`,
   };
 }

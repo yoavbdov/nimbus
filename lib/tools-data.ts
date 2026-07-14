@@ -23,7 +23,7 @@ export const toolNavItems: { href: string; label: string; icon: LucideIcon }[] =
   { href: "/tools/missing-attendance", label: "נוכחות חסרה", icon: ClipboardX },
   { href: "/tools/whatsapp", label: "שליחת וואטסאפ", icon: MessageCircle },
   { href: "/tools/rosters", label: "רשימות שחקנים", icon: Users },
-  { href: "/tools/fitness", label: "עדכון מד כושר", icon: Gauge },
+  { href: "/tools/rating", label: "עדכון מד כושר", icon: Gauge },
 ];
 
 export const toolCards: ToolCard[] = [
@@ -56,7 +56,7 @@ export const toolCards: ToolCard[] = [
     icon: Users,
   },
   {
-    href: "/tools/fitness",
+    href: "/tools/rating",
     title: "עדכון מד כושר מרוכז",
     description:
       "עדכון מד כושר לכמה שחקנים בבת אחת — ישירות בטבלה או דרך ייצוא וייבוא של קובץ אקסל.",
