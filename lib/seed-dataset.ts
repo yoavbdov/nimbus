@@ -211,10 +211,10 @@ export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => (
 }));
 
 // ── Events (1 one-off, next week) ────────────────────────────────────────────
-// Meets weekly on TWO weekdays, each in a DIFFERENT room — demonstrating that
-// room is per-session (see sessions below), not a single activity-level value.
+// A one-off opening evening: a single session on Sunday (see sessions below),
+// so its one activity day is ראשון.
 const rawSeedEvents: ClubEvent[] = [
-  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["ראשון", "שני"], nextDate: "05.07.2026", status: "מתוכנן", recurrence: "קבוע", room: "אולם ראשי", notes: "" },
+  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["ראשון"], nextDate: "05.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
 ];
 const eventNameById = nameByIdOf(rawSeedEvents);
 export const seedEvents: ClubEvent[] = keyByName(rawSeedEvents);
@@ -254,16 +254,14 @@ export const seedAttendance: AttendanceClass[] = rawSeedAttendance.map((cls) => 
 
 // ── Sessions (scheduling slots — the conflict source of truth) ───────────────
 // All on 2026-07-01 except the no-conflict controls. Times "HH:mm".
-const rawSeedSessions: SessionDoc[] = [
-  { id: "session-1", parentType: "course",     parentId: "course-1",     date: "2026-07-01", start: "16:00", end: "17:30", roomId: "room-1" },
-  { id: "session-2", parentType: "course",     parentId: "course-2",     date: "2026-07-01", start: "17:00", end: "18:30", roomId: "room-1" },
-  { id: "session-3", parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
-  { id: "session-4", parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "18:00", roomId: "room-3" },
-  { id: "session-5", parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
-  // event-1 meets every Sunday in room-2 and every Monday in room-1 — two
-  // sessions, two rooms, one activity (this is why room is per-session).
-  { id: "session-6", parentType: "event",      parentId: "event-1",      date: "2026-07-05", start: "18:00", end: "20:00", roomId: "room-2" }, // Sunday, room-2
-  { id: "session-7", parentType: "event",      parentId: "event-1",      date: "2026-07-06", start: "18:00", end: "20:00", roomId: "room-1" }, // Monday,  room-1
+const rawSeedSessions: Omit<SessionDoc, "id">[] = [
+  { parentType: "course",     parentId: "course-1",     date: "2026-07-01", start: "16:00", end: "17:30", roomId: "room-1" },
+  { parentType: "course",     parentId: "course-2",     date: "2026-07-01", start: "17:00", end: "18:30", roomId: "room-1" },
+  { parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
+  { parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "18:00", roomId: "room-3" },
+  { parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
+  // event-1 is a one-off opening evening: a SINGLE session on Sunday.
+  { parentType: "event",      parentId: "event-1",      date: "2026-07-05", start: "18:00", end: "20:00", roomId: "room-1" }, // Sunday, אולם ראשי
 ];
 
 // Name lookups per parent type, so session parents/rooms point at name ids.
@@ -275,22 +273,39 @@ const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> =
 
 const HEBREW_DAY_BY_JS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
-export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => ({
-  ...s,
-  parentId: parentNameById[s.parentType][s.parentId] ?? s.parentId,
-  roomId: roomNameById[s.roomId] ?? s.roomId,
-  // Course slots are recurring weekly meetings; tagging the weekday (derived
-  // from the fixture date) + repeat rule keeps the "פרטי חוג" edit form coherent
-  // without disturbing the concrete dates that drive the conflict fixtures.
-  ...(s.parentType === "course"
-    ? {
-        day: HEBREW_DAY_BY_JS[new Date(s.date).getDay()],
-        frequency: "weekly" as const,
-        noEndDate: true,
-        endDate: "",
-      }
-    : {}),
-}));
+// Session ids follow the SAME deterministic scheme the app uses when it writes
+// slots (lib/firebase/data/sessions.ts): a course meeting is
+// `${courseName}__meeting__${index}`, a tournament/event slot is
+// `${parentName}__slot__${index}`, the index counting per parent. Seeding with
+// these exact ids means editing an activity in the app REPLACES its seeded slots
+// in place (idempotent) instead of leaving orphans — and it keeps naming uniform
+// with app-created slots, never the old ad-hoc `session-N`.
+const seedSessionCount: Record<string, number> = {};
+
+export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => {
+  const parentId = parentNameById[s.parentType][s.parentId] ?? s.parentId;
+  const index = seedSessionCount[parentId] ?? 0;
+  seedSessionCount[parentId] = index + 1;
+  const suffix = s.parentType === "course" ? "meeting" : "slot";
+  return {
+    ...s,
+    id: `${parentId}__${suffix}__${index}`.replace(/\//g, "／"),
+    parentId,
+    roomId: roomNameById[s.roomId] ?? s.roomId,
+    // Course slots are recurring weekly meetings; tagging the weekday (derived
+    // from the fixture date) + repeat rule keeps the "פרטי חוג" edit form
+    // coherent without disturbing the concrete dates that drive the conflict
+    // fixtures.
+    ...(s.parentType === "course"
+      ? {
+          day: HEBREW_DAY_BY_JS[new Date(s.date).getDay()],
+          frequency: "weekly" as const,
+          noEndDate: true,
+          endDate: "",
+        }
+      : {}),
+  };
+});
 
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
 export const seedRatingTiers = defaultRatingTiers;
@@ -367,9 +382,10 @@ export const seedRelations: RelationDoc[] = Array.from(
 );
 
 /*
- * BUILT CONFLICTS (all on 2026-07-01):
- *  1. ROOM      — session-1 (course-1) & session-2 (course-2) both in room-1, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
- *  2. STUDENT   — player-1 is in course-1 (session-1, 16:00–17:30) and course-3 (session-3, 16:30–18:00) → overlap 16:30–17:30.
- *  3. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 (session-1) and course-2 (session-2), which overlap → double-booked.
- *  4. COACH     — coach-1 runs course-1 (session-1, 16:00–17:30) and judges tournament-1 (session-4, 17:00–18:00) → overlap 17:00–17:30.
+ * BUILT CONFLICTS (all on 2026-07-01, referenced by parent since session ids
+ * are now derived per parent):
+ *  1. ROOM      — course-1 & course-2 both in room-1, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
+ *  2. STUDENT   — player-1 is in course-1 (16:00–17:30) and course-3 (16:30–18:00) → overlap 16:30–17:30.
+ *  3. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 and course-2, which overlap → double-booked.
+ *  4. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–18:00) → overlap 17:00–17:30.
  */

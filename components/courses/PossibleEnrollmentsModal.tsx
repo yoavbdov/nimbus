@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { CriteriaSummary } from "@/components/shared/CriteriaSummary";
 import { cn } from "@/lib/utils";
 import type { EnrollmentCandidate } from "@/lib/possible-enrollments";
 import type { Course } from "@/lib/courses-data";
@@ -55,6 +56,17 @@ export function PossibleEnrollmentsModal({
               : "תלמידים פנויים שעומדים בקריטריונים של החוג."}
           </DialogDescription>
         </DialogHeader>
+
+        {course && (
+          <CriteriaSummary
+            ageMin={course.ageMin}
+            ageMax={course.ageMax}
+            noAgeLimit={course.noAgeLimit}
+            ratingMin={course.ratingMin}
+            ratingMax={course.ratingMax}
+            noRatingLimit={course.noRatingLimit}
+          />
+        )}
 
         {candidates.length === 0 ? (
           <Alert className="border-0 bg-transparent py-10 [&>svg]:hidden">

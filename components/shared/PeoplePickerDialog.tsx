@@ -38,6 +38,8 @@ import type { Player } from "@/lib/players-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+const MotionTableRow = motion.create(TableRow);
+
 const headClass =
   "px-3 py-2.5 text-center text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70";
 
@@ -189,18 +191,18 @@ export function PeoplePickerDialog({
                   סינון לפי טווח
                 </span>
                 <RangeFilter
-                  label="גיל"
-                  min={ageMin}
-                  max={ageMax}
-                  onMinChange={setAgeMin}
-                  onMaxChange={setAgeMax}
-                />
-                <RangeFilter
                   label="מד כושר"
                   min={ratingMin}
                   max={ratingMax}
                   onMinChange={setRatingMin}
                   onMaxChange={setRatingMax}
+                />
+                <RangeFilter
+                  label="גיל"
+                  min={ageMin}
+                  max={ageMax}
+                  onMinChange={setAgeMin}
+                  onMaxChange={setAgeMax}
                 />
               </div>
             </motion.div>
@@ -245,12 +247,18 @@ export function PeoplePickerDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    <AnimatePresence initial={false}>
                     {visible.map((p, i) => {
                       const disabled = disabledIds.includes(p.id);
                       const checked = disabled || checkedIds.includes(p.id);
                       return (
-                        <TableRow
+                        <MotionTableRow
                           key={p.id}
+                          layout
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.22, ease }}
                           onClick={() => !disabled && onToggle(p.id)}
                           className={cn(
                             "border-b-2 border-foreground/10 transition-colors duration-150",
@@ -291,9 +299,10 @@ export function PeoplePickerDialog({
                               />
                             </div>
                           </TableCell>
-                        </TableRow>
+                        </MotionTableRow>
                       );
                     })}
+                    </AnimatePresence>
                   </TableBody>
                 </Table>
               </div>

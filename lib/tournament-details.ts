@@ -1,13 +1,17 @@
 import { players } from "@/lib/players-data";
 import { rooms, equipment } from "@/lib/rooms-data";
-import { COURSE_DAYS, type CourseDay } from "@/lib/courses-data";
 import type { Tournament } from "@/lib/tournaments-data";
-import type { SessionDoc } from "@/lib/sessions-data";
+import {
+  daysFromSessions,
+  hebrewDayFromIso,
+  type SessionDoc,
+} from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 import {
   addWeeks,
   makeRound,
   type EquipmentLineValues,
+  type MeetingValues,
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
@@ -96,23 +100,6 @@ function nextDateFromIso(iso: string): string {
   return m ? `${m[3]}.${m[2]}.${m[1]}` : "—";
 }
 
-const HEBREW_DAY_BY_JS: CourseDay[] = [
-  "ראשון",
-  "שני",
-  "שלישי",
-  "רביעי",
-  "חמישי",
-  "שישי",
-  "שבת",
-];
-
-/** The Hebrew weekday of an ISO date ("2026-07-01" → "שלישי"); "" when invalid. */
-function hebrewDayFromIso(iso: string): CourseDay | "" {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "" : HEBREW_DAY_BY_JS[date.getDay()];
-}
-
 /** Deterministic id for a tournament's Nth slot (matches the seed/replace scheme). */
 function slotId(parentId: string, index: number): string {
   return `${parentId}__slot__${index}`.replace(/\//g, "／");
@@ -127,21 +114,19 @@ export function tournamentSessionsFromForm(
   values: TournamentFormValues,
 ): SessionDoc[] {
   if (values.format === "fixed") {
-    return [
-      {
-        id: slotId(id, 0),
-        parentType: "tournament",
-        parentId: id,
-        date: values.fixedStartDate,
-        start: values.fixedStartTime,
-        end: values.fixedEndTime,
-        roomId: values.fixedRoom,
-        day: hebrewDayFromIso(values.fixedStartDate) || undefined,
-        frequency: values.fixedFrequency,
-        noEndDate: !values.fixedHasEndDate,
-        endDate: values.fixedHasEndDate ? values.fixedEndDate : "",
-      },
-    ];
+    return values.fixedMeetings.map((m, i) => ({
+      id: slotId(id, i),
+      parentType: "tournament",
+      parentId: id,
+      date: m.startDate,
+      start: m.startTime,
+      end: m.endTime,
+      roomId: m.room,
+      day: hebrewDayFromIso(m.startDate) || undefined,
+      frequency: m.frequency,
+      noEndDate: m.noEndDate,
+      endDate: m.noEndDate ? "" : m.endDate,
+    }));
   }
   return values.rounds.map((round, i) => ({
     id: slotId(id, i),
@@ -155,12 +140,6 @@ export function tournamentSessionsFromForm(
   }));
 }
 
-/** The distinct weekdays the tournament's slots run on, in week order. */
-function daysFromSessions(sessions: SessionDoc[]): CourseDay[] {
-  const set = new Set(sessions.map((s) => s.day).filter(Boolean));
-  return COURSE_DAYS.filter((d) => set.has(d));
-}
-
 /** The scalar tournament fields to persist, derived from the form + its slots. */
 function tournamentScalarsFromForm(values: TournamentFormValues) {
   const id = values.name.trim();
@@ -169,7 +148,10 @@ function tournamentScalarsFromForm(values: TournamentFormValues) {
   return {
     name: id,
     judge: values.judge,
-    rounds: values.format === "rounds" ? values.rounds.length : 1,
+    rounds:
+      values.format === "rounds"
+        ? values.rounds.length
+        : values.fixedMeetings.length,
     days: daysFromSessions(sessions),
     nextDate: dates.length ? nextDateFromIso(dates[0]) : "—",
     ratingMin: Number(values.ratingMin) || 0,
@@ -213,6 +195,20 @@ function roundFromSession(session: SessionDoc): RoundValues {
   };
 }
 
+/** Rebuild a fixed meeting from a stored recurring session (edit prefill). */
+function fixedMeetingFromSession(session: SessionDoc): MeetingValues {
+  return {
+    id: session.id,
+    startDate: session.date,
+    room: session.roomId,
+    startTime: session.start,
+    endTime: session.end,
+    frequency: session.frequency ?? "weekly",
+    noEndDate: session.noEndDate ?? false,
+    endDate: session.endDate ?? "",
+  };
+}
+
 /**
  * Builds the "edit tournament" form from LIVE Firestore data: rounds come from
  * the tournament's `sessions`, enrolled players and equipment from its
@@ -225,7 +221,7 @@ export function tournamentFormValuesFromLive(
   relations: RelationDoc[],
 ): TournamentFormValues {
   const slots = sessions.filter((s) => s.parentId === tournament.id);
-  const recurring = slots.find((s) => s.frequency);
+  const recurringSlots = slots.filter((s) => s.frequency);
   const playerIds = relations
     .filter((r) => r.kind === "player_tournament" && r.targetId === tournament.id)
     .map((r) => r.subjectId);
@@ -239,7 +235,7 @@ export function tournamentFormValuesFromLive(
       quantity: r.quantity != null ? String(r.quantity) : "1",
     }));
 
-  if (recurring) {
+  if (recurringSlots.length > 0) {
     return {
       ...tournamentFormValuesFor(tournament),
       id: tournament.id,
@@ -248,16 +244,7 @@ export function tournamentFormValuesFromLive(
       format: "fixed",
       roundsCount: "",
       rounds: [],
-      fixedStartDate: recurring.date,
-      fixedHasEndDate: !recurring.noEndDate,
-      fixedEndDate: recurring.endDate ?? "",
-      fixedRoom: recurring.roomId,
-      fixedStartTime: recurring.start,
-      fixedEndTime: recurring.end,
-      fixedFrequency:
-        recurring.frequency && recurring.frequency !== "once"
-          ? recurring.frequency
-          : "weekly",
+      fixedMeetings: recurringSlots.map(fixedMeetingFromSession),
     };
   }
 
@@ -286,23 +273,18 @@ export function tournamentFormValuesFor(
     id: tournament.id,
     name: tournament.name,
     judge: tournament.judge,
-    ratingMin: String(tournament.ratingMin),
-    ratingMax: String(tournament.ratingMax),
-    ageMin: tournament.ageMin != null ? String(tournament.ageMin) : "",
-    ageMax: tournament.ageMax != null ? String(tournament.ageMax) : "",
+    // A blank/zero bound is "no limit" — show it as an empty field, not "0".
+    ratingMin: tournament.ratingMin ? String(tournament.ratingMin) : "",
+    ratingMax: tournament.ratingMax ? String(tournament.ratingMax) : "",
+    ageMin: tournament.ageMin ? String(tournament.ageMin) : "",
+    ageMax: tournament.ageMax ? String(tournament.ageMax) : "",
     noAgeLimit: tournament.noAgeLimit ?? false,
     noRatingLimit: tournament.noRatingLimit ?? false,
     notes: tournament.notes ?? "",
     format: "rounds",
     roundsCount: String(rounds.length),
     rounds,
-    fixedStartDate: "",
-    fixedHasEndDate: false,
-    fixedEndDate: "",
-    fixedRoom: "",
-    fixedStartTime: "",
-    fixedEndTime: "",
-    fixedFrequency: "weekly",
+    fixedMeetings: [],
     playerIds: playerIdsFor(tournament),
     equipment: equipmentFor(tournament),
   };

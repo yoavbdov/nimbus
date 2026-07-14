@@ -1,19 +1,24 @@
 import { allCourseCoaches } from "@/lib/courses-data";
 import {
   makeEquipmentLine,
+  makeMeeting,
+  meetingComplete,
   type EquipmentLineValues,
+  type MeetingValues,
 } from "@/lib/course-form";
 import type { Player } from "@/lib/players-data";
 
 export { makeEquipmentLine, type EquipmentLineValues };
+/** A fixed tournament's recurring meetings share the course meeting shape. */
+export { makeMeeting, type MeetingValues };
 
 /** The judge dropdown reuses the same coach list as the courses modal. */
 export const allTournamentJudgeOptions = allCourseCoaches;
 
 /**
  * A tournament is either split into discrete rounds (each with its own room,
- * time window and date) or a single "fixed" event with a start date and an
- * optional end date.
+ * time window and date) or a "fixed" event with one or more recurring meetings
+ * (each a start date + room + time window + repeat rule and optional end date).
  */
 export type TournamentFormat = "rounds" | "fixed";
 
@@ -61,14 +66,8 @@ export interface TournamentFormValues {
   /** Numeric string controlling how many round cards exist. */
   roundsCount: string;
   rounds: RoundValues[];
-  fixedStartDate: string;
-  /** When false the end-date field is disabled (grayed out). */
-  fixedHasEndDate: boolean;
-  fixedEndDate: string;
-  fixedRoom: string;
-  fixedStartTime: string;
-  fixedEndTime: string;
-  fixedFrequency: TournamentFrequency;
+  /** A fixed tournament's recurring meetings — as many as wanted. */
+  fixedMeetings: MeetingValues[];
   playerIds: string[];
   equipment: EquipmentLineValues[];
 }
@@ -86,13 +85,7 @@ export const EMPTY_TOURNAMENT_FORM: TournamentFormValues = {
   format: "rounds",
   roundsCount: "",
   rounds: [],
-  fixedStartDate: "",
-  fixedHasEndDate: false,
-  fixedEndDate: "",
-  fixedRoom: "",
-  fixedStartTime: "",
-  fixedEndTime: "",
-  fixedFrequency: "weekly",
+  fixedMeetings: [],
   playerIds: [],
   equipment: [],
 };
@@ -155,12 +148,8 @@ export function isTournamentFormValid(values: TournamentFormValues): boolean {
     if (values.rounds.length === 0) return false;
     return values.rounds.every(roundComplete);
   }
-  if (!values.fixedStartDate) return false;
-  if (!values.fixedRoom || !values.fixedStartTime || !values.fixedEndTime) {
-    return false;
-  }
-  if (values.fixedHasEndDate && !values.fixedEndDate) return false;
-  return true;
+  if (values.fixedMeetings.length === 0) return false;
+  return values.fixedMeetings.every(meetingComplete);
 }
 
 /** Whether a player falls within the tournament's age and rating ranges. */

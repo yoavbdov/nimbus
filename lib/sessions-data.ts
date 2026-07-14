@@ -16,6 +16,7 @@
  */
 
 import type { MeetingFrequency } from "@/lib/course-form";
+import { COURSE_DAYS, type CourseDay } from "@/lib/courses-data";
 
 export interface SessionDoc {
   id: string;
@@ -36,6 +37,51 @@ export interface SessionDoc {
   endDate?: string;
   /** True when the meeting repeats indefinitely (no end date). */
   noEndDate?: boolean;
+}
+
+const HEBREW_DAY_BY_JS: CourseDay[] = [
+  "ראשון",
+  "שני",
+  "שלישי",
+  "רביעי",
+  "חמישי",
+  "שישי",
+  "שבת",
+];
+
+/** The Hebrew weekday of an ISO date ("2026-07-01" → "שלישי"); "" when invalid. */
+export function hebrewDayFromIso(iso: string): CourseDay | "" {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "" : HEBREW_DAY_BY_JS[date.getDay()];
+}
+
+/**
+ * The single weekday one session runs on — the ONE rule shared by courses,
+ * tournaments and events. A recurring slot (course meeting / fixed tournament /
+ * recurring event) carries an explicit weekday, so we trust that; a one-off or
+ * per-round slot is pinned to a concrete date, so we read the weekday off the
+ * date. Either way one session yields one day.
+ */
+export function sessionDay(session: SessionDoc): CourseDay | "" {
+  return (session.day as CourseDay) || hebrewDayFromIso(session.date);
+}
+
+/** The distinct weekdays a set of sessions runs on, in week order (deduped). */
+export function daysFromSessions(sessions: SessionDoc[]): CourseDay[] {
+  const set = new Set(sessions.map(sessionDay).filter(Boolean));
+  return COURSE_DAYS.filter((d) => set.has(d));
+}
+
+/**
+ * The activity days of one parent (course/tournament/event) computed live from
+ * its sessions in Firestore — the single source of truth the tables show.
+ */
+export function daysForParent(
+  sessions: SessionDoc[],
+  parentId: string,
+): CourseDay[] {
+  return daysFromSessions(sessions.filter((s) => s.parentId === parentId));
 }
 
 export const sessions: SessionDoc[] = [

@@ -61,10 +61,12 @@ import {
   TOURNAMENT_FREQUENCY_OPTIONS,
   type TournamentFrequency,
   type EquipmentLineValues,
+  type MeetingValues,
   type RoundValues,
   type TournamentFormValues,
   type TournamentFormat,
 } from "@/lib/tournament-form";
+import { meetingEndDateValid } from "@/lib/course-form";
 import { useCollection } from "@/lib/firebase/useCollection";
 import type { CoachRecord } from "@/lib/coaches-data";
 import type {
@@ -353,6 +355,164 @@ function RoundCard({
   );
 }
 
+/** One recurring meeting of a fixed tournament: start date + room + time window
+ * + repeat rule and an optional end date. Mirrors the course meeting card. */
+function FixedMeetingCard({
+  meeting,
+  onChange,
+  onRemove,
+  container,
+  roomOptions,
+}: {
+  meeting: MeetingValues;
+  onChange: (patch: Partial<MeetingValues>) => void;
+  onRemove: () => void;
+  container: HTMLElement | null;
+  roomOptions: string[];
+}) {
+  const showEndDateWarning =
+    !meeting.noEndDate && !meetingEndDateValid(meeting);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+      transition={{ duration: 0.28, ease }}
+      className="space-y-3 rounded-2xl neu-inset bg-foreground/5 p-3"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">מפגש קבוע</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          aria-label="הסר מפגש"
+          className="size-7 rounded-lg text-destructive/80 hover:bg-destructive/15 hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="space-y-1.5">
+          <FieldLabel required>תאריך התחלה</FieldLabel>
+          <Input
+            type="date"
+            value={meeting.startDate}
+            onChange={(e) => onChange({ startDate: e.target.value })}
+            className={dateFieldClass}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <FieldLabel required>חדר</FieldLabel>
+          <SearchSelect
+            value={meeting.room}
+            onChange={(v) => onChange({ room: v })}
+            options={roomOptions}
+            placeholder="בחר חדר"
+            searchPlaceholder="חיפוש חדר…"
+            container={container}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="space-y-1.5">
+          <FieldLabel required>שעת התחלה</FieldLabel>
+          <Input
+            type="time"
+            dir="rtl"
+            value={meeting.startTime}
+            onChange={(e) => onChange({ startTime: e.target.value })}
+            className={dateFieldClass}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <FieldLabel required>שעת סיום</FieldLabel>
+          <Input
+            type="time"
+            dir="rtl"
+            value={meeting.endTime}
+            onChange={(e) => onChange({ endTime: e.target.value })}
+            className={dateFieldClass}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-end gap-2.5">
+        <div className="flex-1 space-y-1.5">
+          <FieldLabel required>תדירות</FieldLabel>
+          <Select
+            value={meeting.frequency}
+            onValueChange={(v) =>
+              onChange({ frequency: v as TournamentFrequency })
+            }
+          >
+            <SelectTrigger
+              className={cn(selectTriggerClass, "whitespace-nowrap")}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              dir="rtl"
+              position="popper"
+              className={selectContentClass}
+            >
+              {TOURNAMENT_FREQUENCY_OPTIONS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>
+                  {f.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-32 shrink-0 space-y-1.5">
+          <FieldLabel required>תאריך סיום</FieldLabel>
+          <Input
+            type="date"
+            value={meeting.endDate}
+            disabled={meeting.noEndDate}
+            onChange={(e) => onChange({ endDate: e.target.value })}
+            className={cn(
+              dateFieldClass,
+              "disabled:opacity-40",
+              meeting.endDate &&
+                !meeting.noEndDate &&
+                "bg-primary/15! font-medium text-primary ring-1 ring-primary/30",
+            )}
+          />
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => onChange({ noEndDate: !meeting.noEndDate })}
+          aria-pressed={meeting.noEndDate}
+          className={cn(
+            "group/btn relative shrink-0 overflow-hidden tint-indigo",
+            "h-9 rounded-xl px-3 text-xs font-medium neu-raised-xs neu-interactive",
+            meeting.noEndDate
+              ? "bg-primary/20! text-primary ring-1 ring-primary/40"
+              : "text-foreground/70",
+          )}
+        >
+          <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
+          ללא תאריך סיום
+        </Button>
+      </div>
+
+      {showEndDateWarning && (
+        <WarningNote>
+          תאריך הסיום חייב לחול על אותו יום בשבוע כמו תאריך ההתחלה, ולא לפניו.
+        </WarningNote>
+      )}
+    </motion.div>
+  );
+}
+
 /** The "magic" button: pick a base round, then fill all later rounds a week apart. */
 function MagicCompleteButton({
   rounds,
@@ -565,6 +725,9 @@ interface AddTournamentModalProps {
   onRoundsCountChange: (raw: string) => void;
   onUpdateRound: (id: string, patch: Partial<RoundValues>) => void;
   onCompleteFromRound: (baseIndex: number) => void;
+  onAddFixedMeeting: () => void;
+  onUpdateFixedMeeting: (id: string, patch: Partial<MeetingValues>) => void;
+  onRemoveFixedMeeting: (id: string) => void;
   players: Player[];
   availablePlayers: Player[];
   onRemovePlayer: (id: string) => void;
@@ -611,6 +774,9 @@ export function AddTournamentModal({
   onRoundsCountChange,
   onUpdateRound,
   onCompleteFromRound,
+  onAddFixedMeeting,
+  onUpdateFixedMeeting,
+  onRemoveFixedMeeting,
   players,
   availablePlayers,
   onRemovePlayer,
@@ -801,9 +967,6 @@ export function AddTournamentModal({
                               value={
                                 values.noRatingLimit ? "" : values.ratingMin
                               }
-                              placeholder={
-                                values.noRatingLimit ? "ללא הגבלה" : ""
-                              }
                               onChange={(e) =>
                                 onFieldChange(
                                   "ratingMin",
@@ -823,9 +986,6 @@ export function AddTournamentModal({
                               disabled={values.noRatingLimit}
                               value={
                                 values.noRatingLimit ? "" : values.ratingMax
-                              }
-                              placeholder={
-                                values.noRatingLimit ? "ללא הגבלה" : ""
                               }
                               onChange={(e) =>
                                 onFieldChange(
@@ -865,9 +1025,6 @@ export function AddTournamentModal({
                               inputMode="numeric"
                               disabled={values.noAgeLimit}
                               value={values.noAgeLimit ? "" : values.ageMin}
-                              placeholder={
-                                values.noAgeLimit ? "ללא הגבלה " : ""
-                              }
                               onChange={(e) =>
                                 onFieldChange(
                                   "ageMin",
@@ -886,7 +1043,6 @@ export function AddTournamentModal({
                               inputMode="numeric"
                               disabled={values.noAgeLimit}
                               value={values.noAgeLimit ? "" : values.ageMax}
-                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
                               onChange={(e) =>
                                 onFieldChange(
                                   "ageMax",
@@ -990,160 +1146,36 @@ export function AddTournamentModal({
                             transition={{ duration: 0.25, ease }}
                             className="space-y-4"
                           >
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div className="space-y-1.5">
-                                <FieldLabel required>חדר</FieldLabel>
-                                <SearchSelect
-                                  value={values.fixedRoom}
-                                  onChange={(v) =>
-                                    onFieldChange("fixedRoom", v)
-                                  }
-                                  options={roomOptions}
-                                  placeholder="בחר חדר"
-                                  searchPlaceholder="חיפוש חדר…"
-                                  container={container}
-                                />
-                              </div>
-                              <div className="space-y-1.5">
-                                <FieldLabel required>תדירות</FieldLabel>
-                                <Select
-                                  value={values.fixedFrequency}
-                                  onValueChange={(v) =>
-                                    onFieldChange(
-                                      "fixedFrequency",
-                                      v as TournamentFrequency,
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger
-                                    className={cn(
-                                      selectTriggerClass,
-                                      "whitespace-nowrap",
-                                    )}
-                                  >
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent
-                                    dir="rtl"
-                                    position="popper"
-                                    className={selectContentClass}
-                                  >
-                                    {TOURNAMENT_FREQUENCY_OPTIONS.map((f) => (
-                                      <SelectItem key={f.value} value={f.value}>
-                                        {f.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
+                            {values.fixedMeetings.length === 0 ? (
+                              <p className="py-8 text-center text-sm text-muted-foreground">
+                                הוסיפו מפגש קבוע כדי להתחיל.
+                              </p>
+                            ) : (
+                              <AnimatePresence initial={false}>
+                                {values.fixedMeetings.map((m) => (
+                                  <FixedMeetingCard
+                                    key={m.id}
+                                    meeting={m}
+                                    onChange={(patch) =>
+                                      onUpdateFixedMeeting(m.id, patch)
+                                    }
+                                    onRemove={() => onRemoveFixedMeeting(m.id)}
+                                    container={container}
+                                    roomOptions={roomOptions}
+                                  />
+                                ))}
+                              </AnimatePresence>
+                            )}
 
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div className="space-y-1.5">
-                                <FieldLabel required>שעת התחלה</FieldLabel>
-                                <Input
-                                  type="time"
-                                  dir="rtl"
-                                  value={values.fixedStartTime}
-                                  onChange={(e) =>
-                                    onFieldChange(
-                                      "fixedStartTime",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className={dateFieldClass}
-                                />
-                              </div>
-                              <div className="space-y-1.5">
-                                <FieldLabel required>שעת סיום</FieldLabel>
-                                <Input
-                                  type="time"
-                                  dir="rtl"
-                                  value={values.fixedEndTime}
-                                  onChange={(e) =>
-                                    onFieldChange(
-                                      "fixedEndTime",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className={dateFieldClass}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flex items-end gap-2.5">
-                              <div className="flex-1 space-y-1.5">
-                                <FieldLabel required>תאריך התחלה</FieldLabel>
-                                <Input
-                                  type="date"
-                                  value={values.fixedStartDate}
-                                  onChange={(e) =>
-                                    onFieldChange(
-                                      "fixedStartDate",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className={dateFieldClass}
-                                />
-                              </div>
-                              <div className="flex-1 space-y-1.5">
-                                <FieldLabel required={values.fixedHasEndDate}>
-                                  תאריך סיום
-                                </FieldLabel>
-                                <Input
-                                  type="date"
-                                  value={values.fixedEndDate}
-                                  disabled={!values.fixedHasEndDate}
-                                  onChange={(e) =>
-                                    onFieldChange(
-                                      "fixedEndDate",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className={cn(
-                                    dateFieldClass,
-                                    "disabled:opacity-40",
-                                    values.fixedHasEndDate &&
-                                      values.fixedEndDate &&
-                                      "bg-primary/15! font-medium text-primary ring-1 ring-primary/30",
-                                  )}
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() =>
-                                  onFieldChange(
-                                    "fixedHasEndDate",
-                                    !values.fixedHasEndDate,
-                                  )
-                                }
-                                aria-pressed={values.fixedHasEndDate}
-                                className={cn(
-                                  "group/btn relative h-9 shrink-0 overflow-hidden rounded-xl px-3 text-xs font-medium neu-raised-xs neu-interactive tint-indigo",
-                                  values.fixedHasEndDate
-                                    ? "bg-primary/20! text-primary ring-1 ring-primary/40"
-                                    : "text-foreground/70",
-                                )}
-                              >
-                                <span className="absolute inset-x-0 top-0 h-1 tint-bar origin-center scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-700 ease-out" />
-                                {/* Reserve the width of the longer label so the
-                                  button doesn't resize when toggled. */}
-                                <span className="grid">
-                                  <span
-                                    aria-hidden
-                                    className="invisible col-start-1 row-start-1"
-                                  >
-                                    הוסף תאריך סיום
-                                  </span>
-                                  <span className="col-start-1 row-start-1 text-center">
-                                    {values.fixedHasEndDate
-                                      ? "הסר תאריך סיום"
-                                      : "הוסף תאריך סיום"}
-                                  </span>
-                                </span>
-                              </Button>
-                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={onAddFixedMeeting}
+                              className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive"
+                            >
+                              <Plus className="size-4 text-primary/70" />
+                              הוסף מפגש קבוע
+                            </Button>
                           </motion.div>
                         )}
                       </AnimatePresence>

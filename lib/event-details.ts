@@ -1,7 +1,10 @@
 import { rooms, equipment } from "@/lib/rooms-data";
-import { COURSE_DAYS, type CourseDay } from "@/lib/courses-data";
 import type { ClubEvent } from "@/lib/events-data";
-import type { SessionDoc } from "@/lib/sessions-data";
+import {
+  daysFromSessions,
+  hebrewDayFromIso,
+  type SessionDoc,
+} from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 import {
   EMPTY_EVENT_FORM,
@@ -63,23 +66,6 @@ function nextDateFromIso(iso: string): string {
   return m ? `${m[3]}.${m[2]}.${m[1]}` : "—";
 }
 
-const HEBREW_DAY_BY_JS: CourseDay[] = [
-  "ראשון",
-  "שני",
-  "שלישי",
-  "רביעי",
-  "חמישי",
-  "שישי",
-  "שבת",
-];
-
-/** The Hebrew weekday of an ISO date ("2026-07-01" → "שלישי"); "" when invalid. */
-function hebrewDayFromIso(iso: string): CourseDay | "" {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "" : HEBREW_DAY_BY_JS[date.getDay()];
-}
-
 /** Deterministic id for an event's Nth slot (matches the seed/replace scheme). */
 function slotId(parentId: string, index: number): string {
   return `${parentId}__slot__${index}`.replace(/\//g, "／");
@@ -123,12 +109,6 @@ export function eventSessionsFromForm(
       endDate: values.recurringHasEndDate ? values.recurringEndDate : "",
     },
   ];
-}
-
-/** The distinct weekdays the event's slots run on, in week order. */
-function daysFromSessions(sessions: SessionDoc[]): CourseDay[] {
-  const set = new Set(sessions.map((s) => s.day).filter(Boolean));
-  return COURSE_DAYS.filter((d) => set.has(d));
 }
 
 /** The scalar event fields to persist, derived from the form + its slots. */

@@ -4,8 +4,10 @@ import {
   completeRoundsFrom,
   isTournamentFormValid,
   makeEquipmentLine,
+  makeMeeting,
   makeRound,
   type EquipmentLineValues,
+  type MeetingValues,
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
@@ -80,10 +82,44 @@ export function useAddTournament() {
     [],
   );
 
-  // Switching format resets the rounds list so coming back starts fresh
-  // (re-asking for the round count) rather than restoring stale cards.
+  // Switching format resets both lists so coming back starts fresh (re-asking
+  // for the round count / a clean meeting) rather than restoring stale cards.
+  // Picking "fixed" seeds one empty meeting so there's a card ready to fill.
   const setFormat = useCallback((format: TournamentFormValues["format"]) => {
-    setValues((prev) => ({ ...prev, format, roundsCount: "", rounds: [] }));
+    setValues((prev) => ({
+      ...prev,
+      format,
+      roundsCount: "",
+      rounds: [],
+      fixedMeetings: format === "fixed" ? [makeMeeting()] : [],
+    }));
+  }, []);
+
+  // ---- Fixed meetings (as many recurring meetings as wanted) ---------------
+  const addFixedMeeting = useCallback(() => {
+    setValues((prev) => ({
+      ...prev,
+      fixedMeetings: [...prev.fixedMeetings, makeMeeting()],
+    }));
+  }, []);
+
+  const updateFixedMeeting = useCallback(
+    (id: string, patch: Partial<MeetingValues>) => {
+      setValues((prev) => ({
+        ...prev,
+        fixedMeetings: prev.fixedMeetings.map((m) =>
+          m.id === id ? { ...m, ...patch } : m,
+        ),
+      }));
+    },
+    [],
+  );
+
+  const removeFixedMeeting = useCallback((id: string) => {
+    setValues((prev) => ({
+      ...prev,
+      fixedMeetings: prev.fixedMeetings.filter((m) => m.id !== id),
+    }));
   }, []);
 
   // ---- Rounds -------------------------------------------------------------
@@ -391,6 +427,9 @@ export function useAddTournament() {
     setRoundsCount,
     updateRound,
     completeFromRound,
+    addFixedMeeting,
+    updateFixedMeeting,
+    removeFixedMeeting,
     enrolledPlayers,
     availablePlayers,
     removePlayer,

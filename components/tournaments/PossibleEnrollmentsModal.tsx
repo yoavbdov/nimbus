@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { CriteriaSummary } from "@/components/shared/CriteriaSummary";
 import { cn } from "@/lib/utils";
 import type { EnrollmentCandidate } from "@/lib/possible-enrollments";
 import type { Tournament } from "@/lib/tournaments-data";
@@ -55,6 +56,17 @@ export function PossibleEnrollmentsModal({
               : "שחקנים פנויים שעומדים בקריטריונים של התחרות."}
           </DialogDescription>
         </DialogHeader>
+
+        {tournament && (
+          <CriteriaSummary
+            ageMin={tournament.ageMin}
+            ageMax={tournament.ageMax}
+            noAgeLimit={tournament.noAgeLimit}
+            ratingMin={tournament.ratingMin}
+            ratingMax={tournament.ratingMax}
+            noRatingLimit={tournament.noRatingLimit}
+          />
+        )}
 
         {candidates.length === 0 ? (
           <Alert className="border-0 bg-transparent py-10 [&>svg]:hidden">

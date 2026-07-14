@@ -20,7 +20,7 @@ import {
 import { db } from "@/lib/firebase/client";
 import { collectionPath, DEMO_CLUB_ID } from "@/lib/firebase/collections";
 import type { SessionDoc } from "@/lib/sessions-data";
-import type { MeetingValues } from "@/lib/course-form";
+import { hebrewDayOf, type MeetingValues } from "@/lib/course-form";
 
 function sessionsRef(clubId: string = DEMO_CLUB_ID) {
   return collection(db, collectionPath(clubId, "sessions"));
@@ -34,7 +34,6 @@ function courseSessionId(courseId: string, index: number): string {
 /** Build a session document from one of a course's form meetings. */
 export function sessionFromMeeting(
   courseId: string,
-  anchorDate: string,
   meeting: MeetingValues,
   index: number,
 ): SessionDoc {
@@ -42,11 +41,12 @@ export function sessionFromMeeting(
     id: courseSessionId(courseId, index),
     parentType: "course",
     parentId: courseId,
-    date: anchorDate,
+    // Each meeting carries its own start date; its weekday is derived on read.
+    date: meeting.startDate,
     start: meeting.startTime,
     end: meeting.endTime,
     roomId: meeting.room,
-    day: meeting.day,
+    day: hebrewDayOf(meeting.startDate) ?? undefined,
     frequency: meeting.frequency,
     endDate: meeting.noEndDate ? "" : meeting.endDate,
     noEndDate: meeting.noEndDate,
@@ -57,7 +57,7 @@ export function sessionFromMeeting(
 export function meetingFromSession(session: SessionDoc): MeetingValues {
   return {
     id: session.id,
-    day: session.day ?? "",
+    startDate: session.date,
     room: session.roomId,
     startTime: session.start,
     endTime: session.end,
@@ -81,7 +81,6 @@ async function sessionsForParent(
  */
 export async function replaceCourseSessions(
   courseId: string,
-  anchorDate: string,
   meetings: MeetingValues[],
   clubId: string = DEMO_CLUB_ID,
 ): Promise<void> {
@@ -89,7 +88,7 @@ export async function replaceCourseSessions(
   const batch = writeBatch(db);
   existing.docs.forEach((d) => batch.delete(d.ref));
   meetings.forEach((meeting, i) => {
-    const session = sessionFromMeeting(courseId, anchorDate, meeting, i);
+    const session = sessionFromMeeting(courseId, meeting, i);
     batch.set(doc(sessionsRef(clubId), session.id), session);
   });
   await batch.commit();

@@ -311,7 +311,7 @@ export function useAddCourse() {
         ? (await updateCourse(values.id, courseEditPatch(values)), values.id)
         : await addCourse(courseRecordFromForm(values));
       await Promise.all([
-        replaceCourseSessions(courseId, values.startDate, values.meetings),
+        replaceCourseSessions(courseId, values.meetings),
         replaceTargetRelations(
           "coach_course",
           "coach",

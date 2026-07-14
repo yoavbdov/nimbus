@@ -1,4 +1,4 @@
-import { players } from "@/lib/players-data";
+import type { Player } from "@/lib/players-data";
 import type { Course } from "@/lib/courses-data";
 import type { Tournament } from "@/lib/tournaments-data";
 
@@ -13,56 +13,78 @@ export interface EnrollmentCandidate {
 }
 
 /**
- * Returns the students who could be enrolled in the given course.
- *
- * NOTE: this is placeholder data — it filters the roster by the course's age
- * and rating ranges so the table looks plausible. The real version will also
- * check that each student is free on the course's day and time.
+ * Whether a value sits inside an [min, max] range where each side is optional:
+ * a falsy bound (empty / 0 / null) imposes no limit on that side. So leaving a
+ * criterion blank means "not limited", exactly as authored in the form.
  */
-export function possibleEnrollments(course: Course): EnrollmentCandidate[] {
-  return players
-    .filter(
-      (p) =>
-        (course.noAgeLimit ||
-          (p.age >= course.ageMin && p.age <= course.ageMax)) &&
-        (course.noRatingLimit ||
-          (p.israeliRating >= course.ratingMin &&
-            p.israeliRating <= course.ratingMax)) &&
-        !p.courses.includes(course.name),
-    )
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      age: p.age,
-      grade: p.grade,
-      israeliRating: p.israeliRating,
-      phone: p.phone,
-    }));
+function withinRange(
+  value: number,
+  min: number | null | undefined,
+  max: number | null | undefined,
+): boolean {
+  if (min && value < min) return false;
+  if (max && value > max) return false;
+  return true;
+}
+
+/** Project a live player doc onto the columns the enrollments table shows. */
+function toCandidate(p: Player): EnrollmentCandidate {
+  return {
+    id: p.id,
+    name: p.name,
+    age: p.age,
+    grade: p.grade,
+    israeliRating: p.israeliRating,
+    phone: p.phone,
+  };
 }
 
 /**
- * Returns the players who could be registered to the given tournament.
- *
- * NOTE: placeholder data — it filters the roster by the tournament's rating
- * range (and drops players already registered) so the table looks plausible.
+ * The players who could be enrolled in the given course, chosen from the LIVE
+ * roster: within the course's age and rating ranges (each honoured only when
+ * that range isn't "no limit"), excluding those already enrolled (`enrolledIds`
+ * — the `player_course` links, resolved by the caller from `relations`).
  */
-export function possibleTournamentEnrollments(
-  tournament: Tournament,
+export function possibleEnrollments(
+  course: Course,
+  players: Player[],
+  enrolledIds: Set<string>,
 ): EnrollmentCandidate[] {
   return players
     .filter(
       (p) =>
-        (tournament.noRatingLimit ||
-          (p.israeliRating >= tournament.ratingMin &&
-            p.israeliRating <= tournament.ratingMax)) &&
-        !p.tournaments.includes(tournament.name),
+        (course.noAgeLimit ||
+          withinRange(p.age, course.ageMin, course.ageMax)) &&
+        (course.noRatingLimit ||
+          withinRange(p.israeliRating, course.ratingMin, course.ratingMax)) &&
+        !enrolledIds.has(p.id),
     )
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      age: p.age,
-      grade: p.grade,
-      israeliRating: p.israeliRating,
-      phone: p.phone,
-    }));
+    .map(toCandidate);
+}
+
+/**
+ * The players who could be registered to the given tournament, chosen from the
+ * LIVE roster: within its age and rating ranges (each honoured only when that
+ * range isn't "no limit"), excluding those already registered (`enrolledIds` —
+ * the `player_tournament` links, resolved by the caller from `relations`).
+ */
+export function possibleTournamentEnrollments(
+  tournament: Tournament,
+  players: Player[],
+  enrolledIds: Set<string>,
+): EnrollmentCandidate[] {
+  return players
+    .filter(
+      (p) =>
+        (tournament.noAgeLimit ||
+          withinRange(p.age, tournament.ageMin, tournament.ageMax)) &&
+        (tournament.noRatingLimit ||
+          withinRange(
+            p.israeliRating,
+            tournament.ratingMin,
+            tournament.ratingMax,
+          )) &&
+        !enrolledIds.has(p.id),
+    )
+    .map(toCandidate);
 }

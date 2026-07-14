@@ -50,7 +50,6 @@ import {
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { COURSE_DAYS } from "@/lib/courses-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import type { CoachRecord } from "@/lib/coaches-data";
 import { rooms, equipment } from "@/lib/rooms-data";
@@ -306,26 +305,13 @@ function MeetingCard({
 
       <div className="grid grid-cols-2 gap-2.5">
         <div className="space-y-1.5">
-          <FieldLabel required>יום בשבוע</FieldLabel>
-          <Select
-            value={meeting.day}
-            onValueChange={(v) => onChange({ day: v })}
-          >
-            <SelectTrigger className={selectTriggerClass}>
-              <SelectValue placeholder="בחר יום" />
-            </SelectTrigger>
-            <SelectContent
-              dir="rtl"
-              position="popper"
-              className={selectContentClass}
-            >
-              {COURSE_DAYS.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FieldLabel required>תאריך התחלה</FieldLabel>
+          <Input
+            type="date"
+            value={meeting.startDate}
+            onChange={(e) => onChange({ startDate: e.target.value })}
+            className={dateFieldClass}
+          />
         </div>
         <div className="space-y-1.5">
           <FieldLabel required>חדר</FieldLabel>
@@ -440,7 +426,7 @@ function MeetingCard({
 
       {showEndDateWarning && (
         <WarningNote>
-          תאריך הסיום חייב לחול ביום {meeting.day || "שבו החוג מתקיים"}.
+          תאריך הסיום חייב לחול על אותו יום בשבוע כמו תאריך ההתחלה, ולא לפניו.
         </WarningNote>
       )}
     </motion.div>
@@ -793,9 +779,6 @@ export function AddCourseModal({
                               value={
                                 values.noRatingLimit ? "" : values.ratingMin
                               }
-                              placeholder={
-                                values.noRatingLimit ? "ללא הגבלה" : ""
-                              }
                               onChange={(e) =>
                                 onFieldChange(
                                   "ratingMin",
@@ -815,9 +798,6 @@ export function AddCourseModal({
                               disabled={values.noRatingLimit}
                               value={
                                 values.noRatingLimit ? "" : values.ratingMax
-                              }
-                              placeholder={
-                                values.noRatingLimit ? "ללא הגבלה" : ""
                               }
                               onChange={(e) =>
                                 onFieldChange(
@@ -857,7 +837,6 @@ export function AddCourseModal({
                               inputMode="numeric"
                               disabled={values.noAgeLimit}
                               value={values.noAgeLimit ? "" : values.ageMin}
-                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
                               onChange={(e) =>
                                 onFieldChange(
                                   "ageMin",
@@ -876,7 +855,6 @@ export function AddCourseModal({
                               inputMode="numeric"
                               disabled={values.noAgeLimit}
                               value={values.noAgeLimit ? "" : values.ageMax}
-                              placeholder={values.noAgeLimit ? "ללא הגבלה" : ""}
                               onChange={(e) =>
                                 onFieldChange(
                                   "ageMax",
@@ -915,18 +893,6 @@ export function AddCourseModal({
 
                   {tab === "meetings" && (
                     <>
-                      <Field className="flex flex-col items-center">
-                        <FieldLabel required>תאריך התחלה</FieldLabel>
-                        <Input
-                          type="date"
-                          value={values.startDate}
-                          onChange={(e) =>
-                            onFieldChange("startDate", e.target.value)
-                          }
-                          className={cn(dateFieldClass, "w-40")}
-                        />
-                      </Field>
-
                       {values.meetings.map((m) => (
                         <MeetingCard
                           key={m.id}

@@ -17,10 +17,15 @@ export const FREQUENCY_OPTIONS: { value: MeetingFrequency; label: string }[] = [
   { value: "monthly", label: "פעם בחודש" },
 ];
 
-/** A single recurring meeting: a weekday + room + time window + repeat rule. */
+/**
+ * A single recurring meeting: a start date + room + time window + repeat rule.
+ * The weekday it runs on is derived from `startDate` (see {@link hebrewDayOf}),
+ * so a meeting is described exactly like a fixed tournament slot.
+ */
 export interface MeetingValues {
   id: string;
-  day: string;
+  /** ISO date the series starts on; its weekday is the day the meeting runs. */
+  startDate: string;
   room: string;
   startTime: string;
   endTime: string;
@@ -52,7 +57,6 @@ export interface CourseFormValues {
   noAgeLimit: boolean;
   noRatingLimit: boolean;
   notes: string;
-  startDate: string;
   meetings: MeetingValues[];
   studentIds: string[];
   equipment: EquipmentLineValues[];
@@ -69,7 +73,6 @@ export const EMPTY_COURSE_FORM: CourseFormValues = {
   noAgeLimit: false,
   noRatingLimit: false,
   notes: "",
-  startDate: "",
   meetings: [],
   studentIds: [],
   equipment: [],
@@ -84,7 +87,7 @@ function makeId(prefix: string) {
 export function makeMeeting(): MeetingValues {
   return {
     id: makeId("meeting"),
-    day: "",
+    startDate: "",
     room: "",
     startTime: "",
     endTime: "",
@@ -113,7 +116,12 @@ export function makeEquipmentLine(
  * valid end date when one is required.
  */
 export function meetingComplete(meeting: MeetingValues): boolean {
-  if (!meeting.day || !meeting.room || !meeting.startTime || !meeting.endTime) {
+  if (
+    !meeting.startDate ||
+    !meeting.room ||
+    !meeting.startTime ||
+    !meeting.endTime
+  ) {
     return false;
   }
   if (meetingNeedsEndDate(meeting)) {
@@ -122,10 +130,9 @@ export function meetingComplete(meeting: MeetingValues): boolean {
   return true;
 }
 
-/** Name and start date are required; any opened meeting must be fully filled. */
+/** Name is required; any opened meeting must be fully filled. */
 export function isCourseFormValid(values: CourseFormValues): boolean {
   if (values.name.trim() === "") return false;
-  if (!values.startDate) return false;
   return values.meetings.every(meetingComplete);
 }
 
@@ -139,13 +146,17 @@ export function hebrewDayOf(iso: string): string | null {
 }
 
 /**
- * A recurring meeting's end date must land on the same weekday it runs on.
- * "once" meetings and open-ended ones need no end date, so they're always valid.
+ * A recurring meeting's end date must land on the same weekday it starts on
+ * (so the series lands on it) and not precede the start. "once" meetings and
+ * open-ended ones need no end date, so they're always valid.
  */
 export function meetingEndDateValid(meeting: MeetingValues): boolean {
   if (meeting.frequency === "once" || meeting.noEndDate) return true;
-  if (!meeting.endDate || !meeting.day) return true;
-  return hebrewDayOf(meeting.endDate) === meeting.day;
+  if (!meeting.endDate || !meeting.startDate) return true;
+  if (hebrewDayOf(meeting.endDate) !== hebrewDayOf(meeting.startDate)) {
+    return false;
+  }
+  return meeting.endDate >= meeting.startDate;
 }
 
 export function meetingNeedsEndDate(meeting: MeetingValues): boolean {

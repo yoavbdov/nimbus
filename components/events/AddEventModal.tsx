@@ -13,7 +13,6 @@ import {
   Search,
   Trash2,
   Users,
-  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -36,20 +35,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { SelectCheckbox } from "@/components/shared/SelectCheckbox";
+import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
+import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
@@ -57,7 +48,8 @@ import {
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { rooms, equipment } from "@/lib/rooms-data";
+import { equipment, OUTSIDE_CLUB_ROOM, type Room } from "@/lib/rooms-data";
+import { useCollection } from "@/lib/firebase/useCollection";
 import {
   availableEquipmentOptions,
   equipmentAvailableNow,
@@ -246,155 +238,6 @@ function SearchSelect({
         </div>
       </PopoverContent>
     </Popover>
-  );
-}
-
-const playerHeadClass =
-  "px-3 py-2.5 text-center text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70";
-
-/** A dialog table of available players with checkboxes; confirm adds all checked at once. */
-function PlayerPickerDialog({
-  open,
-  onOpenChange,
-  players,
-  checkedIds,
-  disabledIds,
-  onToggle,
-  onConfirm,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  players: Player[];
-  checkedIds: string[];
-  /** Already-enrolled players: shown greyed out and not selectable. */
-  disabledIds: string[];
-  onToggle: (id: string) => void;
-  onConfirm: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const filtered = players.filter((p) =>
-    p.name.toLowerCase().includes(query.trim().toLowerCase()),
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>הוספת משתתפים</DialogTitle>
-          <DialogDescription>
-            סמנו את המשתתפים שברצונכם להוסיף בריבוע משמאל, ובסיום לחצו הוסף.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 inset-s-2.5 size-4 -translate-y-1/2 text-foreground/50" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="חיפוש משתתף…"
-            className="h-9 ps-9 rounded-xl"
-          />
-        </div>
-
-        {filtered.length === 0 ? (
-          <Alert className="border-0 bg-transparent py-10 [&>svg]:hidden">
-            <AlertTitle className="text-center text-sm font-normal text-foreground/60">
-              לא נמצאו שחקנים
-            </AlertTitle>
-          </Alert>
-        ) : (
-          <div className="neu-inset rounded-2xl p-3">
-            <div
-              dir="ltr"
-              className="players-scroll max-h-[50vh] overflow-y-auto overflow-x-hidden"
-            >
-              <div dir="rtl">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className={playerHeadClass}>שם שחקן</TableHead>
-                      <TableHead className={playerHeadClass}>גיל</TableHead>
-                      <TableHead className={playerHeadClass}>מד כושר</TableHead>
-                      <TableHead className={cn(playerHeadClass, "w-12")} />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((p, i) => {
-                      const disabled = disabledIds.includes(p.id);
-                      const checked = disabled || checkedIds.includes(p.id);
-                      return (
-                        <TableRow
-                          key={p.id}
-                          onClick={() => !disabled && onToggle(p.id)}
-                          className={cn(
-                            "border-b-2 border-foreground/10 transition-colors duration-150",
-                            i % 2 === 1 && "bg-primary/15",
-                            disabled
-                              ? "cursor-default opacity-45"
-                              : cn(
-                                  "cursor-pointer hover:bg-primary/25",
-                                  checked && "bg-primary/20",
-                                ),
-                          )}
-                        >
-                          <TableCell className="px-3 py-2.5 text-center text-sm font-medium text-foreground">
-                            <span className="inline-flex items-center gap-1.5">
-                              {p.name}
-                              {disabled && (
-                                <span className="text-[0.7rem] font-normal text-muted-foreground">
-                                  (כבר נוסף)
-                                </span>
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
-                            {p.age}
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center text-sm text-foreground/85 num">
-                            {p.israeliRating}
-                          </TableCell>
-                          <TableCell className="px-3 py-2.5 text-center">
-                            <div className="flex justify-center">
-                              <SelectCheckbox
-                                checked={checked}
-                                disabled={disabled}
-                                onCheckedChange={() =>
-                                  !disabled && onToggle(p.id)
-                                }
-                                ariaLabel={`בחר ${p.name}`}
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter className="gap-2 sm:flex-row-reverse sm:justify-end">
-          <Button
-            type="button"
-            disabled={checkedIds.length === 0}
-            onClick={onConfirm}
-            className="rounded-xl"
-          >
-            הוסף{checkedIds.length > 0 ? ` (${checkedIds.length})` : ""}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl"
-          >
-            ביטול
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -605,6 +448,12 @@ export function AddEventModal({
 }: AddEventModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
+  // Rooms come from the live Firestore roster, so the frequency pickers list the
+  // club's real rooms (plus the explicit "outside the club" choice), not a stale
+  // mock.
+  const { data: rooms } = useCollection<Room>("rooms");
+  const roomOptions = [OUTSIDE_CLUB_ROOM, ...rooms.map((r) => r.name)];
+
   // The cleanup archive opens this modal read-only: every control is disabled
   // (via the wrapping fieldset) and the confirm/export actions are hidden.
   const readOnly = mode === "view";
@@ -746,7 +595,7 @@ export function AddEventModal({
                               <SearchSelect
                                 value={values.oneoffRoom}
                                 onChange={(v) => onFieldChange("oneoffRoom", v)}
-                                options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
+                                options={roomOptions}
                                 placeholder="בחר חדר"
                                 searchPlaceholder="חיפוש חדר…"
                                 container={container}
@@ -812,7 +661,7 @@ export function AddEventModal({
                                 onChange={(v) =>
                                   onFieldChange("recurringRoom", v)
                                 }
-                                options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
+                                options={roomOptions}
                                 placeholder="בחר חדר"
                                 searchPlaceholder="חיפוש חדר…"
                                 container={container}
@@ -991,29 +840,14 @@ export function AddEventModal({
                         className="space-y-1.5"
                       >
                         {players.map((p) => (
-                          <div
+                          <EnrolledPersonRow
                             key={p.id}
-                            className="flex items-center justify-between gap-2 rounded-xl neu-inset bg-foreground/5 px-3 py-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-foreground/85">
-                                {p.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground num">
-                                גיל {p.age} · {p.israeliRating}
-                              </span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onRemovePlayer(p.id)}
-                              aria-label={`הסר ${p.name}`}
-                              className="size-7 rounded-lg text-foreground/50 hover:bg-foreground/10 hover:text-foreground"
-                            >
-                              <X className="size-4" />
-                            </Button>
-                          </div>
+                            person={p}
+                            mismatchReasons={[]}
+                            onRemove={() => onRemovePlayer(p.id)}
+                            removeLabel={`הסר ${p.name}`}
+                            container={container}
+                          />
                         ))}
                       </motion.div>
                     )}
@@ -1127,14 +961,15 @@ export function AddEventModal({
         onBack={onBackToSourceChoice}
       />
 
-      <PlayerPickerDialog
+      <PeoplePickerDialog
         open={playerPickerOpen}
         onOpenChange={onPlayerPickerOpenChange}
-        players={availablePlayers}
+        people={availablePlayers}
         checkedIds={checkedPlayerIds}
         disabledIds={pickerDisabledIds}
         onToggle={onToggleCheckedPlayer}
         onConfirm={onConfirmPlayers}
+        noun={{ plural: "משתתפים", singular: "משתתף" }}
       />
     </Dialog>
   );

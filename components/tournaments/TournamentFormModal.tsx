@@ -32,6 +32,9 @@ export function TournamentFormModal({
       onRoundsCountChange={addTournament.setRoundsCount}
       onUpdateRound={addTournament.updateRound}
       onCompleteFromRound={addTournament.completeFromRound}
+      onAddFixedMeeting={addTournament.addFixedMeeting}
+      onUpdateFixedMeeting={addTournament.updateFixedMeeting}
+      onRemoveFixedMeeting={addTournament.removeFixedMeeting}
       players={addTournament.enrolledPlayers}
       availablePlayers={addTournament.pickerPlayers}
       onRemovePlayer={addTournament.removePlayer}

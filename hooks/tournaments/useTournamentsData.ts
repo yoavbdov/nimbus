@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useCollection } from "@/lib/firebase/useCollection";
+import { daysForParent, type SessionDoc } from "@/lib/sessions-data";
 import type { Tournament } from "@/lib/tournaments-data";
 import type { RelationDoc } from "@/lib/relations-data";
 
@@ -15,6 +16,12 @@ export function useTournamentsData() {
   const { data: records, loading } = useCollection<Tournament>("tournaments");
   const { data: relations, loading: relationsLoading } =
     useCollection<RelationDoc>("relations");
+  // The activity days shown in the table are computed live from each
+  // tournament's `sessions` (the single source of truth), so the table never
+  // drifts from the actual rounds/schedule; the authored `days` scalar is only
+  // a fallback for tournaments with no session documents yet.
+  const { data: sessions, loading: sessionsLoading } =
+    useCollection<SessionDoc>("sessions");
 
   const tournaments = useMemo<Tournament[]>(() => {
     const enrolled = new Map<string, number>();
@@ -26,13 +33,21 @@ export function useTournamentsData() {
     return records
       // Archived tournaments live only in the Tools archive, not the main list.
       .filter((tournament) => tournament.status !== "ארכיון")
-      .map((tournament) => ({
-        ...tournament,
-        // Always the live `player_tournament` count (never the authored number),
-        // so the table matches the שחקנים tab exactly — like enrolled in courses.
-        participants: enrolled.get(tournament.id) ?? 0,
-      }));
-  }, [records, relations]);
+      .map((tournament) => {
+        const liveDays = daysForParent(sessions, tournament.id);
+        return {
+          ...tournament,
+          days: liveDays.length ? liveDays : tournament.days,
+          // Always the live `player_tournament` count (never the authored
+          // number), so the table matches the שחקנים tab exactly — like
+          // enrolled in courses.
+          participants: enrolled.get(tournament.id) ?? 0,
+        };
+      });
+  }, [records, relations, sessions]);
 
-  return { tournaments, loading: loading || relationsLoading };
+  return {
+    tournaments,
+    loading: loading || relationsLoading || sessionsLoading,
+  };
 }
