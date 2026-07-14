@@ -274,22 +274,20 @@ const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> =
 const HEBREW_DAY_BY_JS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 // Session ids follow the SAME deterministic scheme the app uses when it writes
-// slots (lib/firebase/data/sessions.ts): a course meeting is
-// `${courseName}__meeting__${index}`, a tournament/event slot is
-// `${parentName}__slot__${index}`, the index counting per parent. Seeding with
-// these exact ids means editing an activity in the app REPLACES its seeded slots
-// in place (idempotent) instead of leaving orphans — and it keeps naming uniform
-// with app-created slots, never the old ad-hoc `session-N`.
+// them (lib/firebase/data/sessions.ts): every session — course, tournament or
+// event — is `${parentName}__meeting__${index}`, the index counting per parent.
+// Seeding with these exact ids means editing an activity in the app REPLACES its
+// seeded sessions in place (idempotent) instead of leaving orphans — and it keeps
+// naming uniform with app-created sessions, never the old ad-hoc `session-N`.
 const seedSessionCount: Record<string, number> = {};
 
 export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => {
   const parentId = parentNameById[s.parentType][s.parentId] ?? s.parentId;
   const index = seedSessionCount[parentId] ?? 0;
   seedSessionCount[parentId] = index + 1;
-  const suffix = s.parentType === "course" ? "meeting" : "slot";
   return {
     ...s,
-    id: `${parentId}__${suffix}__${index}`.replace(/\//g, "／"),
+    id: `${parentId}__meeting__${index}`.replace(/\//g, "／"),
     parentId,
     roomId: roomNameById[s.roomId] ?? s.roomId,
     // Course slots are recurring weekly meetings; tagging the weekday (derived

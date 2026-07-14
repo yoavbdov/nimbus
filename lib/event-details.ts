@@ -68,7 +68,7 @@ function nextDateFromIso(iso: string): string {
 
 /** Deterministic id for an event's Nth slot (matches the seed/replace scheme). */
 function slotId(parentId: string, index: number): string {
-  return `${parentId}__slot__${index}`.replace(/\//g, "／");
+  return `${parentId}__meeting__${index}`.replace(/\//g, "／");
 }
 
 /**

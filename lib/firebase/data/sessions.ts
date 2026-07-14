@@ -94,9 +94,10 @@ export async function replaceCourseSessions(
   await batch.commit();
 }
 
-/** Deterministic id for a parent's Nth slot so replace stays idempotent. */
+/** Deterministic id for a parent's Nth session so replace stays idempotent.
+ * Every parent type shares the `__meeting__` scheme (see {@link courseSessionId}). */
 export function parentSessionId(parentId: string, index: number): string {
-  return `${parentId}__slot__${index}`.replace(/\//g, "／");
+  return `${parentId}__meeting__${index}`.replace(/\//g, "／");
 }
 
 /**
