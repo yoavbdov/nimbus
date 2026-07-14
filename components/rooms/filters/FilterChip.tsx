@@ -11,28 +11,24 @@ import {
 } from "@/components/ui/popover";
 import { FilterBuilder } from "@/components/rooms/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import {
-  FIELD_BY_KEY,
-  formatValue,
-  getOperator,
-  type RoomFilter,
-} from "@/lib/rooms-filters";
+import type { Filter, FilterSchema } from "@/lib/filters/schema";
 
 interface FilterChipProps {
-  filter: RoomFilter;
-  onUpdate: (filter: RoomFilter) => void;
+  schema: FilterSchema;
+  filter: Filter;
+  onUpdate: (filter: Filter) => void;
   onRemove: () => void;
 }
 
-export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
+export function FilterChip({ schema, filter, onUpdate, onRemove }: FilterChipProps) {
   const { open, setOpen, close } = useDisclosure();
-  const cfg = FIELD_BY_KEY[filter.field];
-  const opDef = getOperator(filter.field, filter.op);
+  const cfg = schema.fieldByKey[filter.field];
+  const opDef = schema.getOperator(filter.field, filter.op);
   const isNumeric = typeof filter.value === "number";
-  const valueText = formatValue(filter);
+  const valueText = schema.formatValue(filter);
   const hasValue = valueText.length > 0;
 
-  function handleSubmit(next: RoomFilter) {
+  function handleSubmit(next: Filter) {
     onUpdate(next);
     close();
   }
@@ -93,6 +89,7 @@ export function FilterChip({ filter, onUpdate, onRemove }: FilterChipProps) {
         className="w-auto max-w-[min(95vw,1000px)] p-0 rounded-2xl bg-popover ring-1 ring-foreground/15 shadow-depth-xl overflow-x-auto"
       >
         <FilterBuilder
+          schema={schema}
           initial={filter}
           onSubmit={handleSubmit}
           onCancel={close}

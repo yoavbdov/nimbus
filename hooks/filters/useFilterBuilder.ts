@@ -1,13 +1,9 @@
 import { useState } from "react";
-import {
-  BASIC_FIELD_DEFS,
-  FIELD_BY_KEY,
-  FIELD_DEFS,
-  getOperator,
-  type RoomFilter,
-  type FilterField,
-  type ValueMode,
-} from "@/lib/rooms-filters";
+import type {
+  Filter,
+  FilterSchema,
+  ValueMode,
+} from "@/lib/filters/schema";
 
 function isValueComplete(mode: ValueMode, value: string | string[]): boolean {
   if (mode === "none") return true;
@@ -15,17 +11,17 @@ function isValueComplete(mode: ValueMode, value: string | string[]): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function makeFilterId(field: FilterField, op: string) {
+function makeFilterId(field: string, op: string) {
   return `${field}-${op}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 function buildFilter(
-  field: FilterField,
+  field: string,
   op: string,
   mode: ValueMode,
   value: string | string[],
   id?: string,
-): RoomFilter {
+): Filter {
   const finalId = id ?? makeFilterId(field, op);
   if (mode === "none") return { id: finalId, field, op, value: null };
   if (mode === "multi-enum")
@@ -36,11 +32,22 @@ function buildFilter(
 }
 
 interface UseFilterBuilderProps {
-  initial?: RoomFilter;
-  onSubmit: (filter: RoomFilter) => void;
+  schema: FilterSchema;
+  initial?: Filter;
+  onSubmit: (filter: Filter) => void;
 }
 
-export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
+/**
+ * Owns the multi-step "build a filter" flow (field → operator → value). Driven
+ * entirely by the passed {@link FilterSchema}, so it works for any entity.
+ */
+export function useFilterBuilder({
+  schema,
+  initial,
+  onSubmit,
+}: UseFilterBuilderProps) {
+  const { fieldDefs, basicFieldDefs, fieldByKey, getOperator } = schema;
+
   const initialMulti =
     initial && Array.isArray(initial.value) ? (initial.value as string[]) : [];
   const initialText =
@@ -48,25 +55,26 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
       ? String(initial.value)
       : "";
 
-  const [field, setField] = useState<FilterField | "">(initial?.field ?? "");
+  const [field, setField] = useState<string>(initial?.field ?? "");
   const [op, setOp] = useState<string>(() => {
     if (initial?.op) return initial.op;
     if (initial?.field) {
-      const ops = FIELD_BY_KEY[initial.field].operators;
+      const ops = fieldByKey[initial.field].operators;
       if (ops.length === 1) return ops[0].op;
     }
     return "";
   });
   const [textValue, setTextValue] = useState(initialText);
   const [multiValue, setMultiValue] = useState<string[]>(initialMulti);
-  const initialIsAdvanced = !!initial?.field && !FIELD_BY_KEY[initial.field].basic;
+  const initialIsAdvanced =
+    !!initial?.field && !fieldByKey[initial.field].basic;
   const [showAdvanced, setShowAdvanced] = useState(initialIsAdvanced);
 
-  const visibleFields = showAdvanced ? FIELD_DEFS : BASIC_FIELD_DEFS;
+  const visibleFields = showAdvanced ? fieldDefs : basicFieldDefs;
 
-  function handleFieldChange(next: FilterField) {
+  function handleFieldChange(next: string) {
     setField(next);
-    const ops = FIELD_BY_KEY[next].operators;
+    const ops = fieldByKey[next].operators;
     setOp(ops.length === 1 ? ops[0].op : "");
     setTextValue("");
     setMultiValue([]);
@@ -78,10 +86,10 @@ export function useFilterBuilder({ initial, onSubmit }: UseFilterBuilderProps) {
     setMultiValue([]);
   }
 
-  const fieldDef = field ? FIELD_BY_KEY[field] : null;
+  const fieldDef = field ? fieldByKey[field] : null;
   const opDef = field && op ? getOperator(field, op) : undefined;
   const mode: ValueMode | null = opDef?.valueMode ?? null;
-  const hasOpStep = !!field && FIELD_BY_KEY[field].operators.length > 1;
+  const hasOpStep = !!field && fieldByKey[field].operators.length > 1;
   const showValueStep = !!opDef && mode !== "none";
   const showActions = !!opDef;
   const currentValue: string | string[] =

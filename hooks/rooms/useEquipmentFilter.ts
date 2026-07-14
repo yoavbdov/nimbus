@@ -1,12 +1,16 @@
 import { useMemo, useState } from "react";
-import { filterRoomsAdvanced, type RoomFilter } from "@/lib/rooms-filters";
-import type { Room } from "@/lib/rooms-data";
+import {
+  filterEquipmentAdvanced,
+  type EquipmentFilter,
+} from "@/lib/equipment-filters";
+import type { Equipment } from "@/lib/rooms-data";
 
-export function useRoomsFilter(rooms: Room[]) {
+/** Owns the equipment search + advanced filter state; mirrors useRoomsFilter. */
+export function useEquipmentFilter(equipment: Equipment[]) {
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<RoomFilter[]>([]);
+  const [filters, setFilters] = useState<EquipmentFilter[]>([]);
 
-  function addFilter(filter: RoomFilter) {
+  function addFilter(filter: EquipmentFilter) {
     setFilters((prev) => [...prev, filter]);
   }
 
@@ -14,7 +18,7 @@ export function useRoomsFilter(rooms: Room[]) {
     setFilters((prev) => prev.filter((f) => f.id !== id));
   }
 
-  function updateFilter(id: string, next: RoomFilter) {
+  function updateFilter(id: string, next: EquipmentFilter) {
     setFilters((prev) => prev.map((f) => (f.id === id ? { ...next, id } : f)));
   }
 
@@ -24,8 +28,8 @@ export function useRoomsFilter(rooms: Room[]) {
   }
 
   const filtered = useMemo(
-    () => filterRoomsAdvanced(rooms, search, filters),
-    [rooms, search, filters],
+    () => filterEquipmentAdvanced(equipment, search, filters),
+    [equipment, search, filters],
   );
 
   return {

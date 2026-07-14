@@ -7,16 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AddFilterPopover } from "@/components/rooms/filters/AddFilterPopover";
 import { FilterChip } from "@/components/rooms/filters/FilterChip";
-import type { RoomFilter } from "@/lib/rooms-filters";
+import type { Filter, FilterSchema } from "@/lib/filters/schema";
 
 interface RoomsFilterBarProps {
   search: string;
   placeholder: string;
   onSearchChange: (v: string) => void;
   /** Advanced filter controls — omit to render a search-only bar. */
-  filters?: RoomFilter[];
-  onAdd?: (filter: RoomFilter) => void;
-  onUpdate?: (id: string, next: RoomFilter) => void;
+  schema?: FilterSchema;
+  filters?: Filter[];
+  onAdd?: (filter: Filter) => void;
+  onUpdate?: (id: string, next: Filter) => void;
   onRemove?: (id: string) => void;
   onClearAll?: () => void;
 }
@@ -25,6 +26,7 @@ export function RoomsFilterBar({
   search,
   placeholder,
   onSearchChange,
+  schema,
   filters,
   onAdd,
   onUpdate,
@@ -32,7 +34,7 @@ export function RoomsFilterBar({
   onClearAll,
 }: RoomsFilterBarProps) {
   // When no filter handlers are wired up, render a plain search box only.
-  if (!filters || !onAdd || !onUpdate || !onRemove || !onClearAll) {
+  if (!schema || !filters || !onAdd || !onUpdate || !onRemove || !onClearAll) {
     return (
       <div className="space-y-3">
         <div className="relative">
@@ -63,7 +65,7 @@ export function RoomsFilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        <AddFilterPopover onAdd={onAdd} />
+        <AddFilterPopover schema={schema} onAdd={onAdd} />
         {hasAny && (
           <Button
             type="button"
@@ -98,6 +100,7 @@ export function RoomsFilterBar({
                   {filters.map((f) => (
                     <FilterChip
                       key={f.id}
+                      schema={schema}
                       filter={f}
                       onUpdate={(next) => onUpdate(f.id, next)}
                       onRemove={() => onRemove(f.id)}

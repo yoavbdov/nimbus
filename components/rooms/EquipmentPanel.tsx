@@ -9,29 +9,56 @@ import { EquipmentTable } from "@/components/rooms/EquipmentTable";
 import { AddEquipmentModal } from "@/components/rooms/AddEquipmentModal";
 import { EquipmentAvailabilityModal } from "@/components/rooms/EquipmentAvailabilityModal";
 import { EquipmentUsageModal } from "@/components/rooms/EquipmentUsageModal";
+import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { useEquipmentPanel } from "@/hooks/rooms/useEquipmentPanel";
 import { useAddEquipment } from "@/hooks/rooms/useAddEquipment";
 import { useEquipmentAvailabilityCheck } from "@/hooks/rooms/useEquipmentAvailabilityCheck";
-import { equipment as allEquipment } from "@/lib/rooms-data";
+import { useDeleteConfirm } from "@/hooks/shared/useDeleteConfirm";
+import { deleteEquipment } from "@/lib/firebase/data/equipment";
+import { equipmentFilterSchema } from "@/lib/equipment-filters";
 import { equipmentFormValuesFor } from "@/lib/equipment-form";
 
 export function EquipmentPanel() {
-  const { search, setSearch, filtered, total } = useEquipmentPanel();
+  const {
+    search,
+    setSearch,
+    filters,
+    addFilter,
+    updateFilter,
+    removeFilter,
+    clearAll,
+    filtered,
+    equipment,
+    total,
+    filterKey,
+  } = useEquipmentPanel();
   const addEquipment = useAddEquipment();
-  const availability = useEquipmentAvailabilityCheck(allEquipment);
+  const availability = useEquipmentAvailabilityCheck(equipment);
+  const del = useDeleteConfirm(deleteEquipment, "פריטי ציוד");
+
+  /** The id+name targets for a set of equipment ids (for the delete dialog). */
+  function deletableEquipment(equipmentIds: string[]) {
+    return equipment
+      .filter((e) => equipmentIds.includes(e.id))
+      .map((e) => ({ id: e.id, name: e.name }));
+  }
 
   function handleEquipmentAction(actionId: string, equipmentId: string | null) {
     if (actionId === "details") {
-      const item = allEquipment.find((e) => e.id === equipmentId);
+      const item = equipment.find((e) => e.id === equipmentId);
       if (item) addEquipment.openForEdit(equipmentFormValuesFor(item));
     } else if (actionId === "availability") {
       availability.openWith(equipmentId ? [equipmentId] : []);
+    } else if (actionId === "delete") {
+      del.openFor(equipmentId ? deletableEquipment([equipmentId]) : []);
     }
   }
 
   function handleBulkAction(actionId: string, equipmentIds: string[]) {
     if (actionId === "availability") {
       availability.openWith(equipmentIds);
+    } else if (actionId === "delete") {
+      del.openFor(deletableEquipment(equipmentIds));
     }
   }
 
@@ -57,13 +84,19 @@ export function EquipmentPanel() {
       <RoomsFilterBar
         search={search}
         placeholder="חיפוש לפי שם ציוד או הערה…"
+        schema={equipmentFilterSchema}
+        filters={filters}
         onSearchChange={setSearch}
+        onAdd={addFilter}
+        onUpdate={updateFilter}
+        onRemove={removeFilter}
+        onClearAll={clearAll}
       />
 
       <div className="neu-inset rounded-2xl p-3">
         <AnimatePresence mode="wait">
           <motion.div
-            key={search}
+            key={filterKey}
             initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
@@ -91,7 +124,7 @@ export function EquipmentPanel() {
       <EquipmentAvailabilityModal
         open={availability.open}
         onOpenChange={availability.handleOpenChange}
-        equipment={allEquipment}
+        equipment={equipment}
         selectedIds={availability.selectedIds}
         onToggleEquipment={availability.toggleEquipment}
         slot={availability.slot}
@@ -113,6 +146,20 @@ export function EquipmentPanel() {
       <EquipmentUsageModal
         usage={availability.usage}
         onOpenChange={availability.handleUsageOpenChange}
+      />
+
+      <DeleteConfirmDialog
+        open={del.open}
+        count={del.count}
+        noun="פריטי ציוד"
+        singularLabel="הציוד"
+        names={del.names}
+        expectedPhrase={del.expectedPhrase}
+        confirmText={del.confirmText}
+        onConfirmTextChange={del.setConfirmText}
+        valid={del.valid}
+        onCancel={del.cancel}
+        onConfirm={del.confirm}
       />
     </CardContent>
   );

@@ -1,5 +1,4 @@
 import { players } from "@/lib/players-data";
-import { rooms, equipment } from "@/lib/rooms-data";
 import {
   COURSE_DAYS,
   courseOccupancy,
@@ -94,26 +93,6 @@ function studentIdsFor(course: Course): string[] {
   return players.filter((p) => p.courses.includes(course.name)).map((p) => p.id);
 }
 
-/** Equipment lines derived from the gear that lives in the course's room. */
-function equipmentFor(course: Course): EquipmentLineValues[] {
-  const room = rooms.find((r) => r.name === course.room);
-  if (!room) return [];
-  const lines: EquipmentLineValues[] = [];
-  room.equipment.forEach((name, i) => {
-    const match = equipment.find(
-      (e) => e.name.includes(name) || name.includes(e.name),
-    );
-    if (match && !lines.some((l) => l.equipmentId === match.name)) {
-      lines.push({
-        id: `equip-${course.id}-${i}`,
-        equipmentId: match.name,
-        quantity: String(1 + (hash(match.id, 7) % 3)),
-      });
-    }
-  });
-  return lines;
-}
-
 /**
  * Builds the full "edit course" form from an existing course. The roster
  * only stores a slice of these fields, so the rest (meetings, students,
@@ -136,7 +115,7 @@ export function courseFormValuesFor(course: Course): CourseFormValues {
     notes: course.notes ?? "",
     meetings: meetingsFor(course),
     studentIds: studentIdsFor(course),
-    equipment: equipmentFor(course),
+    equipment: [],
   };
 }
 

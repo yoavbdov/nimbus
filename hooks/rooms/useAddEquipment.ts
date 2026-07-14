@@ -1,9 +1,12 @@
 import { useCallback, useState } from "react";
 import {
   EMPTY_EQUIPMENT_FORM,
+  equipmentEditPatch,
+  equipmentRecordFromForm,
   isEquipmentFormValid,
   type EquipmentFormValues,
 } from "@/lib/equipment-form";
+import { addEquipment, updateEquipment } from "@/lib/firebase/data/equipment";
 
 /** "add" shows the empty add-equipment flow; "edit" prefills an existing item. */
 export type EquipmentModalMode = "add" | "edit";
@@ -48,8 +51,15 @@ export function useAddEquipment() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
-  }, [valid]);
+    // Edit → patch the existing doc; add → create a new one. The live table
+    // re-renders from Firestore automatically via its onSnapshot subscription.
+    if (values.id) {
+      void updateEquipment(values.id, equipmentEditPatch(values));
+    } else {
+      void addEquipment(equipmentRecordFromForm(values));
+    }
+    setOpen(false);
+  }, [valid, values]);
 
   return {
     open,

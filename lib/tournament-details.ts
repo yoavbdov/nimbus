@@ -1,5 +1,4 @@
 import { players } from "@/lib/players-data";
-import { rooms, equipment } from "@/lib/rooms-data";
 import type { Tournament } from "@/lib/tournaments-data";
 import {
   daysFromSessions,
@@ -72,26 +71,6 @@ function playerIdsFor(tournament: Tournament): string[] {
   return players
     .filter((p) => p.tournaments.includes(tournament.name))
     .map((p) => p.id);
-}
-
-/** Equipment lines derived from the gear that lives in the tournament's room. */
-function equipmentFor(tournament: Tournament): EquipmentLineValues[] {
-  const room = rooms.find((r) => r.name === tournament.room);
-  if (!room) return [];
-  const lines: EquipmentLineValues[] = [];
-  room.equipment.forEach((name, i) => {
-    const match = equipment.find(
-      (e) => e.name.includes(name) || name.includes(e.name),
-    );
-    if (match && !lines.some((l) => l.equipmentId === match.name)) {
-      lines.push({
-        id: `equip-${tournament.id}-${i}`,
-        equipmentId: match.name,
-        quantity: String(1 + (hash(match.id, 7) % 3)),
-      });
-    }
-  });
-  return lines;
 }
 
 /** "2026-06-07" → "07.06.2026"; invalid → "—". */
@@ -286,6 +265,6 @@ export function tournamentFormValuesFor(
     rounds,
     fixedMeetings: [],
     playerIds: playerIdsFor(tournament),
-    equipment: equipmentFor(tournament),
+    equipment: [],
   };
 }

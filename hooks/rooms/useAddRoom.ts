@@ -2,8 +2,11 @@ import { useCallback, useState } from "react";
 import {
   EMPTY_ROOM_FORM,
   isRoomFormValid,
+  roomEditPatch,
+  roomRecordFromForm,
   type RoomFormValues,
 } from "@/lib/room-form";
+import { addRoom, updateRoom } from "@/lib/firebase/data/rooms";
 
 /** "add" shows the empty add-room flow; "edit" prefills an existing room. */
 export type RoomModalMode = "add" | "edit";
@@ -45,8 +48,15 @@ export function useAddRoom() {
 
   const confirm = useCallback(() => {
     if (!valid) return;
-    // UI only for now — submitting is wired up elsewhere later.
-  }, [valid]);
+    // Edit → patch the existing doc; add → create a new one. The live table
+    // re-renders from Firestore automatically via its onSnapshot subscription.
+    if (values.id) {
+      void updateRoom(values.id, roomEditPatch(values));
+    } else {
+      void addRoom(roomRecordFromForm(values));
+    }
+    setOpen(false);
+  }, [valid, values]);
 
   return {
     open,

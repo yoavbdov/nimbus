@@ -8,10 +8,13 @@ import { RoomsFilterBar } from "@/components/rooms/RoomsFilterBar";
 import { RoomsTable } from "@/components/rooms/RoomsTable";
 import { RoomAvailabilityModal } from "@/components/rooms/RoomAvailabilityModal";
 import { AddRoomModal } from "@/components/rooms/AddRoomModal";
+import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { useRoomsPanel } from "@/hooks/rooms/useRoomsPanel";
 import { useRoomAvailabilityCheck } from "@/hooks/rooms/useRoomAvailabilityCheck";
 import { useAddRoom } from "@/hooks/rooms/useAddRoom";
-import { rooms as allRooms } from "@/lib/rooms-data";
+import { useDeleteConfirm } from "@/hooks/shared/useDeleteConfirm";
+import { deleteRoom } from "@/lib/firebase/data/rooms";
+import { roomsFilterSchema } from "@/lib/rooms-filters";
 import { roomFormValuesFor } from "@/lib/room-form";
 
 export function RoomsPanel() {
@@ -24,24 +27,37 @@ export function RoomsPanel() {
     removeFilter,
     clearAll,
     filtered,
+    rooms,
     total,
     filterKey,
   } = useRoomsPanel();
-  const availability = useRoomAvailabilityCheck(allRooms);
+  const availability = useRoomAvailabilityCheck(rooms);
   const addRoom = useAddRoom();
+  const del = useDeleteConfirm(deleteRoom, "חדרים");
+
+  /** The id+name targets for a set of room ids (for the delete dialog). */
+  function deletableRooms(roomIds: string[]) {
+    return rooms
+      .filter((r) => roomIds.includes(r.id))
+      .map((r) => ({ id: r.id, name: r.name }));
+  }
 
   function handleRoomAction(actionId: string, roomId: string | null) {
     if (actionId === "details") {
-      const room = allRooms.find((r) => r.id === roomId);
+      const room = rooms.find((r) => r.id === roomId);
       if (room) addRoom.openForEdit(roomFormValuesFor(room));
     } else if (actionId === "availability") {
       availability.openWith(roomId ? [roomId] : []);
+    } else if (actionId === "delete") {
+      del.openFor(roomId ? deletableRooms([roomId]) : []);
     }
   }
 
   function handleBulkAction(actionId: string, roomIds: string[]) {
     if (actionId === "availability") {
       availability.openWith(roomIds);
+    } else if (actionId === "delete") {
+      del.openFor(deletableRooms(roomIds));
     }
   }
 
@@ -68,7 +84,8 @@ export function RoomsPanel() {
 
         <RoomsFilterBar
           search={search}
-          placeholder="חיפוש לפי שם חדר או ציוד…"
+          placeholder="חיפוש לפי שם חדר…"
+          schema={roomsFilterSchema}
           filters={filters}
           onSearchChange={setSearch}
           onAdd={addFilter}
@@ -109,7 +126,7 @@ export function RoomsPanel() {
       <RoomAvailabilityModal
         open={availability.open}
         onOpenChange={availability.handleOpenChange}
-        rooms={allRooms}
+        rooms={rooms}
         selectedIds={availability.selectedIds}
         onToggleRoom={availability.toggleRoom}
         slot={availability.slot}
@@ -125,6 +142,20 @@ export function RoomsPanel() {
         pickerMatches={availability.pickerMatches}
         container={availability.container}
         onContainerChange={availability.setContainer}
+      />
+
+      <DeleteConfirmDialog
+        open={del.open}
+        count={del.count}
+        noun="חדרים"
+        singularLabel="החדר"
+        names={del.names}
+        expectedPhrase={del.expectedPhrase}
+        confirmText={del.confirmText}
+        onConfirmTextChange={del.setConfirmText}
+        valid={del.valid}
+        onCancel={del.cancel}
+        onConfirm={del.confirm}
       />
     </Card>
   );

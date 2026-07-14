@@ -9,16 +9,17 @@ import {
 } from "@/components/ui/popover";
 import { FilterBuilder } from "@/components/rooms/filters/FilterBuilder";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import type { RoomFilter } from "@/lib/rooms-filters";
+import type { Filter, FilterSchema } from "@/lib/filters/schema";
 
 interface AddFilterPopoverProps {
-  onAdd: (filter: RoomFilter) => void;
+  schema: FilterSchema;
+  onAdd: (filter: Filter) => void;
 }
 
-export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
+export function AddFilterPopover({ schema, onAdd }: AddFilterPopoverProps) {
   const { open, setOpen, close } = useDisclosure();
 
-  function handleSubmit(filter: RoomFilter) {
+  function handleSubmit(filter: Filter) {
     onAdd(filter);
     close();
   }
@@ -44,7 +45,7 @@ export function AddFilterPopover({ onAdd }: AddFilterPopoverProps) {
         onOpenAutoFocus={(e) => e.preventDefault()}
         className="w-auto max-w-[min(95vw,1000px)] p-0 rounded-2xl bg-popover ring-1 ring-foreground/15 shadow-depth-xl overflow-x-auto"
       >
-        <FilterBuilder onSubmit={handleSubmit} onCancel={close} />
+        <FilterBuilder schema={schema} onSubmit={handleSubmit} onCancel={close} />
       </PopoverContent>
     </Popover>
   );

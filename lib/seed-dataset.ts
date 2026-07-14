@@ -60,9 +60,9 @@ export const seedCoaches: CoachRecord[] = keyByName(rawSeedCoaches);
 
 // ── Rooms (3) ────────────────────────────────────────────────────────────────
 const rawSeedRooms: Room[] = [
-  { id: "room-1", name: "אולם ראשי", capacity: 40, equipment: ["שעוני שח", "לוחות הדגמה"] },
-  { id: "room-2", name: "חדר אימונים", capacity: 16, equipment: ["סטים מגנטיים"] },
-  { id: "room-3", name: "חדר תחרויות", capacity: 32, equipment: ["שעוני שח", "לוחות תחרות"] },
+  { id: "room-1", name: "אולם ראשי", capacity: 40 },
+  { id: "room-2", name: "חדר אימונים", capacity: 16 },
+  { id: "room-3", name: "חדר תחרויות", capacity: 32 },
 ];
 const roomNameById = nameByIdOf(rawSeedRooms);
 export const seedRooms: Room[] = keyByName(rawSeedRooms);

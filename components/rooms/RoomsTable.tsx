@@ -35,24 +35,6 @@ function StaticHeader({ children }: { children: React.ReactNode }) {
 
 const MotionTableRow = motion.create(TableRow);
 
-function EquipmentPills({ equipment }: { equipment: string[] }) {
-  if (equipment.length === 0)
-    return <span className="text-foreground/40 num">—</span>;
-  return (
-    <div className="flex flex-wrap justify-center gap-1">
-      {equipment.map((item) => (
-        <Badge
-          key={item}
-          variant="secondary"
-          className="h-6 px-2 rounded-full neu-raised-xs bg-transparent border-0 text-[0.7rem] text-foreground"
-        >
-          {item}
-        </Badge>
-      ))}
-    </div>
-  );
-}
-
 function CapacityPill({ value }: { value: number }) {
   return (
     <Badge
@@ -108,7 +90,6 @@ export function RoomsTable({ rooms, onAction, onBulkAction }: RoomsTableProps) {
               <TableRow className="hover:bg-transparent">
                 <StaticHeader>שם חדר</StaticHeader>
                 <StaticHeader>קיבולת</StaticHeader>
-                <StaticHeader>מאחסן</StaticHeader>
                 <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>
@@ -135,9 +116,6 @@ export function RoomsTable({ rooms, onAction, onBulkAction }: RoomsTableProps) {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-center">
                     <CapacityPill value={room.capacity} />
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-center">
-                    <EquipmentPills equipment={room.equipment} />
                   </TableCell>
                   <SelectionCell id={room.id} selection={selection} />
                 </MotionTableRow>

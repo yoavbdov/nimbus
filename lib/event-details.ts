@@ -1,4 +1,3 @@
-import { rooms, equipment } from "@/lib/rooms-data";
 import type { ClubEvent } from "@/lib/events-data";
 import {
   daysFromSessions,
@@ -39,26 +38,6 @@ function timeWindow(event: ClubEvent): { start: string; end: string } {
   return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
 }
 
-
-/** Equipment lines derived from the gear that lives in the event's room. */
-function equipmentFor(event: ClubEvent): EquipmentLineValues[] {
-  const room = rooms.find((r) => r.name === event.room);
-  if (!room) return [];
-  const lines: EquipmentLineValues[] = [];
-  room.equipment.forEach((name, i) => {
-    const match = equipment.find(
-      (e) => e.name.includes(name) || name.includes(e.name),
-    );
-    if (match && !lines.some((l) => l.equipmentId === match.name)) {
-      lines.push({
-        id: `equip-${event.id}-${i}`,
-        equipmentId: match.name,
-        quantity: String(1 + (hash(match.id, 7) % 3)),
-      });
-    }
-  });
-  return lines;
-}
 
 /** "2026-06-07" → "07.06.2026"; invalid → "—". */
 function nextDateFromIso(iso: string): string {
@@ -198,7 +177,6 @@ export function eventFormValuesFromLive(
 export function eventFormValuesFor(event: ClubEvent): EventFormValues {
   const { start, end } = timeWindow(event);
   const date = isoFromNextDate(event.nextDate);
-  const equipmentLines = equipmentFor(event);
   const oneoff = event.recurrence === "חד פעמי";
 
   return {
@@ -215,6 +193,5 @@ export function eventFormValuesFor(event: ClubEvent): EventFormValues {
     recurringStartTime: oneoff ? "" : start,
     recurringEndTime: oneoff ? "" : end,
     recurringStartDate: oneoff ? "" : date,
-    equipment: equipmentLines,
   };
 }

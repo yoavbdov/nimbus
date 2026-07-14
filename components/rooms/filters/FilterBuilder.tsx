@@ -16,13 +16,8 @@ import {
   SingleEnumPicker,
   MultiEnumPicker,
 } from "@/components/shared/filters/EnumValuePickers";
-import { useFilterBuilder } from "@/hooks/rooms/useFilterBuilder";
-import {
-  FIELD_BY_KEY,
-  HAS_ADVANCED_FIELDS,
-  type FilterField,
-  type RoomFilter,
-} from "@/lib/rooms-filters";
+import { useFilterBuilder } from "@/hooks/filters/useFilterBuilder";
+import type { Filter, FilterSchema } from "@/lib/filters/schema";
 
 const stepVariants = {
   initial: { opacity: 0, x: 8 },
@@ -91,12 +86,13 @@ const selectItemClass =
   "justify-center pl-8 pr-8 [&>span:last-child]:grow [&>span:last-child]:justify-center";
 
 interface FilterBuilderProps {
-  initial?: RoomFilter;
-  onSubmit: (filter: RoomFilter) => void;
+  schema: FilterSchema;
+  initial?: Filter;
+  onSubmit: (filter: Filter) => void;
   onCancel: () => void;
 }
 
-export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProps) {
+export function FilterBuilder({ schema, initial, onSubmit, onCancel }: FilterBuilderProps) {
   const {
     field,
     op,
@@ -118,7 +114,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     setMultiValue,
     submit,
     isEditing,
-  } = useFilterBuilder({ initial, onSubmit });
+  } = useFilterBuilder({ schema, initial, onSubmit });
 
   return (
     <motion.div
@@ -129,10 +125,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
     >
       <StepShell>
         <StepLabel>שדה</StepLabel>
-        <Select
-          value={field}
-          onValueChange={(v) => handleFieldChange(v as FilterField)}
-        >
+        <Select value={field} onValueChange={handleFieldChange}>
           <SelectTrigger className={triggerClass}>
             <SelectValue placeholder="בחר שדה" />
           </SelectTrigger>
@@ -142,7 +135,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                 {c.label}
               </SelectItem>
             ))}
-            {HAS_ADVANCED_FIELDS && (
+            {schema.hasAdvancedFields && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -172,7 +165,7 @@ export function FilterBuilder({ initial, onSubmit, onCancel }: FilterBuilderProp
                 <SelectValue placeholder="בחר תנאי" />
               </SelectTrigger>
               <SelectContent position="popper" className={selectContentClass}>
-                {FIELD_BY_KEY[field].operators.map((o) => (
+                {schema.fieldByKey[field].operators.map((o) => (
                   <SelectItem key={o.op} value={o.op} className={selectItemClass}>
                     {o.label}
                   </SelectItem>
