@@ -55,7 +55,7 @@ export function CourseFormModal({
       onRemoveEquipment={addCourse.removeEquipmentLine}
       coachWarning={addCourse.coachWarning}
       capacityWarning={addCourse.capacityWarning}
-      criteriaMismatch={addCourse.criteriaMismatch}
+      mismatchReasons={addCourse.mismatchReasons}
     />
   );
 }

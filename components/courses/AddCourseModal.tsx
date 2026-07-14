@@ -14,7 +14,6 @@ import {
   Search,
   Trash2,
   Users,
-  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -42,6 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
+import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
 import {
   AddSourceChoiceDialog,
@@ -569,7 +569,7 @@ interface AddCourseModalProps {
   onRemoveEquipment: (id: string) => void;
   coachWarning: boolean;
   capacityWarning: boolean;
-  criteriaMismatch: (playerId: string) => boolean;
+  mismatchReasons: (playerId: string) => string[];
 }
 
 export function AddCourseModal({
@@ -613,7 +613,7 @@ export function AddCourseModal({
   onRemoveEquipment,
   coachWarning,
   capacityWarning,
-  criteriaMismatch,
+  mismatchReasons,
 }: AddCourseModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
@@ -904,40 +904,16 @@ export function AddCourseModal({
                         variants={itemVariants}
                         className="space-y-1.5"
                       >
-                        {students.map((p) => {
-                          const mismatch = criteriaMismatch(p.id);
-                          return (
-                            <div
-                              key={p.id}
-                              className="flex items-center justify-between gap-2 rounded-xl neu-inset bg-foreground/5 px-3 py-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                {mismatch && (
-                                  <AlertTriangle
-                                    className="size-4 shrink-0 text-amber-600 dark:text-amber-400"
-                                    aria-label="לא עומד בקריטריונים"
-                                  />
-                                )}
-                                <span className="text-sm text-foreground/85">
-                                  {p.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground num">
-                                  גיל {p.age} · {p.israeliRating}
-                                </span>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onRemoveStudent(p.id)}
-                                aria-label={`הסר ${p.name}`}
-                                className="size-7 rounded-lg text-foreground/50 hover:bg-foreground/10 hover:text-foreground"
-                              >
-                                <X className="size-4" />
-                              </Button>
-                            </div>
-                          );
-                        })}
+                        {students.map((p) => (
+                          <EnrolledPersonRow
+                            key={p.id}
+                            person={p}
+                            mismatchReasons={mismatchReasons(p.id)}
+                            onRemove={() => onRemoveStudent(p.id)}
+                            removeLabel={`הסר ${p.name}`}
+                            container={container}
+                          />
+                        ))}
                       </motion.div>
                     )}
 

@@ -5,11 +5,11 @@ import {
   isTournamentFormValid,
   makeEquipmentLine,
   makeRound,
-  meetsTournamentCriteria,
   type EquipmentLineValues,
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
+import { criteriaMismatchReasons } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
@@ -246,10 +246,10 @@ export function useAddTournament() {
 
   // ---- Derived warnings (non-blocking) ------------------------------------
   const judgeWarning = values.judge === "";
-  const criteriaMismatch = useCallback(
+  const mismatchReasons = useCallback(
     (playerId: string) => {
       const player = players.find((p) => p.id === playerId);
-      return player ? !meetsTournamentCriteria(player, values) : false;
+      return player ? criteriaMismatchReasons(player, values) : [];
     },
     [players, values],
   );
@@ -409,6 +409,6 @@ export function useAddTournament() {
     updateEquipmentLine,
     removeEquipmentLine,
     judgeWarning,
-    criteriaMismatch,
+    mismatchReasons,
   };
 }

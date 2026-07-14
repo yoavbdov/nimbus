@@ -4,11 +4,11 @@ import {
   isCourseFormValid,
   makeEquipmentLine,
   makeMeeting,
-  meetsCriteria,
   type CourseFormValues,
   type EquipmentLineValues,
   type MeetingValues,
 } from "@/lib/course-form";
+import { criteriaMismatchReasons } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
@@ -225,10 +225,10 @@ export function useAddCourse() {
   const coachWarning = values.coach === "";
   const capacityWarning =
     values.capacity !== "" && students.length > Number(values.capacity);
-  const criteriaMismatch = useCallback(
+  const mismatchReasons = useCallback(
     (playerId: string) => {
       const player = players.find((p) => p.id === playerId);
-      return player ? !meetsCriteria(player, values) : false;
+      return player ? criteriaMismatchReasons(player, values) : [];
     },
     [players, values],
   );
@@ -385,6 +385,6 @@ export function useAddCourse() {
     removeEquipmentLine,
     coachWarning,
     capacityWarning,
-    criteriaMismatch,
+    mismatchReasons,
   };
 }
