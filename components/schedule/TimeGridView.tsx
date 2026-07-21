@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 import { HEBREW_WEEKDAYS_SHORT, isSameDay } from "@/lib/calendar";
 import {
   CATEGORY_META,
   timeToMinutes,
   type ScheduleEvent,
 } from "@/lib/schedule-data";
+import type { ConflictPartner } from "@/lib/conflicts";
 import {
   HOUR_HEIGHT,
   useDayLayout,
@@ -23,10 +25,17 @@ interface DayColumn {
 interface TimeGridViewProps {
   days: DayColumn[];
   today: Date;
+  /** Room/coach clashes keyed by occurrence id; a listed block is flagged. */
+  conflictByOccurrence: Map<string, ConflictPartner[]>;
   onEventClick: (event: ScheduleEvent, e: React.MouseEvent) => void;
 }
 
-export function TimeGridView({ days, today, onEventClick }: TimeGridViewProps) {
+export function TimeGridView({
+  days,
+  today,
+  conflictByOccurrence,
+  onEventClick,
+}: TimeGridViewProps) {
   const { hours, bodyHeight, scrollRef, gridCols, startHour, nowMinutes } =
     useTimeGrid(days.length);
 
@@ -105,6 +114,7 @@ export function TimeGridView({ days, today, onEventClick }: TimeGridViewProps) {
                 startHour={startHour}
                 isToday={isSameDay(day.date, today)}
                 nowMinutes={nowMinutes}
+                conflictByOccurrence={conflictByOccurrence}
                 onEventClick={onEventClick}
               />
             ))}
@@ -121,6 +131,7 @@ function DayColumnBody({
   startHour,
   isToday,
   nowMinutes,
+  conflictByOccurrence,
   onEventClick,
 }: {
   events: ScheduleEvent[];
@@ -128,6 +139,7 @@ function DayColumnBody({
   startHour: number;
   isToday: boolean;
   nowMinutes: number;
+  conflictByOccurrence: Map<string, ConflictPartner[]>;
   onEventClick: (event: ScheduleEvent, e: React.MouseEvent) => void;
 }) {
   const positioned = useDayLayout(events);
@@ -173,6 +185,7 @@ function DayColumnBody({
         const widthPct = 100 / lanes;
         // Too short for the full details → show just the title and where it is.
         const compact = height < 42;
+        const hasConflict = (conflictByOccurrence.get(event.id)?.length ?? 0) > 0;
 
         return (
           <motion.div
@@ -185,7 +198,10 @@ function DayColumnBody({
               ease: [0.22, 1, 0.36, 1],
             }}
             onClick={(ev) => onEventClick(event, ev)}
-            className="group/event absolute flex cursor-pointer flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
+            className={cn(
+              "group/event absolute flex cursor-pointer flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm transition-shadow hover:shadow-md",
+              hasConflict ? "ring-2 ring-destructive" : "ring-1 ring-black/5",
+            )}
             style={{
               top: top + 1,
               height: height - 2,
@@ -197,7 +213,15 @@ function DayColumnBody({
             }}
             title={`${event.start}–${event.end} · ${event.title}`}
           >
-            <p className="truncate font-semibold text-foreground">
+            {hasConflict && (
+              <AlertTriangle className="absolute inset-e-1 top-1 size-3 text-destructive" />
+            )}
+            <p
+              className={cn(
+                "truncate font-semibold text-foreground",
+                hasConflict && "pe-4",
+              )}
+            >
               {event.title}
             </p>
             {compact ? (

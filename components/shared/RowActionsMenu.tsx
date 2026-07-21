@@ -16,11 +16,14 @@ export interface RowAction {
 interface RowActionsMenuContentProps {
   actions: RowAction[];
   onSelect: (action: RowAction) => void;
+  /** Optional row(s) rendered above the actions (e.g. a conflicts entry). */
+  header?: React.ReactNode;
 }
 
 export function RowActionsMenuContent({
   actions,
   onSelect,
+  header,
 }: RowActionsMenuContentProps) {
   const regular = actions.filter((a) => a.variant === "default");
   const destructive = actions.filter((a) => a.variant === "destructive");
@@ -37,6 +40,7 @@ export function RowActionsMenuContent({
         "shadow-[0_10px_40px_-12px_oklch(0.58_0.19_278/0.55),0_0_0_1px_oklch(0.58_0.19_278/0.15)_inset]",
       )}
     >
+      {header}
       {regular.map((action) => (
         <Button
           key={action.id}

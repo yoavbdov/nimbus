@@ -21,6 +21,7 @@ import {
   type ScheduleEvent,
 } from "@/lib/schedule-data";
 import { useScheduleEvents } from "@/hooks/schedule/useScheduleEvents";
+import { conflictsForCalendar } from "@/lib/conflicts";
 
 /** An empty selection for every facet — the default (no facet filtering). */
 function emptyFacetState(): Record<FacetKey, Set<string>> {
@@ -76,6 +77,13 @@ export function useScheduleCalendar() {
   // expanded across the window around the month the picker is showing.
   const events = useScheduleEvents(viewMonth);
   const facetOptions = useMemo(() => buildFacetOptions(events), [events]);
+
+  // Room/coach clashes per occurrence, computed over the FULL event set so a
+  // block still flags a clash whose partner a filter has hidden.
+  const conflictByOccurrence = useMemo(
+    () => conflictsForCalendar(events),
+    [events],
+  );
   const monthGrid = useMemo(() => getMonthGrid(viewMonth), [viewMonth]);
 
   // The range to paint: the in-progress drag wins over the committed range.
@@ -262,6 +270,7 @@ export function useScheduleCalendar() {
     activeFilterCount,
     eventsByDay,
     eventsInRange,
+    conflictByOccurrence,
     selectedDays,
     totalEvents,
     rangeLength: daysBetweenInclusive(activeRange.start, activeRange.end),

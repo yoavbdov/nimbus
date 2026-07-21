@@ -42,17 +42,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
+import { ConflictWarning } from "@/components/schedule/ConflictWarning";
+import type { DraftConflict } from "@/lib/conflicts";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { equipment, OUTSIDE_CLUB_ROOM, type Room } from "@/lib/rooms-data";
+import {
+  OUTSIDE_CLUB_ROOM,
+  type Room,
+  type Equipment,
+} from "@/lib/rooms-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import {
   availableEquipmentOptions,
   equipmentAvailableNow,
+  equipmentByName,
 } from "@/lib/course-form";
 import {
   EVENT_FREQUENCY_OPTIONS,
@@ -247,15 +254,17 @@ function EquipmentRow({
   onRemove,
   container,
   options,
+  items,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
   options: string[];
+  items: Equipment[];
 }) {
-  const selected = equipment.find((e) => e.name === line.equipmentId);
-  const available = selected ? equipmentAvailableNow(selected.id) : null;
+  const selected = equipmentByName(line.equipmentId, items);
+  const available = selected ? equipmentAvailableNow(selected) : null;
   const overQuota =
     available != null &&
     line.quantity !== "" &&
@@ -406,6 +415,8 @@ interface AddEventModalProps {
   onAddEquipment: () => void;
   onUpdateEquipment: (id: string, patch: Partial<EquipmentLineValues>) => void;
   onRemoveEquipment: (id: string) => void;
+  equipmentItems: Equipment[];
+  conflicts: DraftConflict[];
 }
 
 export function AddEventModal({
@@ -445,6 +456,8 @@ export function AddEventModal({
   onAddEquipment,
   onUpdateEquipment,
   onRemoveEquipment,
+  equipmentItems,
+  conflicts,
 }: AddEventModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
@@ -484,6 +497,8 @@ export function AddEventModal({
             )}
           </DialogDescription>
         </DialogHeader>
+
+        {!readOnly && <ConflictWarning conflicts={conflicts} />}
 
         <Tabs
           value={tab}
@@ -866,7 +881,9 @@ export function AddEventModal({
                         options={availableEquipmentOptions(
                           values.equipment,
                           line.id,
+                          equipmentItems,
                         )}
+                        items={equipmentItems}
                       />
                     ))}
 
@@ -876,8 +893,11 @@ export function AddEventModal({
                         variant="ghost"
                         onClick={onAddEquipment}
                         disabled={
-                          availableEquipmentOptions(values.equipment, "")
-                            .length === 0
+                          availableEquipmentOptions(
+                            values.equipment,
+                            "",
+                            equipmentItems,
+                          ).length === 0
                         }
                         className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
                       >

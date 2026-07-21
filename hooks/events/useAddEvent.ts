@@ -7,6 +7,7 @@ import {
   type EventFormValues,
 } from "@/lib/event-form";
 import { type Player } from "@/lib/players-data";
+import { equipment as staticEquipment, type Equipment } from "@/lib/rooms-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { addEvent, updateEvent } from "@/lib/firebase/data/events";
@@ -17,6 +18,7 @@ import {
   eventEditPatch,
   eventSessionsFromForm,
 } from "@/lib/event-details";
+import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 
 /**
  * Owns all state for the "add event" modal: the scalar fields, the chosen
@@ -50,6 +52,11 @@ export function useAddEvent() {
   // The club roster, read live — the players picker works off real players
   // (docs keyed by name), not the legacy mock.
   const { data: players } = useCollection<Player>("players");
+
+  // The equipment picker is fed by the live equipment roster (Firestore),
+  // falling back to the static mock only while the collection is empty.
+  const { data: liveEquipment } = useCollection<Equipment>("equipment");
+  const equipmentItems = liveEquipment.length ? liveEquipment : staticEquipment;
 
   const valid = isEventFormValid(values);
   // Read-only (view) never counts as dirty; otherwise compare against the open snapshot.
@@ -172,9 +179,12 @@ export function useAddEvent() {
   const addEquipmentLine = useCallback(() => {
     setValues((prev) => ({
       ...prev,
-      equipment: [...prev.equipment, makeEquipmentLine(prev.equipment)],
+      equipment: [
+        ...prev.equipment,
+        makeEquipmentLine(prev.equipment, equipmentItems),
+      ],
     }));
-  }, []);
+  }, [equipmentItems]);
 
   const updateEquipmentLine = useCallback(
     (id: string, patch: Partial<EquipmentLineValues>) => {
@@ -194,6 +204,15 @@ export function useAddEvent() {
       equipment: prev.equipment.filter((e) => e.id !== id),
     }));
   }, []);
+
+  // ---- Derived warnings (non-blocking) ------------------------------------
+  // Schedule clashes: an event's slot against every other activity. An event has
+  // no instructor, so only room clashes apply. Non-blocking.
+  const { check: checkConflicts } = useDraftConflicts();
+  const conflicts = useMemo(() => {
+    const draftId = values.id || "__draft__";
+    return checkConflicts(eventSessionsFromForm(draftId, values), "");
+  }, [checkConflicts, values]);
 
   const openModal = useCallback(() => {
     setMode("add");
@@ -334,5 +353,7 @@ export function useAddEvent() {
     addEquipmentLine,
     updateEquipmentLine,
     removeEquipmentLine,
+    equipmentItems,
+    conflicts,
   };
 }

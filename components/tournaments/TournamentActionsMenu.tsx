@@ -8,10 +8,13 @@ import { cn } from "@/lib/utils";
 
 interface TournamentActionsMenuContentProps {
   onSelect: (action: TournamentAction) => void;
+  /** Optional row(s) rendered above the actions (e.g. a conflicts entry). */
+  header?: React.ReactNode;
 }
 
 export function TournamentActionsMenuContent({
   onSelect,
+  header,
 }: TournamentActionsMenuContentProps) {
   const regular = tournamentActions.filter((a) => a.variant === "default");
   const destructive = tournamentActions.filter((a) => a.variant === "destructive");
@@ -28,6 +31,7 @@ export function TournamentActionsMenuContent({
         "shadow-[0_10px_40px_-12px_oklch(0.58_0.19_278/0.55),0_0_0_1px_oklch(0.58_0.19_278/0.15)_inset]",
       )}
     >
+      {header}
       {regular.map((action) => (
         <Button
           key={action.id}

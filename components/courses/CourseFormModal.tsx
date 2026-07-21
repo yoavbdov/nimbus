@@ -53,8 +53,10 @@ export function CourseFormModal({
       onAddEquipment={addCourse.addEquipmentLine}
       onUpdateEquipment={addCourse.updateEquipmentLine}
       onRemoveEquipment={addCourse.removeEquipmentLine}
+      equipmentItems={addCourse.equipmentItems}
       coachWarning={addCourse.coachWarning}
       capacityWarning={addCourse.capacityWarning}
+      conflicts={addCourse.conflicts}
       ageRangeInvalid={addCourse.ageRangeInvalid}
       ratingRangeInvalid={addCourse.ratingRangeInvalid}
       mismatchReasons={addCourse.mismatchReasons}

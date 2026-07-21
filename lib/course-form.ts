@@ -99,11 +99,13 @@ export function makeMeeting(): MeetingValues {
 
 export function makeEquipmentLine(
   existing: { equipmentId: string }[] = [],
+  items: Equipment[] = equipment,
 ): EquipmentLineValues {
   // Default to the first item not already picked by another line (each physical
-  // item can be added only once), rather than an empty "בחר ציוד".
+  // item can be added only once), rather than an empty "בחר ציוד". `items` is
+  // the live equipment roster (Firestore), falling back to the static mock.
   const taken = new Set(existing.map((l) => l.equipmentId).filter(Boolean));
-  const firstAvailable = equipment.find((e) => !taken.has(e.name));
+  const firstAvailable = items.find((e) => !taken.has(e.name));
   return {
     id: makeId("equip"),
     equipmentId: firstAvailable?.name ?? "",
@@ -163,18 +165,22 @@ export function meetingNeedsEndDate(meeting: MeetingValues): boolean {
   return meeting.frequency !== "once" && !meeting.noEndDate;
 }
 
-/** A stable, made-up "free right now" count per equipment item (display only). */
-export function equipmentAvailableNow(equipmentId: string): number {
-  const item = equipment.find((e) => e.id === equipmentId);
-  if (!item) return 0;
+/**
+ * A stable, made-up "free right now" count for one equipment item (display
+ * only). Driven by the item's LIVE stock (`quantity`) so it reflects Firestore.
+ */
+export function equipmentAvailableNow(item: Equipment): number {
   // Deterministic pseudo-availability: somewhere between ~40% and full stock.
   const seed = item.id.split("").reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
   const span = Math.max(1, Math.floor(item.quantity * 0.6));
   return item.quantity - (Math.abs(seed) % span);
 }
 
-export function equipmentById(equipmentId: string): Equipment | undefined {
-  return equipment.find((e) => e.id === equipmentId);
+export function equipmentByName(
+  name: string,
+  items: Equipment[] = equipment,
+): Equipment | undefined {
+  return items.find((e) => e.name === name);
 }
 
 /**
@@ -185,15 +191,14 @@ export function equipmentById(equipmentId: string): Equipment | undefined {
 export function availableEquipmentOptions(
   lines: { id: string; equipmentId: string }[],
   currentLineId: string,
+  items: Equipment[] = equipment,
 ): string[] {
   const takenByOthers = new Set(
     lines
       .filter((l) => l.id !== currentLineId && l.equipmentId)
       .map((l) => l.equipmentId),
   );
-  return equipment
-    .map((e) => e.name)
-    .filter((name) => !takenByOthers.has(name));
+  return items.map((e) => e.name).filter((name) => !takenByOthers.has(name));
 }
 
 /** Whether a student falls within the course's age and rating ranges. */

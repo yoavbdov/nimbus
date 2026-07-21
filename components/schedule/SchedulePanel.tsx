@@ -11,17 +11,30 @@ import { ScheduleAgenda } from "@/components/schedule/ScheduleAgenda";
 import { TimeGridView } from "@/components/schedule/TimeGridView";
 import { ScheduleEventMenu } from "@/components/schedule/ScheduleEventMenu";
 import { ScheduleActionModals } from "@/components/schedule/ScheduleActionModals";
+import { ConflictsDialog } from "@/components/schedule/ConflictsDialog";
 import { useScheduleCalendar } from "@/hooks/schedule/useScheduleCalendar";
 import { useScheduleEventMenu } from "@/hooks/schedule/useScheduleEventMenu";
 import { useScheduleEventActions } from "@/hooks/schedule/useScheduleEventActions";
+import { useConflictsDialog } from "@/hooks/schedule/useConflictsDialog";
 
 export function SchedulePanel() {
   const calendar = useScheduleCalendar();
   const menu = useScheduleEventMenu();
   const actions = useScheduleEventActions();
+  const conflicts = useConflictsDialog();
+
+  // The clashes of the occurrence whose menu is open (drives the menu entry).
+  const activeConflicts = menu.activeEvent
+    ? (calendar.conflictByOccurrence.get(menu.activeEvent.id) ?? [])
+    : [];
 
   function handleSelect(action: { id: string }) {
     if (menu.activeEvent) actions.dispatch(menu.activeEvent, action.id);
+    menu.onSelect();
+  }
+
+  function handleShowConflicts() {
+    if (menu.activeEvent) conflicts.openFor(menu.activeEvent, activeConflicts);
     menu.onSelect();
   }
 
@@ -101,6 +114,7 @@ export function SchedulePanel() {
               <TimeGridView
                 days={calendar.selectedDays}
                 today={calendar.today}
+                conflictByOccurrence={calendar.conflictByOccurrence}
                 onEventClick={menu.openAt}
               />
             </div>
@@ -113,7 +127,16 @@ export function SchedulePanel() {
         onOpenChange={menu.handleOpenChange}
         virtualRef={menu.virtualRef}
         category={menu.activeEvent?.category}
+        conflictCount={activeConflicts.length}
+        onShowConflicts={handleShowConflicts}
         onSelect={handleSelect}
+      />
+
+      <ConflictsDialog
+        open={conflicts.open}
+        onOpenChange={conflicts.onOpenChange}
+        event={conflicts.event}
+        partners={conflicts.partners}
       />
 
       {/* The same modals the management modules open from their row dropdowns. */}

@@ -13,6 +13,7 @@ import {
 } from "@/lib/tournament-form";
 import { criteriaMismatchReasons, maxBelowMin } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
+import { equipment as staticEquipment, type Equipment } from "@/lib/rooms-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { addTournament, updateTournament } from "@/lib/firebase/data/tournaments";
@@ -23,6 +24,7 @@ import {
   tournamentEditPatch,
   tournamentSessionsFromForm,
 } from "@/lib/tournament-details";
+import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -61,6 +63,11 @@ export function useAddTournament() {
   // The club roster, read live — the players picker and criteria checks all
   // work off real players (docs keyed by name), not the legacy mock.
   const { data: players } = useCollection<Player>("players");
+
+  // The equipment picker is fed by the live equipment roster (Firestore),
+  // falling back to the static mock only while the collection is empty.
+  const { data: liveEquipment } = useCollection<Equipment>("equipment");
+  const equipmentItems = liveEquipment.length ? liveEquipment : staticEquipment;
 
   // A max bound below its min is an impossible range — block it and flag it.
   const ageRangeInvalid =
@@ -263,9 +270,12 @@ export function useAddTournament() {
   const addEquipmentLine = useCallback(() => {
     setValues((prev) => ({
       ...prev,
-      equipment: [...prev.equipment, makeEquipmentLine(prev.equipment)],
+      equipment: [
+        ...prev.equipment,
+        makeEquipmentLine(prev.equipment, equipmentItems),
+      ],
     }));
-  }, []);
+  }, [equipmentItems]);
 
   const updateEquipmentLine = useCallback(
     (id: string, patch: Partial<EquipmentLineValues>) => {
@@ -287,6 +297,17 @@ export function useAddTournament() {
   }, []);
 
   // ---- Derived warnings (non-blocking) ------------------------------------
+  // Schedule clashes: this tournament's slots against every other activity, on a
+  // shared room or the same instructor (its judge). Non-blocking.
+  const { check: checkConflicts } = useDraftConflicts();
+  const conflicts = useMemo(() => {
+    const draftId = values.id || "__draft__";
+    return checkConflicts(
+      tournamentSessionsFromForm(draftId, values),
+      values.judge,
+    );
+  }, [checkConflicts, values]);
+
   const judgeWarning = values.judge === "";
   const mismatchReasons = useCallback(
     (playerId: string) => {
@@ -453,7 +474,9 @@ export function useAddTournament() {
     addEquipmentLine,
     updateEquipmentLine,
     removeEquipmentLine,
+    equipmentItems,
     judgeWarning,
+    conflicts,
     ageRangeInvalid,
     ratingRangeInvalid,
     mismatchReasons,

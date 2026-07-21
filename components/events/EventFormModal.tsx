@@ -51,6 +51,8 @@ export function EventFormModal({
       onAddEquipment={addEvent.addEquipmentLine}
       onUpdateEquipment={addEvent.updateEquipmentLine}
       onRemoveEquipment={addEvent.removeEquipmentLine}
+      equipmentItems={addEvent.equipmentItems}
+      conflicts={addEvent.conflicts}
     />
   );
 }

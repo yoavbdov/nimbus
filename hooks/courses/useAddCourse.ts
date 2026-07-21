@@ -10,10 +10,15 @@ import {
 } from "@/lib/course-form";
 import { criteriaMismatchReasons, maxBelowMin } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
+import { equipment as staticEquipment, type Equipment } from "@/lib/rooms-data";
 import { exampleRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { addCourse, updateCourse } from "@/lib/firebase/data/courses";
-import { replaceCourseSessions } from "@/lib/firebase/data/sessions";
+import {
+  replaceCourseSessions,
+  sessionFromMeeting,
+} from "@/lib/firebase/data/sessions";
+import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 import { replaceTargetRelations } from "@/lib/firebase/data/relations";
 import { courseRecordFromForm, courseEditPatch } from "@/lib/course-details";
 
@@ -49,6 +54,11 @@ export function useAddCourse() {
   // The club roster, read live — the students picker and criteria checks all
   // work off real players, not the legacy mock.
   const { data: players } = useCollection<Player>("players");
+
+  // The equipment picker is fed by the live equipment roster (Firestore),
+  // falling back to the static mock only while the collection is empty.
+  const { data: liveEquipment } = useCollection<Equipment>("equipment");
+  const equipmentItems = liveEquipment.length ? liveEquipment : staticEquipment;
 
   // A max bound below its min is an impossible range — block it and flag it.
   const ageRangeInvalid =
@@ -206,9 +216,12 @@ export function useAddCourse() {
   const addEquipmentLine = useCallback(() => {
     setValues((prev) => ({
       ...prev,
-      equipment: [...prev.equipment, makeEquipmentLine(prev.equipment)],
+      equipment: [
+        ...prev.equipment,
+        makeEquipmentLine(prev.equipment, equipmentItems),
+      ],
     }));
-  }, []);
+  }, [equipmentItems]);
 
   const updateEquipmentLine = useCallback(
     (id: string, patch: Partial<EquipmentLineValues>) => {
@@ -228,6 +241,17 @@ export function useAddCourse() {
   }, []);
 
   // ---- Derived warnings (non-blocking) ------------------------------------
+  // Schedule clashes: this course's meetings against every other activity, on a
+  // shared room or the same coach. Non-blocking — surfaced, never enforced.
+  const { check: checkConflicts } = useDraftConflicts();
+  const conflicts = useMemo(() => {
+    const draftId = values.id || "__draft__";
+    const draftSessions = values.meetings.map((m, i) =>
+      sessionFromMeeting(draftId, m, i),
+    );
+    return checkConflicts(draftSessions, values.coach);
+  }, [checkConflicts, values.id, values.meetings, values.coach]);
+
   const coachWarning = values.coach === "";
   const capacityWarning =
     values.capacity !== "" && students.length > Number(values.capacity);
@@ -389,8 +413,10 @@ export function useAddCourse() {
     addEquipmentLine,
     updateEquipmentLine,
     removeEquipmentLine,
+    equipmentItems,
     coachWarning,
     capacityWarning,
+    conflicts,
     ageRangeInvalid,
     ratingRangeInvalid,
     mismatchReasons,

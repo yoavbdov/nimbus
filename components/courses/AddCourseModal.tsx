@@ -44,6 +44,8 @@ import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { NoLimitToggle } from "@/components/shared/NoLimitToggle";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
+import { ConflictWarning } from "@/components/schedule/ConflictWarning";
+import type { DraftConflict } from "@/lib/conflicts";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -52,11 +54,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useCollection } from "@/lib/firebase/useCollection";
 import type { CoachRecord } from "@/lib/coaches-data";
-import { rooms, equipment } from "@/lib/rooms-data";
+import { OUTSIDE_CLUB_ROOM, type Room, type Equipment } from "@/lib/rooms-data";
 import {
   FREQUENCY_OPTIONS,
   availableEquipmentOptions,
   equipmentAvailableNow,
+  equipmentByName,
   meetingEndDateValid,
   type CourseFormValues,
   type EquipmentLineValues,
@@ -274,11 +277,13 @@ function MeetingCard({
   onChange,
   onRemove,
   container,
+  roomOptions,
 }: {
   meeting: MeetingValues;
   onChange: (patch: Partial<MeetingValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
+  roomOptions: string[];
 }) {
   const isRecurring = meeting.frequency !== "once";
   const showEndDateWarning =
@@ -318,7 +323,7 @@ function MeetingCard({
           <SearchSelect
             value={meeting.room}
             onChange={(v) => onChange({ room: v })}
-            options={["מחוץ למועדון", ...rooms.map((r) => r.name)]}
+            options={roomOptions}
             placeholder="בחר חדר"
             searchPlaceholder="חיפוש חדר…"
             container={container}
@@ -439,15 +444,17 @@ function EquipmentRow({
   onRemove,
   container,
   options,
+  items,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
   options: string[];
+  items: Equipment[];
 }) {
-  const selected = equipment.find((e) => e.name === line.equipmentId);
-  const available = selected ? equipmentAvailableNow(selected.id) : null;
+  const selected = equipmentByName(line.equipmentId, items);
+  const available = selected ? equipmentAvailableNow(selected) : null;
   const overQuota =
     available != null &&
     line.quantity !== "" &&
@@ -554,8 +561,10 @@ interface AddCourseModalProps {
   onAddEquipment: () => void;
   onUpdateEquipment: (id: string, patch: Partial<EquipmentLineValues>) => void;
   onRemoveEquipment: (id: string) => void;
+  equipmentItems: Equipment[];
   coachWarning: boolean;
   capacityWarning: boolean;
+  conflicts: DraftConflict[];
   ageRangeInvalid: boolean;
   ratingRangeInvalid: boolean;
   mismatchReasons: (playerId: string) => string[];
@@ -600,8 +609,10 @@ export function AddCourseModal({
   onAddEquipment,
   onUpdateEquipment,
   onRemoveEquipment,
+  equipmentItems,
   coachWarning,
   capacityWarning,
+  conflicts,
   ageRangeInvalid,
   ratingRangeInvalid,
   mismatchReasons,
@@ -613,6 +624,11 @@ export function AddCourseModal({
   // SearchSelect, so a course's coach can only be one of these names.
   const { data: coaches } = useCollection<CoachRecord>("coaches");
   const coachOptions = coaches.map((c) => c.name);
+
+  // The room picker is fed by the live room roster (Firestore) too, with the
+  // "outside the club" pseudo-room always first.
+  const { data: rooms } = useCollection<Room>("rooms");
+  const roomOptions = [OUTSIDE_CLUB_ROOM, ...rooms.map((r) => r.name)];
 
   // The cleanup archive opens this modal read-only: every control is disabled
   // (via the wrapping fieldset) and the confirm/export actions are hidden.
@@ -644,6 +660,8 @@ export function AddCourseModal({
             )}
           </DialogDescription>
         </DialogHeader>
+
+        {!readOnly && <ConflictWarning conflicts={conflicts} />}
 
         <Tabs
           value={tab}
@@ -900,6 +918,7 @@ export function AddCourseModal({
                           onChange={(patch) => onUpdateMeeting(m.id, patch)}
                           onRemove={() => onRemoveMeeting(m.id)}
                           container={container}
+                          roomOptions={roomOptions}
                         />
                       ))}
 
@@ -981,7 +1000,9 @@ export function AddCourseModal({
                           options={availableEquipmentOptions(
                             values.equipment,
                             line.id,
+                            equipmentItems,
                           )}
+                          items={equipmentItems}
                         />
                       ))}
 
@@ -991,8 +1012,11 @@ export function AddCourseModal({
                           variant="ghost"
                           onClick={onAddEquipment}
                           disabled={
-                            availableEquipmentOptions(values.equipment, "")
-                              .length === 0
+                            availableEquipmentOptions(
+                              values.equipment,
+                              "",
+                              equipmentItems,
+                            ).length === 0
                           }
                           className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
                         >

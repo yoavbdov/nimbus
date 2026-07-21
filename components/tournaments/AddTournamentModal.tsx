@@ -45,16 +45,23 @@ import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { NoLimitToggle } from "@/components/shared/NoLimitToggle";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
+import { ConflictWarning } from "@/components/schedule/ConflictWarning";
+import type { DraftConflict } from "@/lib/conflicts";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
   type RosterOption,
 } from "@/components/shared/AddSourceDialogs";
 import { cn } from "@/lib/utils";
-import { equipment, OUTSIDE_CLUB_ROOM, type Room } from "@/lib/rooms-data";
+import {
+  OUTSIDE_CLUB_ROOM,
+  type Room,
+  type Equipment,
+} from "@/lib/rooms-data";
 import {
   availableEquipmentOptions,
   equipmentAvailableNow,
+  equipmentByName,
 } from "@/lib/course-form";
 import {
   roundComplete,
@@ -587,15 +594,17 @@ function EquipmentRow({
   onRemove,
   container,
   options,
+  items,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
   onRemove: () => void;
   container: HTMLElement | null;
   options: string[];
+  items: Equipment[];
 }) {
-  const selected = equipment.find((e) => e.name === line.equipmentId);
-  const available = selected ? equipmentAvailableNow(selected.id) : null;
+  const selected = equipmentByName(line.equipmentId, items);
+  const available = selected ? equipmentAvailableNow(selected) : null;
   const overQuota =
     available != null &&
     line.quantity !== "" &&
@@ -750,7 +759,9 @@ interface AddTournamentModalProps {
   onAddEquipment: () => void;
   onUpdateEquipment: (id: string, patch: Partial<EquipmentLineValues>) => void;
   onRemoveEquipment: (id: string) => void;
+  equipmentItems: Equipment[];
   judgeWarning: boolean;
+  conflicts: DraftConflict[];
   ageRangeInvalid: boolean;
   ratingRangeInvalid: boolean;
   mismatchReasons: (playerId: string) => string[];
@@ -799,7 +810,9 @@ export function AddTournamentModal({
   onAddEquipment,
   onUpdateEquipment,
   onRemoveEquipment,
+  equipmentItems,
   judgeWarning,
+  conflicts,
   ageRangeInvalid,
   ratingRangeInvalid,
   mismatchReasons,
@@ -848,6 +861,8 @@ export function AddTournamentModal({
             )}
           </DialogDescription>
         </DialogHeader>
+
+        {!readOnly && <ConflictWarning conflicts={conflicts} />}
 
         <Tabs
           value={tab}
@@ -1237,7 +1252,9 @@ export function AddTournamentModal({
                           options={availableEquipmentOptions(
                             values.equipment,
                             line.id,
+                            equipmentItems,
                           )}
+                          items={equipmentItems}
                         />
                       ))}
 
@@ -1247,8 +1264,11 @@ export function AddTournamentModal({
                           variant="ghost"
                           onClick={onAddEquipment}
                           disabled={
-                            availableEquipmentOptions(values.equipment, "")
-                              .length === 0
+                            availableEquipmentOptions(
+                              values.equipment,
+                              "",
+                              equipmentItems,
+                            ).length === 0
                           }
                           className="h-9 w-full justify-center gap-1.5 rounded-xl text-sm font-normal neu-raised-xs neu-interactive disabled:opacity-45"
                         >
