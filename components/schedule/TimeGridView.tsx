@@ -171,6 +171,8 @@ function DayColumnBody({
         const top = ((startMin - startHour * 60) / 60) * HOUR_HEIGHT;
         const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 22);
         const widthPct = 100 / lanes;
+        // Too short for the full details → show just the title and where it is.
+        const compact = height < 42;
 
         return (
           <motion.div
@@ -198,15 +200,22 @@ function DayColumnBody({
             <p className="truncate font-semibold text-foreground">
               {event.title}
             </p>
-            {/* dir=ltr keeps the range as start–end inside the RTL layout */}
-            <p dir="ltr" className="num text-foreground/70">
-              {event.start}–{event.end}
-            </p>
-            {height > 56 && (
-              <p className="truncate text-foreground/70">{event.coach}</p>
-            )}
-            {height > 74 && (
+            {compact ? (
+              // Not enough room for the full card — only where it takes place.
               <p className="truncate text-foreground/55">{event.location}</p>
+            ) : (
+              <>
+                {/* dir=ltr keeps the range as start–end inside the RTL layout */}
+                <p dir="ltr" className="num text-foreground/70">
+                  {event.start}–{event.end}
+                </p>
+                {height > 56 && (
+                  <p className="truncate text-foreground/70">{event.coach}</p>
+                )}
+                {height > 74 && (
+                  <p className="truncate text-foreground/55">{event.location}</p>
+                )}
+              </>
             )}
           </motion.div>
         );

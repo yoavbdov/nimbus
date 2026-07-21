@@ -184,13 +184,20 @@ export const seedCourses: SeedCourse[] = rawSeedCourses.map((c) => ({
 }));
 
 // ── Tournaments (6) — same current/future × permanent/round spread. ──────────
+// Timing (relative to today, 2026-07-21) is spread across the three states:
+//   • הסתיימה  — every round is in the past (tournament-4).
+//   • פעילה    — rounds span today; already started, still running
+//                (tournament-1 round series, plus the two weekly leagues 3 & 5).
+//   • מתוכננת  — every round is still ahead (tournament-2, tournament-6).
+// The concrete dates live in the seeded sessions below; `nextDate` is the next
+// upcoming meeting (or "—" once finished).
 const rawSeedTournaments: SeedTournament[] = [
-  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "01.07.2026", participants: 32, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // current, round
-  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "13.07.2026", participants: 24, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // future, round
-  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "03.07.2026", participants: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // current, permanent (weekly)
-  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6,  days: ["ראשון"],          nextDate: "—",          participants: 28, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // past, round
-  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8,  days: ["שלישי"],          nextDate: "01.07.2026", participants: 16, ratingMin: 1800, ratingMax: 2800, room: "חדר תחרויות", recurrence: "קבוע" }, // current, permanent
-  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "20.07.2026", participants: 48, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // future, round
+  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 32, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // ongoing, round
+  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "27.07.2026", participants: 24, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
+  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "23.07.2026", participants: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6,  days: ["ראשון"],          nextDate: "—",          participants: 28, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // finished, round
+  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 16, ratingMin: 1800, ratingMax: 2800, room: "אולם ראשי",   recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "02.08.2026", participants: 48, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
 ];
 
 const tournamentTimes: Record<string, WeeklyTimes> = {
@@ -253,16 +260,59 @@ export const seedAttendance: AttendanceClass[] = rawSeedAttendance.map((cls) => 
 }));
 
 // ── Sessions (scheduling slots — the conflict source of truth) ───────────────
-// All on 2026-07-01 except the no-conflict controls. Times "HH:mm".
-const rawSeedSessions: Omit<SessionDoc, "id">[] = [
+// Times "HH:mm". A round-based tournament gets one concrete session per round
+// (a dated one-off); a permanent one gets a single open-ended weekly recurrence.
+type RawSession = Omit<SessionDoc, "id">;
+
+/** A weekly series of `count` one-off round sessions from `startISO` (step 7d). */
+function roundSeries(
+  parentId: string,
+  startISO: string,
+  count: number,
+  time: { start: string; end: string },
+  roomId: string,
+): RawSession[] {
+  const [y, m, d] = startISO.split("-").map(Number);
+  const base = new Date(y, m - 1, d);
+  return Array.from({ length: count }, (_, i) => {
+    const dt = new Date(base);
+    dt.setDate(base.getDate() + i * 7);
+    const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    return { parentType: "tournament" as const, parentId, date: iso, start: time.start, end: time.end, roomId };
+  });
+}
+
+// The built conflicts all land on 2026-07-01 (see the block at the bottom); the
+// course/event fixtures below are kept intact so those conflicts still fire.
+const fixtureSessions: RawSession[] = [
   { parentType: "course",     parentId: "course-1",     date: "2026-07-01", start: "16:00", end: "17:30", roomId: "room-1" },
   { parentType: "course",     parentId: "course-2",     date: "2026-07-01", start: "17:00", end: "18:30", roomId: "room-1" },
   { parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
-  { parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "18:00", roomId: "room-3" },
   { parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
   // event-1 is a one-off opening evening: a SINGLE session on Sunday.
   { parentType: "event",      parentId: "event-1",      date: "2026-07-05", start: "18:00", end: "20:00", roomId: "room-1" }, // Sunday, אולם ראשי
 ];
+
+// Tournament schedule, spread across timing states around today (2026-07-21).
+const tournamentSessions: RawSession[] = [
+  // FINISHED — אליפות האביב: 6 Sunday rounds, all before today.
+  ...roundSeries("tournament-4", "2026-06-07", 6, { start: "16:00", end: "19:00" }, "room-1"),
+  // ONGOING (round) — אליפות הקיץ: the 07-01 round drives the COACH conflict
+  // (אבי לוי runs course-1 16:00–17:30 while judging here 17:00–20:00); the
+  // remaining Tuesday rounds span today, so it shows as in-progress.
+  { parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "20:00", roomId: "room-3" },
+  ...roundSeries("tournament-1", "2026-07-07", 6, { start: "17:00", end: "20:00" }, "room-3"),
+  // NOT STARTED — גביע הנוער: 5 Monday rounds, all ahead.
+  ...roundSeries("tournament-2", "2026-07-27", 5, { start: "17:00", end: "20:00" }, "room-1"),
+  // NOT STARTED — גביע סוף העונה: Sunday + Wednesday rounds, all ahead.
+  ...roundSeries("tournament-6", "2026-08-02", 5, { start: "16:00", end: "19:00" }, "room-1"),
+  ...roundSeries("tournament-6", "2026-08-05", 4, { start: "16:00", end: "19:00" }, "room-1"),
+  // ONGOING (permanent, weekly) — a single open-ended weekly recurrence each.
+  { parentType: "tournament", parentId: "tournament-3", date: "2026-06-04", start: "18:00", end: "21:00", roomId: "room-3", frequency: "weekly", noEndDate: true, endDate: "", day: "חמישי" },
+  { parentType: "tournament", parentId: "tournament-5", date: "2026-06-16", start: "18:30", end: "21:00", roomId: "room-1", frequency: "weekly", noEndDate: true, endDate: "", day: "שלישי" },
+];
+
+const rawSeedSessions: RawSession[] = [...fixtureSessions, ...tournamentSessions];
 
 // Name lookups per parent type, so session parents/rooms point at name ids.
 const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> = {
@@ -285,21 +335,23 @@ export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => {
   const parentId = parentNameById[s.parentType][s.parentId] ?? s.parentId;
   const index = seedSessionCount[parentId] ?? 0;
   seedSessionCount[parentId] = index + 1;
+  // A session is recurring when it carries an explicit frequency, or it's a
+  // course meeting (courses default to an open-ended weekly recurrence). A
+  // dated one-off (e.g. a tournament round) keeps just its concrete date.
+  // Tagging the weekday + repeat rule keeps the edit forms coherent without
+  // disturbing the concrete dates that drive the conflict fixtures.
+  const recurring = s.frequency != null || s.parentType === "course";
   return {
     ...s,
     id: `${parentId}__meeting__${index}`.replace(/\//g, "／"),
     parentId,
     roomId: roomNameById[s.roomId] ?? s.roomId,
-    // Course slots are recurring weekly meetings; tagging the weekday (derived
-    // from the fixture date) + repeat rule keeps the "פרטי חוג" edit form
-    // coherent without disturbing the concrete dates that drive the conflict
-    // fixtures.
-    ...(s.parentType === "course"
+    ...(recurring
       ? {
-          day: HEBREW_DAY_BY_JS[new Date(s.date).getDay()],
-          frequency: "weekly" as const,
-          noEndDate: true,
-          endDate: "",
+          day: s.day ?? HEBREW_DAY_BY_JS[new Date(s.date).getDay()],
+          frequency: s.frequency ?? ("weekly" as const),
+          noEndDate: s.noEndDate ?? true,
+          endDate: s.endDate ?? "",
         }
       : {}),
   };
@@ -385,5 +437,5 @@ export const seedRelations: RelationDoc[] = Array.from(
  *  1. ROOM      — course-1 & course-2 both in room-1, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
  *  2. STUDENT   — player-1 is in course-1 (16:00–17:30) and course-3 (16:30–18:00) → overlap 16:30–17:30.
  *  3. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 and course-2, which overlap → double-booked.
- *  4. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–18:00) → overlap 17:00–17:30.
+ *  4. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–20:00) → overlap 17:00–17:30.
  */

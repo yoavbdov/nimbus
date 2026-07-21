@@ -7,34 +7,28 @@ import { useAddEvent } from "@/hooks/events/useAddEvent";
 import { useLeagueTeamDetails } from "@/hooks/leagues/useLeagueTeamDetails";
 import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
-import { courseFormValuesFor } from "@/lib/course-details";
-import { tournamentFormValuesFor } from "@/lib/tournament-details";
-import { eventFormValuesFor } from "@/lib/event-details";
+import { courseFormValuesFromLive } from "@/lib/course-details";
+import { tournamentFormValuesFromLive } from "@/lib/tournament-details";
+import { eventFormValuesFromLive } from "@/lib/event-details";
 import { coachFormValuesFor } from "@/lib/coach-details";
-import { courses } from "@/lib/courses-data";
-import { tournaments } from "@/lib/tournaments-data";
-import { events as clubEvents } from "@/lib/events-data";
-import { leagueTeams } from "@/lib/leagues-data";
+import { archiveCourse } from "@/lib/firebase/data/courses";
+import { archiveTournament } from "@/lib/firebase/data/tournaments";
+import { archiveEvent } from "@/lib/firebase/data/events";
 import { useCollection } from "@/lib/firebase/useCollection";
 import type { CoachRecord } from "@/lib/coaches-data";
+import type { Course } from "@/lib/courses-data";
+import type { Tournament } from "@/lib/tournaments-data";
+import type { ClubEvent } from "@/lib/events-data";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 import type { ScheduleEvent } from "@/lib/schedule-data";
 
-/** A stable index from a title, so an unmatched event still resolves to a record. */
-function indexFromTitle(title: string, length: number): number {
-  let h = 0;
-  for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) | 0;
-  return Math.abs(h) % length;
-}
-
-/** Resolve a schedule event to a real record: exact name match, else a stable pick. */
-function pickByTitle<T extends { name: string }>(list: T[], title: string): T {
-  return list.find((r) => r.name === title) ?? list[indexFromTitle(title, list.length)];
-}
-
 /**
- * Wires a clicked schedule event to the very same modals the management modules
- * open from their row dropdowns. Each schedule event is resolved to its real
- * record (by name), then the chosen action opens the matching flow.
+ * Wires a clicked schedule occurrence to the very same modals the management
+ * modules open from their row dropdowns. Every occurrence carries the real
+ * `parentId`, so the record is resolved by id from live Firestore — the edit
+ * flows prefill from (and save back to) the exact same docs, and "archive"
+ * flips the parent's status in Firestore.
  */
 export function useScheduleEventActions() {
   const courseEdit = useAddCourse();
@@ -44,8 +38,14 @@ export function useScheduleEventActions() {
   const eventEdit = useAddEvent();
   const leagueDetails = useLeagueTeamDetails();
   const coachEdit = useAddCoach();
-  // Read coaches live so an edited note round-trips the Firestore doc, not the
-  // static mock roster.
+  // Everything is read live so an edit round-trips the Firestore docs, never a
+  // static mock: the parent records, plus the sessions + relations the edit
+  // forms prefill from.
+  const { data: courses } = useCollection<Course>("courses");
+  const { data: tournaments } = useCollection<Tournament>("tournaments");
+  const { data: clubEvents } = useCollection<ClubEvent>("events");
+  const { data: sessions } = useCollection<SessionDoc>("sessions");
+  const { data: relations } = useCollection<RelationDoc>("relations");
   const { data: coaches } = useCollection<CoachRecord>("coaches");
   const archive = useArchiveConfirm();
   const [archiveNoun, setArchiveNoun] = useState("פעילויות");
@@ -54,9 +54,12 @@ export function useScheduleEventActions() {
     (event: ScheduleEvent, actionId: string) => {
       switch (event.category) {
         case "חוג": {
-          const course = pickByTitle(courses, event.title);
+          const course = courses.find((c) => c.id === event.parentId);
+          if (!course) break;
           if (actionId === "details") {
-            courseEdit.openForEdit(courseFormValuesFor(course));
+            courseEdit.openForEdit(
+              courseFormValuesFromLive(course, sessions, relations),
+            );
           } else if (actionId === "coach") {
             const coach = coaches.find((c) => c.name === course.coach);
             if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
@@ -64,14 +67,20 @@ export function useScheduleEventActions() {
             courseEnrollments.openFor(course);
           } else if (actionId === "archive") {
             setArchiveNoun("חוגים");
-            archive.openFor(1);
+            archive.openFor(1, {
+              names: [course.name],
+              onConfirm: () => void archiveCourse(course.id),
+            });
           }
           break;
         }
         case "תחרות": {
-          const tournament = pickByTitle(tournaments, event.title);
+          const tournament = tournaments.find((t) => t.id === event.parentId);
+          if (!tournament) break;
           if (actionId === "details") {
-            tournamentEdit.openForEdit(tournamentFormValuesFor(tournament));
+            tournamentEdit.openForEdit(
+              tournamentFormValuesFromLive(tournament, sessions, relations),
+            );
           } else if (actionId === "judge") {
             const coach = coaches.find((c) => c.name === tournament.judge);
             if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
@@ -79,37 +88,44 @@ export function useScheduleEventActions() {
             tournamentEnrollments.openFor(tournament);
           } else if (actionId === "archive") {
             setArchiveNoun("תחרויות");
-            archive.openFor(1);
+            archive.openFor(1, {
+              names: [tournament.name],
+              onConfirm: () => void archiveTournament(tournament.id),
+            });
           }
           break;
         }
         case "אירוע": {
-          const clubEvent = pickByTitle(clubEvents, event.title);
+          const clubEvent = clubEvents.find((e) => e.id === event.parentId);
+          if (!clubEvent) break;
           if (actionId === "details") {
-            eventEdit.openForEdit(eventFormValuesFor(clubEvent));
+            eventEdit.openForEdit(
+              eventFormValuesFromLive(clubEvent, sessions, relations),
+            );
           } else if (actionId === "archive") {
             setArchiveNoun("אירועים");
-            archive.openFor(1);
+            archive.openFor(1, {
+              names: [clubEvent.name],
+              onConfirm: () => void archiveEvent(clubEvent.id),
+            });
           }
-          break;
-        }
-        case "ליגה": {
-          const team = pickByTitle(leagueTeams, event.title);
-          if (actionId === "details") leagueDetails.openFor(team, "details");
-          else if (actionId === "players") leagueDetails.openFor(team, "players");
           break;
         }
       }
     },
     [
+      courses,
+      tournaments,
+      clubEvents,
+      sessions,
+      relations,
+      coaches,
       courseEdit,
       courseEnrollments,
       tournamentEdit,
       tournamentEnrollments,
       eventEdit,
-      leagueDetails,
       coachEdit,
-      coaches,
       archive,
     ],
   );

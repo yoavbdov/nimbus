@@ -11,7 +11,6 @@ import {
 } from "@/lib/calendar";
 import {
   ALL_CATEGORIES,
-  buildEvents,
   buildFacetOptions,
   eventMatchesFacet,
   FACET_KEYS,
@@ -21,6 +20,7 @@ import {
   type FacetKey,
   type ScheduleEvent,
 } from "@/lib/schedule-data";
+import { useScheduleEvents } from "@/hooks/schedule/useScheduleEvents";
 
 /** An empty selection for every facet — the default (no facet filtering). */
 function emptyFacetState(): Record<FacetKey, Set<string>> {
@@ -72,7 +72,9 @@ export function useScheduleCalendar() {
   const [facetFilters, setFacetFilters] =
     useState<Record<FacetKey, Set<string>>>(emptyFacetState);
 
-  const events = useMemo(() => buildEvents(today), [today]);
+  // The schedule now comes live from Firestore (sessions + their parents),
+  // expanded across the window around the month the picker is showing.
+  const events = useScheduleEvents(viewMonth);
   const facetOptions = useMemo(() => buildFacetOptions(events), [events]);
   const monthGrid = useMemo(() => getMonthGrid(viewMonth), [viewMonth]);
 

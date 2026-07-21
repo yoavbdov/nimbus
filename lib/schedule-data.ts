@@ -1,10 +1,13 @@
-import { startOfMonth, toISODate } from "@/lib/calendar";
 import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type EventCategory = "חוג" | "תחרות" | "אירוע" | "ליגה";
 
 export interface ScheduleEvent {
+  /** Unique per occurrence: `${sessionId}__${date}`. */
   id: string;
+  /** The parent record this occurrence belongs to (its Firestore id = name). */
+  parentId: string;
+  parentType: "course" | "tournament" | "event";
   title: string;
   category: EventCategory;
   /** YYYY-MM-DD */
@@ -12,9 +15,10 @@ export interface ScheduleEvent {
   /** HH:MM (24h) */
   start: string;
   end: string;
+  /** Course coach / tournament judge; empty for events. */
   coach: string;
   location: string;
-  /** Players attending this session (mock data). */
+  /** Names of the players attending this occurrence. */
   players: string[];
 }
 
@@ -35,150 +39,6 @@ export const CATEGORY_META: Record<EventCategory, CategoryMeta> = {
 };
 
 export const ALL_CATEGORIES = Object.keys(CATEGORY_META) as EventCategory[];
-
-// ── Mock players ────────────────────────────────────────────────────
-// The schedule data ships no roster, so we keep a small pool and attach a
-// deterministic handful of players to every session for the player filter.
-const PLAYER_POOL = [
-  "דניאל כהן",
-  "מאיה לוי",
-  "איתי בר",
-  "נועה שלו",
-  "יונתן רז",
-  "תמר אבני",
-  "עומר דגן",
-  "שירה פז",
-  "אורי נחום",
-  "ליה מזרחי",
-  "גיא הראל",
-  "רוני אלון",
-] as const;
-
-/** A stable hash for a string — used to pick players deterministically. */
-function hashString(value: string): number {
-  let h = 0;
-  for (let i = 0; i < value.length; i++) {
-    h = (h * 31 + value.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-/** Picks 2–3 distinct players for an event, deterministic in its id. */
-function playersForEvent(id: string): string[] {
-  const h = hashString(id);
-  const count = 2 + (h % 2); // 2 or 3
-  const players: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const name = PLAYER_POOL[(h + i * 5) % PLAYER_POOL.length];
-    if (!players.includes(name)) players.push(name);
-  }
-  return players;
-}
-
-// A repeating weekly template — keyed by weekday (0 = Sunday) so the month is
-// always populated no matter which month the user navigates to.
-interface Template {
-  weekday: number;
-  title: string;
-  category: EventCategory;
-  start: string;
-  end: string;
-  coach: string;
-  location: string;
-}
-
-const WEEKLY_TEMPLATES: Template[] = [
-  { weekday: 0, title: "שחמט מתחילים", category: "חוג", start: "16:00", end: "17:30", coach: "אבי לוי", location: "כיתה א׳" },
-  { weekday: 0, title: "חוג גן", category: "חוג", start: "17:00", end: "18:00", coach: "ליאת מור", location: "כיתה ב׳" },
-  { weekday: 1, title: "שחמט מתקדמים", category: "חוג", start: "16:30", end: "18:00", coach: "יוסי בן עמי", location: "אולם ראשי" },
-  { weekday: 1, title: "אימון קבוצת ליגה", category: "ליגה", start: "18:30", end: "20:00", coach: "נדב אורן", location: "אולם תחרויות" },
-  { weekday: 2, title: "שחמט בוגרים", category: "חוג", start: "19:00", end: "20:30", coach: "רון פרידמן", location: "אולם ראשי" },
-  { weekday: 2, title: "כיתות נמוכות", category: "חוג", start: "15:30", end: "16:30", coach: "אלון זיו", location: "כיתה א׳" },
-  { weekday: 3, title: "סדנת פתיחות", category: "חוג", start: "17:00", end: "18:30", coach: "אורן שגב", location: "אולם ראשי" },
-  { weekday: 3, title: "הכנה לתחרויות", category: "תחרות", start: "18:30", end: "20:00", coach: "מתן יערי", location: "אולם תחרויות" },
-  { weekday: 4, title: "מועדון אחה״צ", category: "חוג", start: "16:00", end: "17:30", coach: "מירב כהן", location: "כיתה ב׳" },
-  { weekday: 4, title: "טורניר חמישי", category: "תחרות", start: "18:00", end: "21:00", coach: "אייל סופר", location: "אולם תחרויות" },
-  { weekday: 5, title: "חוג שישי", category: "חוג", start: "10:00", end: "11:30", coach: "רעות שני", location: "כיתה א׳" },
-  { weekday: 6, title: "מפגש סוף שבוע", category: "אירוע", start: "11:00", end: "13:00", coach: "שירה גל", location: "אולם ראשי" },
-];
-
-// One-off highlights, placed by day-of-month so a few special days stand out.
-interface SpecialTemplate {
-  dayOfMonth: number;
-  title: string;
-  category: EventCategory;
-  start: string;
-  end: string;
-  coach: string;
-  location: string;
-}
-
-const SPECIAL_TEMPLATES: SpecialTemplate[] = [
-  { dayOfMonth: 7, title: "מבחן דירוג ארצי", category: "אירוע", start: "09:00", end: "14:00", coach: "ועדת הדירוג", location: "אולם תחרויות" },
-  { dayOfMonth: 14, title: "גביע המועדון", category: "תחרות", start: "09:00", end: "16:00", coach: "צוות שיפוט", location: "אולם תחרויות" },
-  { dayOfMonth: 18, title: "הרצאת אורח", category: "אירוע", start: "19:00", end: "20:30", coach: "GM אורח", location: "אולם ראשי" },
-  { dayOfMonth: 24, title: "מבחן דירוג פנימי", category: "אירוע", start: "16:00", end: "19:00", coach: "מעיין דקל", location: "כיתה ב׳" },
-  { dayOfMonth: 28, title: "ליגת נוער", category: "ליגה", start: "10:00", end: "15:00", coach: "גיא רביב", location: "אולם תחרויות" },
-];
-
-/**
- * Builds a deterministic set of events for the three months surrounding
- * `anchor` (previous, current, next) so navigation always lands on a populated
- * view. Pure function of the anchor — no randomness.
- */
-export function buildEvents(anchor: Date): ScheduleEvent[] {
-  const events: ScheduleEvent[] = [];
-
-  for (let monthOffset = -1; monthOffset <= 1; monthOffset++) {
-    const monthStart = startOfMonth(
-      new Date(anchor.getFullYear(), anchor.getMonth() + monthOffset, 1),
-    );
-    const daysInMonth = new Date(
-      monthStart.getFullYear(),
-      monthStart.getMonth() + 1,
-      0,
-    ).getDate();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), day);
-      const iso = toISODate(date);
-
-      for (const t of WEEKLY_TEMPLATES) {
-        if (t.weekday !== date.getDay()) continue;
-        const id = `${iso}-${t.title}-${t.start}`;
-        events.push({
-          id,
-          title: t.title,
-          category: t.category,
-          date: iso,
-          start: t.start,
-          end: t.end,
-          coach: t.coach,
-          location: t.location,
-          players: playersForEvent(id),
-        });
-      }
-
-      const special = SPECIAL_TEMPLATES.find((s) => s.dayOfMonth === day);
-      if (special) {
-        const id = `${iso}-special-${special.title}`;
-        events.push({
-          id,
-          title: special.title,
-          category: special.category,
-          date: iso,
-          start: special.start,
-          end: special.end,
-          coach: special.coach,
-          location: special.location,
-          players: playersForEvent(id),
-        });
-      }
-    }
-  }
-
-  return events;
-}
 
 // ── Facet filters ───────────────────────────────────────────────────
 // Each facet is one filterable dimension. Within a facet the selected values
