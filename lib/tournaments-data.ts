@@ -3,7 +3,7 @@ import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
-export type TournamentStatus = "פעילה" | "הסתיימה" | "מתוכננת" | "ארכיון";
+export type TournamentStatus = "פעילה" | "הסתיימה" | "מתוכננת" | "ללא פעילות" | "ארכיון";
 
 export interface Tournament {
   id: string;
@@ -63,11 +63,13 @@ export const allTournamentJudges = Array.from(
   new Set(tournaments.map((t) => t.judge)),
 ).sort((a, b) => a.localeCompare(b, "he"));
 
+// Archived tournaments never appear in the main table (they live only in the
+// archive), so "ארכיון" is intentionally omitted from the filter options.
 export const allTournamentStatuses: TournamentStatus[] = [
   "פעילה",
   "הסתיימה",
   "מתוכננת",
-  "ארכיון",
+  "ללא פעילות",
 ];
 
 export const allTournamentRooms = Array.from(

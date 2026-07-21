@@ -17,8 +17,10 @@ export type SortDir = "asc" | "desc";
 
 const statusOrder: Record<Course["status"], number> = {
   "פעיל": 0,
-  "לא פעיל": 1,
-  "ארכיון": 2,
+  "מתוכנן": 1,
+  "הסתיים": 2,
+  "ללא פעילות": 3,
+  "ארכיון": 4,
 };
 
 const occupancyOrder: Record<CourseOccupancy, number> = {

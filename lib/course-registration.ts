@@ -23,6 +23,6 @@ export function availableCoursesFor(
   allCourses: Course[],
 ): Course[] {
   return allCourses.filter(
-    (c) => c.status !== "לא פעיל" && !courseNames.includes(c.name),
+    (c) => c.status !== "הסתיים" && !courseNames.includes(c.name),
   );
 }

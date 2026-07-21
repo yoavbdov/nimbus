@@ -1,109 +1,66 @@
 import { useMemo, useState, type MouseEvent } from "react";
-import { useCourseActionsMenu } from "@/hooks/useCourseActionsMenu";
-import { useAddCourse } from "@/hooks/courses/useAddCourse";
-import { useAddCoach } from "@/hooks/coaches/useAddCoach";
-import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
-import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
-import { useCollection } from "@/lib/firebase/useCollection";
-import { archiveCourse } from "@/lib/firebase/data/courses";
-import { courseFormValuesFor } from "@/lib/course-details";
-import { coaches } from "@/lib/coaches-data";
-import { coachFormValuesFor } from "@/lib/coach-details";
-import {
-  formatDayTime,
-  todayHebrewDay,
-  type Course,
-} from "@/lib/courses-data";
-import type { CourseAction } from "@/lib/course-actions";
+import { toISODate } from "@/lib/calendar";
+import { todayHebrewDay } from "@/lib/courses-data";
+import { useScheduleEvents } from "@/hooks/schedule/useScheduleEvents";
+import { useScheduleEventMenu } from "@/hooks/schedule/useScheduleEventMenu";
+import { useScheduleEventActions } from "@/hooks/schedule/useScheduleEventActions";
+import type { EventCategory } from "@/lib/schedule-data";
 
 export interface TodaySession {
   id: string;
   time: string;
-  type: string;
+  type: EventCategory;
   name: string;
   location: string;
-  enrolled: number;
-  capacity: number;
+  participants: number;
 }
 
 export const todayLabel = `יום ${todayHebrewDay()}`;
 
+/**
+ * The courses that actually meet TODAY, derived from the real session
+ * occurrences (not the authored days/status). Clicking a row opens the same
+ * course menu and edit/archive flows the schedule uses, so interactions stay
+ * identical across the app.
+ */
 export function useTodaySessions() {
-  const menu = useCourseActionsMenu();
-  const courseEdit = useAddCourse();
-  const coachEdit = useAddCoach();
-  const enrollments = usePossibleEnrollments();
-  const archive = useArchiveConfirm();
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [archiveId, setArchiveId] = useState<string | null>(null);
+  // Fixed once per mount so the derived list is stable.
+  const [today] = useState(() => new Date());
+  const events = useScheduleEvents(today);
+  const menu = useScheduleEventMenu();
+  const actions = useScheduleEventActions();
 
-  // Only active courses that actually meet on today's weekday.
-  const { data } = useCollection<Course>("courses");
-  const today = todayHebrewDay();
-  const todayCourses = useMemo(
-    () => data.filter((c) => c.status === "פעיל" && c.days?.includes(today)),
-    [data, today],
+  const todayIso = toISODate(today);
+
+  const todayEvents = useMemo(
+    () =>
+      events
+        .filter((e) => e.date === todayIso && e.category === "חוג")
+        .sort((a, b) => a.start.localeCompare(b.start)),
+    [events, todayIso],
   );
 
   const sessions = useMemo<TodaySession[]>(
     () =>
-      todayCourses.map((c) => ({
-        id: c.id,
-        time: formatDayTime(c.times?.[today]),
-        type: "חוג",
-        name: c.name,
-        location: c.room,
-        enrolled: c.enrolled,
-        capacity: c.capacity,
+      todayEvents.map((e) => ({
+        id: e.id,
+        time: `${e.start}–${e.end}`,
+        type: e.category,
+        name: e.title,
+        location: e.location,
+        participants: e.players.length,
       })),
-    [todayCourses, today],
+    [todayEvents],
   );
 
-  function onSelectAction(action: CourseAction) {
-    const course =
-      activeIndex === null ? undefined : todayCourses[activeIndex];
-    if (action.id === "details" && course) {
-      courseEdit.openForEdit(courseFormValuesFor(course));
-    } else if (action.id === "coach" && course) {
-      const coach = coaches.find((c) => c.name === course.coach);
-      if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));
-    } else if (action.id === "enrollments" && course) {
-      enrollments.openFor(course);
-    } else if (action.id === "archive" && course) {
-      setArchiveId(course.id);
-      archive.openFor(1);
-    }
-    menu.onSelect(action);
-  }
-
-  function confirmArchive() {
-    if (archiveId) void archiveCourse(archiveId);
-    setArchiveId(null);
-    archive.cancel();
-  }
-
   function handleRowClick(index: number, e: MouseEvent) {
-    setActiveIndex(index);
-    menu.openAt(e);
+    menu.openAt(todayEvents[index], e);
   }
 
-  function handleMenuOpenChange(next: boolean) {
-    menu.setOpen(next);
-    if (!next) setActiveIndex(null);
+  function handleSelect(action: { id: string }) {
+    if (menu.activeEvent) actions.dispatch(menu.activeEvent, action.id);
+    menu.onSelect();
   }
 
-  return {
-    sessions,
-    menuOpen: menu.open,
-    virtualRef: menu.virtualRef,
-    onSelectAction,
-    courseEdit,
-    coachEdit,
-    enrollments,
-    archive,
-    confirmArchive,
-    activeIndex,
-    handleRowClick,
-    handleMenuOpenChange,
-  };
+  return { sessions, menu, actions, handleRowClick, handleSelect };
 }

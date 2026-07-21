@@ -1,8 +1,21 @@
 import { useMemo } from "react";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { daysForParent, type SessionDoc } from "@/lib/sessions-data";
-import type { Tournament } from "@/lib/tournaments-data";
+import {
+  activityTiming,
+  formatActivityDate,
+  type TimingState,
+} from "@/lib/activity-timing";
+import type { Tournament, TournamentStatus } from "@/lib/tournaments-data";
 import type { RelationDoc } from "@/lib/relations-data";
+
+/** Timing state → the feminine status label a תחרות shows. */
+const TOURNAMENT_STATUS: Record<TimingState, TournamentStatus> = {
+  none: "ללא פעילות",
+  planned: "מתוכננת",
+  active: "פעילה",
+  ended: "הסתיימה",
+};
 
 /**
  * Reads the tournaments live from Firestore and projects the participant count
@@ -24,6 +37,7 @@ export function useTournamentsData() {
     useCollection<SessionDoc>("sessions");
 
   const tournaments = useMemo<Tournament[]>(() => {
+    const now = new Date();
     const enrolled = new Map<string, number>();
     for (const rel of relations) {
       if (rel.kind === "player_tournament") {
@@ -34,10 +48,16 @@ export function useTournamentsData() {
       // Archived tournaments live only in the Tools archive, not the main list.
       .filter((tournament) => tournament.status !== "ארכיון")
       .map((tournament) => {
+        const own = sessions.filter((s) => s.parentId === tournament.id);
         const liveDays = daysForParent(sessions, tournament.id);
+        // Status + next meeting are derived from the sessions (the source of
+        // truth), never the authored fields.
+        const timing = activityTiming(own, now);
         return {
           ...tournament,
           days: liveDays.length ? liveDays : tournament.days,
+          status: TOURNAMENT_STATUS[timing.state],
+          nextDate: formatActivityDate(timing.nextDate),
           // Always the live `player_tournament` count (never the authored
           // number), so the table matches the שחקנים tab exactly — like
           // enrolled in courses.

@@ -1,8 +1,21 @@
 import { useMemo } from "react";
 import { useCollection } from "@/lib/firebase/useCollection";
-import { courseOccupancy, type Course } from "@/lib/courses-data";
+import { courseOccupancy, type Course, type CourseStatus } from "@/lib/courses-data";
 import { daysForParent, type SessionDoc } from "@/lib/sessions-data";
+import {
+  activityTiming,
+  formatActivityDate,
+  type TimingState,
+} from "@/lib/activity-timing";
 import type { RelationDoc } from "@/lib/relations-data";
+
+/** Timing state → the status label a חוג shows. */
+const COURSE_STATUS: Record<TimingState, CourseStatus> = {
+  none: "ללא פעילות",
+  planned: "מתוכנן",
+  active: "פעיל",
+  ended: "הסתיים",
+};
 
 /**
  * Reads the courses live from Firestore and projects the associations that are
@@ -24,6 +37,7 @@ export function useCoursesData() {
     useCollection<SessionDoc>("sessions");
 
   const courses = useMemo<Course[]>(() => {
+    const now = new Date();
     const enrolled = new Map<string, number>();
     const coach = new Map<string, string>();
     for (const rel of relations) {
@@ -38,11 +52,16 @@ export function useCoursesData() {
       .filter((course) => course.status !== "ארכיון")
       .map((course) => {
         const count = enrolled.get(course.id) ?? 0;
+        const own = sessions.filter((s) => s.parentId === course.id);
         const liveDays = daysForParent(sessions, course.id);
+        // Status + next meeting are derived from the sessions, not authored.
+        const timing = activityTiming(own, now);
         return {
           ...course,
           coach: coach.get(course.id) ?? course.coach ?? "",
           days: liveDays.length ? liveDays : course.days,
+          status: COURSE_STATUS[timing.state],
+          nextDate: formatActivityDate(timing.nextDate),
           enrolled: count,
           occupancy: courseOccupancy(count, course.capacity),
         };

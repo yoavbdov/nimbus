@@ -3,7 +3,7 @@ import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
-export type EventStatus = "פעיל" | "הסתיים" | "מתוכנן" | "ארכיון";
+export type EventStatus = "פעיל" | "הסתיים" | "מתוכנן" | "ללא פעילות" | "ארכיון";
 
 /** קבוע = recurring, חד פעמי = one-off. */
 export type EventRecurrence = "קבוע" | "חד פעמי";
@@ -46,7 +46,7 @@ export const events: ClubEvent[] = rawEvents.map((e) =>
   e.nextDate === OVER_DATE ? { ...e, status: "הסתיים" } : e,
 );
 
-export const allEventStatuses: EventStatus[] = ["פעיל", "מתוכנן", "הסתיים"];
+export const allEventStatuses: EventStatus[] = ["פעיל", "מתוכנן", "הסתיים", "ללא פעילות"];
 
 export const allEventRecurrences: EventRecurrence[] = ["קבוע", "חד פעמי"];
 

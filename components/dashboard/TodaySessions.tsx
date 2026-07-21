@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -12,147 +10,86 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
-import { CourseFormModal } from "@/components/courses/CourseFormModal";
-import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
-import { AddCoachModal } from "@/components/coaches/AddCoachModal";
-import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
-import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
-import { courseActions } from "@/lib/course-actions";
-import { useTableSelection } from "@/hooks/useTableSelection";
+import { ScheduleEventMenu } from "@/components/schedule/ScheduleEventMenu";
+import { ScheduleActionModals } from "@/components/schedule/ScheduleActionModals";
 import { useTodaySessions, todayLabel } from "@/hooks/dashboard/useTodaySessions";
 import { cn } from "@/lib/utils";
 
 export function TodaySessions() {
-  const {
-    sessions,
-    menuOpen,
-    virtualRef,
-    onSelectAction,
-    courseEdit,
-    coachEdit,
-    enrollments,
-    archive,
-    confirmArchive,
-    activeIndex,
-    handleRowClick,
-    handleMenuOpenChange,
-  } = useTodaySessions();
-  const { selection, bulkMode, onBulkSelect } = useTableSelection({
-    ids: sessions.map((_, i) => String(i)),
-    activeId: activeIndex === null ? null : String(activeIndex),
-    onAction: onSelectAction,
-  });
+  const { sessions, menu, actions, handleRowClick, handleSelect } =
+    useTodaySessions();
 
   return (
-    <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
-      <PopoverAnchor virtualRef={virtualRef} />
+    <>
       <Card className="tint-indigo glass shadow-depth-xl border-0 ring-0 rounded-3xl gap-0 py-0 overflow-hidden">
         <div className="h-1 tint-bar" />
         <CardHeader className="px-6 pt-5 pb-4 flex flex-col items-center space-y-0">
           <CardTitle className="text-base font-semibold tracking-wide tint-text text-center">
-            מפגשים היום · {todayLabel}
+            חוגים היום · {todayLabel}
           </CardTitle>
         </CardHeader>
 
         <CardContent className="px-4 pb-4">
           <div className="neu-inset rounded-2xl p-2">
             <Table className="w-full">
-                <TableHeader>
-                  <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סוג</TableHead>
-                    <SelectionHead selection={selection} />
+              <TableHeader>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">שם</TableHead>
+                  <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">מיקום</TableHead>
+                  <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">שעה</TableHead>
+                  <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">משתתפים</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sessions.length === 0 ? (
+                  <TableRow className="border-0 hover:bg-transparent">
+                    <TableCell colSpan={4} className="p-10 text-center text-sm text-muted-foreground/60">
+                      אין חוגים מתוכננים להיום
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sessions.length === 0 ? (
-                    <TableRow className="border-0 hover:bg-transparent">
-                      <TableCell colSpan={6} className="p-10 text-center text-sm text-muted-foreground/60">
-                        אין מפגשים מתוכננים להיום
+                ) : (
+                  sessions.map((s, i) => (
+                    <motion.tr
+                      key={s.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      onClick={(e) => handleRowClick(i, e)}
+                      className={cn(
+                        "cursor-pointer border-0 transition-colors duration-150",
+                        i % 2 === 1 ? "bg-primary/15 hover:bg-primary/25" : "hover:bg-primary/15",
+                        menu.activeEvent?.id === s.id && "bg-primary/30",
+                      )}
+                    >
+                      <TableCell className="px-3 py-3 text-sm text-center text-foreground">
+                        {s.name}
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    sessions.map((s, i) => (
-                      <motion.tr
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={(e) => handleRowClick(i, e)}
-                        className={cn(
-                          "cursor-pointer border-0 transition-colors duration-150",
-                          i % 2 === 1 ? "bg-primary/15 hover:bg-primary/25" : "hover:bg-primary/15",
-                          activeIndex === i && "bg-primary/30",
-                        )}
-                      >
-                        <TableCell className="px-3 py-3 text-sm text-foreground">
-                          {s.name}
-                        </TableCell>
-                        <TableCell className="px-3 py-3 text-sm text-muted-foreground">
-                          {s.location}
-                        </TableCell>
-                        <TableCell className="px-3 py-3 text-sm num whitespace-nowrap">
-                          {s.time}
-                        </TableCell>
-                        <TableCell className="px-3 py-3 text-sm num text-muted-foreground">
-                          {s.enrolled} מתוך {s.capacity}
-                        </TableCell>
-                        <TableCell className="px-3 py-3">
-                          <Badge
-                            variant="secondary"
-                            className="status-ok tint-text rounded-full px-2.5 py-0.5 text-[0.65rem] font-medium border-0"
-                            style={{ backgroundColor: "var(--tint-soft)" }}
-                          >
-                            {s.type}
-                          </Badge>
-                        </TableCell>
-                        <SelectionCell id={String(i)} selection={selection} />
-                      </motion.tr>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                      <TableCell className="px-3 py-3 text-sm text-center text-muted-foreground">
+                        {s.location}
+                      </TableCell>
+                      <TableCell dir="ltr" className="px-3 py-3 text-sm num whitespace-nowrap text-center">
+                        {s.time}
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm num text-center text-muted-foreground">
+                        {s.participants}
+                      </TableCell>
+                    </motion.tr>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
-      {bulkMode ? (
-        <BulkActionsMenuContent
-          actions={courseActions}
-          count={selection.selectedCount}
-          onSelect={onBulkSelect}
-        />
-      ) : (
-        <CourseActionsMenuContent onSelect={onSelectAction} />
-      )}
-      <CourseFormModal addCourse={courseEdit} />
-      <AddCoachModal
-        open={coachEdit.open}
-        mode={coachEdit.mode}
-        onOpenChange={coachEdit.handleOpenChange}
-        values={coachEdit.values}
-        onFieldChange={coachEdit.updateField}
-        valid={coachEdit.valid}
-        onConfirm={coachEdit.confirm}
+
+      <ScheduleEventMenu
+        open={menu.open}
+        onOpenChange={menu.handleOpenChange}
+        virtualRef={menu.virtualRef}
+        category={menu.activeEvent?.category}
+        onSelect={handleSelect}
       />
-      <PossibleEnrollmentsModal
-        open={enrollments.open}
-        onOpenChange={enrollments.onOpenChange}
-        course={enrollments.course}
-        candidates={enrollments.candidates}
-        onExport={() => {}}
-      />
-      <ArchiveConfirmDialog
-        open={archive.open}
-        count={archive.count}
-        noun="חוגים"
-        onCancel={archive.cancel}
-        onConfirm={confirmArchive}
-      />
-    </Popover>
+      <ScheduleActionModals actions={actions} />
+    </>
   );
 }

@@ -125,7 +125,7 @@ function EventRow({
         {e.name}
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
-        {e.room}
+        {e.room || "—"}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <RecurrenceBadge value={e.recurrence} />

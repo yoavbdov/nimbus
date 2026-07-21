@@ -9,7 +9,9 @@ import { archiveTournament } from "@/lib/firebase/data/tournaments";
 import { tournamentFormValuesFor } from "@/lib/tournament-details";
 import { coaches } from "@/lib/coaches-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
-import { formatDayTime, todayHebrewDay } from "@/lib/courses-data";
+import { todayHebrewDay } from "@/lib/courses-data";
+import { toISODate } from "@/lib/calendar";
+import { useScheduleEvents } from "@/hooks/schedule/useScheduleEvents";
 import type { Tournament } from "@/lib/tournaments-data";
 import type { TournamentAction } from "@/lib/tournament-actions";
 
@@ -34,31 +36,42 @@ export function useTodayTournaments() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [archiveId, setArchiveId] = useState<string | null>(null);
 
-  // Only active tournaments that actually meet on today's weekday.
+  // Tournaments whose real session occurs TODAY (by date, not weekday). Each
+  // today-event is paired with its live tournament record for the menu/columns.
+  const [today] = useState(() => new Date());
+  const events = useScheduleEvents(today);
   const { data } = useCollection<Tournament>("tournaments");
-  const today = todayHebrewDay();
-  const todayList = useMemo(
-    () => data.filter((t) => t.status === "פעילה" && t.days?.includes(today)),
-    [data, today],
-  );
+  const todayIso = toISODate(today);
+
+  const todayList = useMemo(() => {
+    const byId = new Map(data.map((t) => [t.id, t]));
+    return events
+      .filter((e) => e.category === "תחרות" && e.date === todayIso)
+      .sort((a, b) => a.start.localeCompare(b.start))
+      .map((e) => ({ event: e, record: byId.get(e.parentId) }))
+      .filter(
+        (row): row is { event: (typeof events)[number]; record: Tournament } =>
+          row.record != null,
+      );
+  }, [events, data, todayIso]);
 
   const tournaments = useMemo<TodayTournament[]>(
     () =>
-      todayList.map((t) => ({
-        id: t.id,
-        time: formatDayTime(t.times?.[today]),
-        name: t.name,
-        judge: t.judge,
-        room: t.room,
-        round: `${t.rounds} סבבים`,
-        participants: t.participants,
+      todayList.map(({ event, record }) => ({
+        id: record.id,
+        time: `${event.start}–${event.end}`,
+        name: record.name,
+        judge: record.judge,
+        room: event.location,
+        round: `${record.rounds} סבבים`,
+        participants: event.players.length,
       })),
-    [todayList, today],
+    [todayList],
   );
 
   function onSelectAction(action: TournamentAction) {
     const tournament =
-      activeIndex === null ? undefined : todayList[activeIndex];
+      activeIndex === null ? undefined : todayList[activeIndex]?.record;
     if (action.id === "details" && tournament) {
       tournamentEdit.openForEdit(tournamentFormValuesFor(tournament));
     } else if (action.id === "judge" && tournament) {

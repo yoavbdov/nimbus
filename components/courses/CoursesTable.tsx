@@ -161,7 +161,7 @@ function CourseRow({
         {a.nextDate}
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
-        {a.room}
+        {a.room || "—"}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <CourseStatusBadge status={a.status} />

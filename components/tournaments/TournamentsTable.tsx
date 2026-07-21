@@ -161,7 +161,7 @@ function TournamentRow({
         {t.nextDate}
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
-        {t.room}
+        {t.room || "—"}
       </TableCell>
       <TableCell className="px-4 py-3 text-center">
         <TournamentStatusBadge status={t.status} />

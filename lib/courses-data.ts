@@ -1,6 +1,14 @@
 import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
-export type CourseStatus = "פעיל" | "לא פעיל" | "ארכיון";
+// The live status is derived from the course's sessions in useCoursesData — see
+// lib/activity-timing.ts: "ללא פעילות" when it has no sessions at all, otherwise
+// פעיל / מתוכנן / הסתיים. "ארכיון" is a separate, manually-set state.
+export type CourseStatus =
+  | "פעיל"
+  | "מתוכנן"
+  | "הסתיים"
+  | "ללא פעילות"
+  | "ארכיון";
 
 /** How full a course is — derived from enrolled vs. capacity, never set by hand. */
 export type CourseOccupancy = "ריק" | "חלקי" | "מלא";
@@ -87,16 +95,16 @@ const rawCourses: Omit<Course, "occupancy">[] = [
   { id: "course-15", name: "כיתות בינוניות",     coach: "הילה כספי",   ageMin: 9,  ageMax: 12, ratingMin: 600,  ratingMax: 1300, enrolled: 11, capacity: 16, days: ["ראשון", "רביעי"],          nextDate: "07.06.2026", status: "פעיל", room: "כיתה ב׳" },
   { id: "course-16", name: "אלופים",              coach: "נדב אורן",    ageMin: 14, ageMax: 20, ratingMin: 1800, ratingMax: 2600, enrolled: 6,  capacity: 8,  days: ["שני", "חמישי"],            nextDate: "08.06.2026", status: "פעיל", room: "חדר אנליזה" },
   { id: "course-17", name: "חוג שישי",            coach: "רעות שני",    ageMin: 8,  ageMax: 14, ratingMin: 700,  ratingMax: 1500, enrolled: 9,  capacity: 16, days: ["שישי"],                    nextDate: "12.06.2026", status: "פעיל", room: "כיתה א׳" },
-  { id: "course-18", name: "מועדון בוגרים",       coach: "ליאור פז",    ageMin: 18, ageMax: 99, ratingMin: 1300, ratingMax: 2200, enrolled: 3,  capacity: 14, days: ["שלישי"],                   nextDate: OVER_DATE,    status: "לא פעיל", room: "אולם ראשי" },
+  { id: "course-18", name: "מועדון בוגרים",       coach: "ליאור פז",    ageMin: 18, ageMax: 99, ratingMin: 1300, ratingMax: 2200, enrolled: 3,  capacity: 14, days: ["שלישי"],                   nextDate: OVER_DATE,    status: "הסתיים", room: "אולם ראשי" },
   { id: "course-19", name: "הכנה לתחרויות",        coach: "מתן יערי",    ageMin: 11, ageMax: 17, ratingMin: 1400, ratingMax: 2200, enrolled: 12, capacity: 12, days: ["ראשון", "רביעי"],          nextDate: "07.06.2026", status: "פעיל", room: "אולם תחרויות" },
   { id: "course-20", name: "חוג שבת",             coach: "תמר אלון",    ageMin: 7,  ageMax: 13, ratingMin: 400,  ratingMax: 1300, enrolled: 7,  capacity: 18, days: ["שבת"],                     nextDate: "13.06.2026", status: "פעיל", room: "כיתה ב׳" },
 ];
 
-// A class with no upcoming date (המועד הבא) is over → status forced to "לא פעיל".
+// A class with no upcoming date (המועד הבא) is over → status "הסתיים".
 // Occupancy is derived from enrolled/capacity for every course.
 export const courses: Course[] = rawCourses.map((a) => ({
   ...a,
-  status: a.nextDate === OVER_DATE ? "לא פעיל" : a.status,
+  status: a.nextDate === OVER_DATE ? "הסתיים" : a.status,
   occupancy: courseOccupancy(a.enrolled, a.capacity),
 }));
 
@@ -104,7 +112,9 @@ export const allCourseCoaches = Array.from(
   new Set(courses.map((a) => a.coach)),
 ).sort((a, b) => a.localeCompare(b, "he"));
 
-export const allCourseStatuses: CourseStatus[] = ["פעיל", "לא פעיל", "ארכיון"];
+// Archived courses never appear in the main table (they live only in the
+// archive), so "ארכיון" is intentionally omitted from the filter options.
+export const allCourseStatuses: CourseStatus[] = ["פעיל", "מתוכנן", "הסתיים", "ללא פעילות"];
 
 export const allCourseOccupancies: CourseOccupancy[] = ["ריק", "חלקי", "מלא"];
 

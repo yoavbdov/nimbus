@@ -18,7 +18,8 @@ const statusOrder: Record<Tournament["status"], number> = {
   "פעילה": 0,
   "מתוכננת": 1,
   "הסתיימה": 2,
-  "ארכיון": 3,
+  "ללא פעילות": 3,
+  "ארכיון": 4,
 };
 
 function getSortValue(t: Tournament, key: SortKey): string | number {

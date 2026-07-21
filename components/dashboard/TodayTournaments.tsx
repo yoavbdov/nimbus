@@ -61,11 +61,11 @@ export function TodayTournaments() {
             <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שם</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">מיקום</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">שעה</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">סבב</TableHead>
-                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-start">משתתפים</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">שם</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">מיקום</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">שעה</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">סבב</TableHead>
+                    <TableHead className="px-3 py-3 text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wider text-center">משתתפים</TableHead>
                     <SelectionHead selection={selection} />
                   </TableRow>
                 </TableHeader>
@@ -90,16 +90,16 @@ export function TodayTournaments() {
                           activeIndex === i && "bg-primary/30",
                         )}
                       >
-                        <TableCell className="px-3 py-3 text-sm text-foreground">
+                        <TableCell className="px-3 py-3 text-sm text-center text-foreground">
                           {t.name}
                         </TableCell>
-                        <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+                        <TableCell className="px-3 py-3 text-sm text-center text-muted-foreground">
                           {t.room}
                         </TableCell>
-                        <TableCell className="px-3 py-3 text-sm num whitespace-nowrap">
+                        <TableCell className="px-3 py-3 text-sm num whitespace-nowrap text-center">
                           {t.time}
                         </TableCell>
-                        <TableCell className="px-3 py-3">
+                        <TableCell className="px-3 py-3 text-center">
                           <Badge
                             variant="secondary"
                             className="status-ok tint-text rounded-full px-2.5 py-0.5 text-[0.65rem] font-medium border-0"
@@ -108,7 +108,7 @@ export function TodayTournaments() {
                             {t.round}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-3 py-3 text-sm num text-muted-foreground">
+                        <TableCell className="px-3 py-3 text-sm num text-center text-muted-foreground">
                           {t.participants}
                         </TableCell>
                         <SelectionCell id={String(i)} selection={selection} />

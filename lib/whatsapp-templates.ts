@@ -50,7 +50,7 @@ const invitableTournaments: InvitableCourse[] = tournaments
   }));
 
 const invitableClasses: InvitableCourse[] = courses
-  .filter((a) => a.status !== "לא פעיל")
+  .filter((a) => a.status !== "הסתיים")
   .map((a) => ({
     id: a.id,
     kind: "חוג",
