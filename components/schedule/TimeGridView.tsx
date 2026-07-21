@@ -200,7 +200,12 @@ function DayColumnBody({
             onClick={(ev) => onEventClick(event, ev)}
             className={cn(
               "group/event absolute flex cursor-pointer flex-col gap-0.5 overflow-hidden rounded-lg px-2 py-1 text-[0.65rem] leading-tight shadow-sm transition-shadow hover:shadow-md",
-              hasConflict ? "ring-2 ring-destructive" : "ring-1 ring-black/5",
+              // A distinct fuchsia ring for clashes — set apart from every
+              // category hue (purple / red / green / blue), so a תחרות block's
+              // own red edge never reads as the conflict marker.
+              hasConflict
+                ? "ring-2 ring-offset-1 ring-[oklch(0.62_0.27_330)] ring-offset-card"
+                : "ring-1 ring-black/5",
             )}
             style={{
               top: top + 1,
@@ -214,7 +219,7 @@ function DayColumnBody({
             title={`${event.start}–${event.end} · ${event.title}`}
           >
             {hasConflict && (
-              <AlertTriangle className="absolute inset-e-1 top-1 size-3 text-destructive" />
+              <AlertTriangle className="absolute inset-e-1 top-1 size-3 text-[oklch(0.62_0.27_330)]" />
             )}
             <p
               className={cn(
