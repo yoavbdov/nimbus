@@ -1,7 +1,8 @@
 export interface Room {
   id: string;
   name: string;
-  capacity: number;
+  /** Optional — `null` when the room has no stated capacity. */
+  capacity: number | null;
   notes?: string;
 }
 

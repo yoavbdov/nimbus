@@ -16,9 +16,9 @@ export const EMPTY_ROOM_FORM: RoomFormValues = {
   notes: "",
 };
 
-/** Room name and a positive max capacity are the starred fields required to submit. */
+/** The room name is the only required field; capacity may be left blank. */
 export function isRoomFormValid(values: RoomFormValues): boolean {
-  return values.name.trim() !== "" && Number(values.capacity) > 0;
+  return values.name.trim() !== "";
 }
 
 /** Build the modal's form values from an existing room (for the "edit" flow). */
@@ -26,7 +26,7 @@ export function roomFormValuesFor(room: Room): RoomFormValues {
   return {
     id: room.id,
     name: room.name,
-    capacity: String(room.capacity),
+    capacity: room.capacity == null ? "" : String(room.capacity),
     notes: room.notes ?? "",
   };
 }
@@ -35,7 +35,8 @@ export function roomFormValuesFor(room: Room): RoomFormValues {
 function roomScalarsFromForm(values: RoomFormValues) {
   return {
     name: values.name.trim(),
-    capacity: Number(values.capacity),
+    // A blank capacity is stored as null — the room simply has no stated limit.
+    capacity: values.capacity.trim() === "" ? null : Number(values.capacity),
     notes: values.notes.trim(),
   };
 }

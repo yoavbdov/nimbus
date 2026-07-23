@@ -35,7 +35,11 @@ function StaticHeader({ children }: { children: React.ReactNode }) {
 
 const MotionTableRow = motion.create(TableRow);
 
-function CapacityPill({ value }: { value: number }) {
+/** A room's capacity, or a muted em dash when it has none. */
+function CapacityPill({ value }: { value: number | null }) {
+  if (value == null)
+    return <span className="text-sm text-muted-foreground">—</span>;
+
   return (
     <Badge
       variant="secondary"

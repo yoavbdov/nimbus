@@ -27,7 +27,9 @@ function applyFilter(r: Room, f: RoomFilter): boolean {
       return f.op === "equals" ? v === q : v.includes(q);
     }
     case "capacity":
-      return compareNumber(r.capacity, f.op, Number(f.value));
+      // A room with no stated capacity counts as 0, same as an activity with no
+      // capacity in the courses / tournaments filters.
+      return compareNumber(r.capacity ?? 0, f.op, Number(f.value));
     default:
       return true;
   }

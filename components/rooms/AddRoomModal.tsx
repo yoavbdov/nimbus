@@ -140,7 +140,7 @@ export function AddRoomModal({
               />
             </Field>
             <Field className="shrink-0">
-              <FieldLabel htmlFor="capacity" required className="mx-auto">
+              <FieldLabel htmlFor="capacity" className="mx-auto">
                 קיבולת
               </FieldLabel>
               <Input
