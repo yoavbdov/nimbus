@@ -902,12 +902,4 @@ export const players: Player[] = basePlayers.map((p) => ({
   ratingUpdatedAt: ratingUpdatedDate(p),
 }));
 
-export const allCourses = Array.from(
-  new Set(players.flatMap((p) => p.courses)),
-).sort((a, b) => a.localeCompare(b, "he"));
-
-export const allGrades = Array.from(new Set(players.map((p) => p.grade))).sort(
-  (a, b) => a.localeCompare(b, "he"),
-);
-
 export const allStatuses: PlayerStatus[] = ["פעיל", "ליגה בלבד", "לא פעיל"];

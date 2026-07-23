@@ -1,4 +1,4 @@
-import { equipment, type Equipment } from "@/lib/rooms-data";
+import { type Equipment } from "@/lib/rooms-data";
 import type { Player } from "@/lib/players-data";
 
 /** How often a recurring meeting repeats. "once" is a single session. */
@@ -99,11 +99,11 @@ export function makeMeeting(): MeetingValues {
 
 export function makeEquipmentLine(
   existing: { equipmentId: string }[] = [],
-  items: Equipment[] = equipment,
+  items: Equipment[] = [],
 ): EquipmentLineValues {
   // Default to the first item not already picked by another line (each physical
   // item can be added only once), rather than an empty "בחר ציוד". `items` is
-  // the live equipment roster (Firestore), falling back to the static mock.
+  // the live equipment roster (Firestore) — an empty roster leaves the line blank.
   const taken = new Set(existing.map((l) => l.equipmentId).filter(Boolean));
   const firstAvailable = items.find((e) => !taken.has(e.name));
   return {
@@ -178,7 +178,7 @@ export function equipmentAvailableNow(item: Equipment): number {
 
 export function equipmentByName(
   name: string,
-  items: Equipment[] = equipment,
+  items: Equipment[],
 ): Equipment | undefined {
   return items.find((e) => e.name === name);
 }
@@ -191,7 +191,7 @@ export function equipmentByName(
 export function availableEquipmentOptions(
   lines: { id: string; equipmentId: string }[],
   currentLineId: string,
-  items: Equipment[] = equipment,
+  items: Equipment[],
 ): string[] {
   const takenByOthers = new Set(
     lines

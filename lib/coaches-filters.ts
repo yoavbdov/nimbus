@@ -1,4 +1,4 @@
-import { allCoachClubs, allCoachStatuses, type Coach } from "@/lib/coaches-data";
+import { allCoachStatuses, type Coach } from "@/lib/coaches-data";
 
 export type FilterField = "name" | "phone" | "status" | "club" | "clubCount";
 
@@ -58,7 +58,8 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "club",
     label: "חוג",
-    options: allCoachClubs,
+    // Filled live from Firestore via FieldOptions (see useCoachesPanel).
+    options: [],
     operators: [
       { op: "participates", label: "מדריך בחוג", valueMode: "single-enum" },
       { op: "not_participates", label: "לא מדריך בחוג", valueMode: "single-enum" },

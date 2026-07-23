@@ -1,4 +1,3 @@
-import { allCourseCoaches } from "@/lib/courses-data";
 import {
   makeEquipmentLine,
   makeMeeting,
@@ -11,9 +10,6 @@ import type { Player } from "@/lib/players-data";
 export { makeEquipmentLine, type EquipmentLineValues };
 /** A fixed tournament's recurring meetings share the course meeting shape. */
 export { makeMeeting, type MeetingValues };
-
-/** The judge dropdown reuses the same coach list as the courses modal. */
-export const allTournamentJudgeOptions = allCourseCoaches;
 
 /**
  * A tournament is either split into discrete rounds (each with its own room,

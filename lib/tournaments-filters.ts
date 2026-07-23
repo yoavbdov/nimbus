@@ -1,7 +1,5 @@
 import {
-  allTournamentJudges,
   allTournamentStatuses,
-  allTournamentRooms,
   type Tournament,
 } from "@/lib/tournaments-data";
 import {
@@ -79,7 +77,8 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "judge",
     label: "שופט",
     basic: true,
-    options: allTournamentJudges,
+    // Filled live from Firestore via FieldOptions (see useTournamentsPanel).
+    options: [],
     operators: enumOps,
   },
   {
@@ -108,7 +107,8 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "room",
     label: "חדר",
-    options: allTournamentRooms,
+    // Filled live from Firestore via FieldOptions (see useTournamentsPanel).
+    options: [],
     operators: enumOps,
   },
 ];

@@ -1,5 +1,3 @@
-import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
-
 // The live status is derived from the course's sessions in useCoursesData — see
 // lib/activity-timing.ts: "ללא פעילות" when it has no sessions at all, otherwise
 // פעיל / מתוכנן / הסתיים. "ארכיון" is a separate, manually-set state.
@@ -108,19 +106,11 @@ export const courses: Course[] = rawCourses.map((a) => ({
   occupancy: courseOccupancy(a.enrolled, a.capacity),
 }));
 
-export const allCourseCoaches = Array.from(
-  new Set(courses.map((a) => a.coach)),
-).sort((a, b) => a.localeCompare(b, "he"));
-
 // Archived courses never appear in the main table (they live only in the
 // archive), so "ארכיון" is intentionally omitted from the filter options.
 export const allCourseStatuses: CourseStatus[] = ["פעיל", "מתוכנן", "הסתיים", "ללא פעילות"];
 
 export const allCourseOccupancies: CourseOccupancy[] = ["ריק", "חלקי", "מלא"];
-
-export const allCourseRooms = Array.from(
-  new Set([...courses.map((a) => a.room), OUTSIDE_CLUB_ROOM]),
-).sort((a, b) => a.localeCompare(b, "he"));
 
 const HEBREW_DAY_BY_JS: Record<number, CourseDay> = {
   0: "ראשון",

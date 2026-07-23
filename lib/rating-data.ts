@@ -1,9 +1,10 @@
-import { clubPlayers } from "@/lib/rosters-data";
+import type { Player } from "@/lib/players-data";
 
 // ── Bulk rating update ────────────────────────────────────────────
 // The data behind the "עדכון מד כושר מרוכז" tool: every club player with
-// their current rating rating and when it was last updated. Mock data —
-// the table only collects new values, it does not persist anything yet.
+// their current rating and when it was last updated. The roster is live; the
+// last-updated date is still derived (no such field is stored yet), and the
+// table only collects new values — it does not persist anything.
 
 export interface RatingPlayer {
   id: string;
@@ -27,9 +28,12 @@ function lastUpdatedFor(seed: string): string {
   return `${dd}.${mm}.${d.getFullYear()}`;
 }
 
-export const ratingPlayers: RatingPlayer[] = clubPlayers.map((p) => ({
-  id: p.id,
-  name: p.name,
-  currentRating: p.rating,
-  lastUpdated: lastUpdatedFor(p.id),
-}));
+/** The tool's rows for a live roster. */
+export function buildRatingPlayers(players: Player[]): RatingPlayer[] {
+  return players.map((p) => ({
+    id: p.id,
+    name: p.name,
+    currentRating: p.israeliRating,
+    lastUpdated: lastUpdatedFor(p.id),
+  }));
+}

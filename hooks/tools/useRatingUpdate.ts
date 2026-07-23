@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ratingPlayers } from "@/lib/rating-data";
+import { buildRatingPlayers } from "@/lib/rating-data";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { Player } from "@/lib/players-data";
 
 /**
  * Drives the bulk rating-update tool: holding the new rating typed for each
@@ -10,7 +12,9 @@ import { ratingPlayers } from "@/lib/rating-data";
  * Any row with a new rating filled in is what gets "updated" on confirm.
  */
 export function useRatingUpdate() {
-  const players = ratingPlayers;
+  // The roster is read live from Firestore, not from a static sample.
+  const { data: records } = useCollection<Player>("players");
+  const players = useMemo(() => buildRatingPlayers(records), [records]);
 
   // New rating typed per player id (empty string = nothing entered).
   const [drafts, setDrafts] = useState<Record<string, string>>({});

@@ -13,6 +13,11 @@ export interface CoachRecord {
   email?: string;
   /** Free-text notes, persisted in Firestore. */
   notes?: string;
+  /**
+   * Marks an inactive coach as a stand-in ("מחליף"). Persisted, so the choice
+   * survives a reload; ignored while the coach is active.
+   */
+  substitute?: boolean;
 }
 
 /** Course/tournament associations projected onto a coach from `relations`. */
@@ -79,9 +84,5 @@ export const coaches: Coach[] = coachSeeds.map((c) => ({
   tournaments: [],
   status: isCoachActive(c) ? "פעיל" : "לא פעיל",
 }));
-
-export const allCoachClubs = Array.from(
-  new Set(coachSeeds.flatMap((c) => c.courses)),
-).sort((a, b) => a.localeCompare(b, "he"));
 
 export const allCoachStatuses: CoachStatus[] = ["פעיל", "מחליף", "לא פעיל"];

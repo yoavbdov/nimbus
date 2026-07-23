@@ -1,4 +1,4 @@
-import { players, allCourses, allStatuses, type Player } from "@/lib/players-data";
+import { allStatuses, type Player } from "@/lib/players-data";
 
 export type FilterField =
   | "name"
@@ -64,14 +64,6 @@ function gradeRank(g: string): number {
   return i === -1 ? Number.POSITIVE_INFINITY : i;
 }
 
-const allTournaments = Array.from(
-  new Set(players.flatMap((p) => p.tournaments)),
-).sort((a, b) => a.localeCompare(b, "he"));
-
-const allLeagueTeams = Array.from(
-  new Set(players.map((p) => p.leagueTeam).filter((t): t is string => !!t)),
-).sort((a, b) => a.localeCompare(b, "he"));
-
 export const FIELD_DEFS: FieldDef[] = [
   {
     field: "name",
@@ -103,7 +95,8 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "club",
     label: "חוג",
     basic: true,
-    options: allCourses,
+    // Filled live from Firestore via FieldOptions (see usePlayersPanel).
+    options: [],
     operators: [
       { op: "participates", label: "משתתף בחוג", valueMode: "single-enum" },
       { op: "not_participates", label: "לא משתתף בחוג", valueMode: "single-enum" },
@@ -116,7 +109,8 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "tournament",
     label: "תחרות",
     basic: true,
-    options: allTournaments,
+    // Filled live from Firestore via FieldOptions (see usePlayersPanel).
+    options: [],
     operators: [
       { op: "participates", label: "משתתף בתחרות", valueMode: "single-enum" },
       { op: "not_participates", label: "לא משתתף בתחרות", valueMode: "single-enum" },
@@ -141,7 +135,8 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "leagueTeam",
     label: "קבוצת ליגה",
-    options: allLeagueTeams,
+    // Filled live from Firestore via FieldOptions (see usePlayersPanel).
+    options: [],
     operators: [
       { op: "in", label: "נמצא ב", valueMode: "multi-enum" },
       { op: "not_in", label: "לא נמצא ב", valueMode: "multi-enum" },

@@ -1,7 +1,6 @@
 import {
   allEventStatuses,
   allEventRecurrences,
-  allEventRooms,
   type ClubEvent,
 } from "@/lib/events-data";
 import {
@@ -82,7 +81,8 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "room",
     label: "חדר",
-    options: allEventRooms,
+    // Filled live from Firestore via FieldOptions (see useEventsPanel).
+    options: [],
     operators: enumOps,
   },
 ];

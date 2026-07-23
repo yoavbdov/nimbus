@@ -1,9 +1,9 @@
-import { attendanceClasses } from "@/lib/attendance-data";
-import { players } from "@/lib/players-data";
+import type { Player } from "@/lib/players-data";
 
 // ── Rosters ────────────────────────────────────────────────────────
-// A roster is the list of players belonging to an course. We reuse the
-// attendance classes as the courses that carry player lists.
+// A roster is a named list of players. The three "prepared" lists below are not
+// stored anywhere — they are derived on the fly from the LIVE player roster by a
+// membership rule, so they always reflect what is currently in Firestore.
 
 export interface RosterPlayer {
   id: string;
@@ -11,115 +11,59 @@ export interface RosterPlayer {
   rating: number;
 }
 
-export interface RosterCourse {
-  id: string;
-  name: string;
-  players: RosterPlayer[];
-}
-
-export const rosterCourses: RosterCourse[] = attendanceClasses.map(
-  (cls) => ({
-    id: cls.id,
-    name: cls.name,
-    players: cls.students.map((s) => ({
-      id: s.id,
-      name: s.name,
-      rating: s.rating,
-    })),
-  }),
-);
-
 /** A roster the user explicitly saved, kept in memory for this session. */
 export interface SavedRoster {
   id: string;
   name: string;
-  /** Where the list originally came from (only on the pre-made examples). */
+  /** Where the list originally came from (only on the prepared lists). */
   sourceName?: string;
   players: RosterPlayer[];
 }
 
-/** Every club member, shaped as roster players for the "add from club" picker. */
-export const clubPlayers: RosterPlayer[] = players.map((p) => ({
-  id: p.id,
-  name: p.name,
-  rating: p.israeliRating,
-}));
-
-// ── Example saved rosters ──────────────────────────────────────────
-// Pre-prepared player lists offered when adding people to an course,
-// event or tournament. Built from real players (matched by name) so the
-// ids line up with the rest of the app.
-
-/** Builds a roster from a list of player names, skipping any not found. */
-function rosterFromNames(names: string[]): RosterPlayer[] {
-  return names
-    .map((name) => players.find((p) => p.name === name))
-    .filter((p): p is (typeof players)[number] => p != null)
-    .map((p) => ({ id: p.id, name: p.name, rating: p.israeliRating }));
+/** Narrows a live player to the fields a roster row needs. */
+export function toRosterPlayer(p: Player): RosterPlayer {
+  return { id: p.id, name: p.name, rating: p.israeliRating };
 }
 
-export const exampleRosters: SavedRoster[] = [
+// ── Prepared rosters ───────────────────────────────────────────────
+// Offered as a source when adding people to a חוג, תחרות or אירוע. Each one is
+// a rule over the live roster rather than a stored list, so a player who meets
+// the rule is always in it and no names are hard-coded.
+
+const PREPARED_ROSTER_RULES: {
+  id: string;
+  name: string;
+  matches: (p: Player) => boolean;
+}[] = [
   {
-    id: "roster-beginners",
-    name: "קבוצת מתחילים",
-    sourceName: "רשימה מוכנה",
-    players: rosterFromNames([
-      "אורי גולן",
-      "מיה שפירא",
-      "נועם כץ",
-      "עידן פרץ",
-      "רון סעדון",
-    ]),
+    id: "roster-rating-to-800",
+    name: "מד כושר עד 800",
+    matches: (p) => p.israeliRating <= 800,
   },
   {
-    id: "roster-advanced",
-    name: "קבוצת מתקדמים",
-    sourceName: "רשימה מוכנה",
-    players: rosterFromNames([
-      "יובל דוד",
-      "ליאור ברק",
-      "איתי לוי",
-      "דניאל כהן",
-      "אלון גרין",
-      "עומר אזולאי",
-    ]),
+    id: "roster-rating-over-1800",
+    name: "מד כושר מעל 1800",
+    matches: (p) => p.israeliRating > 1800,
   },
   {
-    id: "roster-competitive",
-    name: "נבחרת תחרותית",
-    sourceName: "רשימה מוכנה",
-    players: rosterFromNames([
-      "תום שטרן",
-      "אביב מור",
-      "ירדן פרידמן",
-      "שחר לביא",
-      "אריאל נחום",
-    ]),
-  },
-  {
-    id: "roster-juniors",
-    name: "מחזור צעירים",
-    sourceName: "רשימה מוכנה",
-    players: rosterFromNames([
-      "יערה פלד",
-      "גיל אבני",
-      "הילה רוזן",
-      "נדב שמש",
-      "מאיה הרשקוביץ",
-      "אופיר חדד",
-    ]),
-  },
-  {
-    id: "roster-league",
-    name: "סגל ליגה",
-    sourceName: "רשימה מוכנה",
-    players: rosterFromNames([
-      "יונתן ברגר",
-      "אסף וקנין",
-      "רועי שלום",
-      "מתן יוסף",
-      "אורן טל",
-      "כרמל פינטו",
-    ]),
+    id: "roster-age-to-18",
+    name: "גיל עד 18",
+    matches: (p) => p.age <= 18,
   },
 ];
+
+/**
+ * The prepared lists for a given live roster, members sorted by rating (highest
+ * first). An empty roster simply yields three empty lists.
+ */
+export function buildPreparedRosters(livePlayers: Player[]): SavedRoster[] {
+  return PREPARED_ROSTER_RULES.map((rule) => ({
+    id: rule.id,
+    name: rule.name,
+    sourceName: "רשימה מוכנה",
+    players: livePlayers
+      .filter(rule.matches)
+      .sort((a, b) => b.israeliRating - a.israeliRating)
+      .map(toRosterPlayer),
+  }));
+}

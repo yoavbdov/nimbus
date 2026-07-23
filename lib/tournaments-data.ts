@@ -1,5 +1,4 @@
 import { type CourseDay, type WeeklyTimes } from "@/lib/courses-data";
-import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
@@ -59,10 +58,6 @@ export const tournaments: Tournament[] = rawTournaments.map((t) =>
   t.nextDate === OVER_DATE ? { ...t, status: "הסתיימה" } : t,
 );
 
-export const allTournamentJudges = Array.from(
-  new Set(tournaments.map((t) => t.judge)),
-).sort((a, b) => a.localeCompare(b, "he"));
-
 // Archived tournaments never appear in the main table (they live only in the
 // archive), so "ארכיון" is intentionally omitted from the filter options.
 export const allTournamentStatuses: TournamentStatus[] = [
@@ -71,7 +66,3 @@ export const allTournamentStatuses: TournamentStatus[] = [
   "מתוכננת",
   "ללא פעילות",
 ];
-
-export const allTournamentRooms = Array.from(
-  new Set([...tournaments.map((t) => t.room), OUTSIDE_CLUB_ROOM]),
-).sort((a, b) => a.localeCompare(b, "he"));

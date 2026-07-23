@@ -83,14 +83,16 @@ function SortableHeader({
   onSort: (key: SortKey) => void;
 }) {
   return (
-    <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
+    <TableHead className="px-2 py-3 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-foreground/70 text-center whitespace-normal">
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => onSort(sortKey)}
         className={cn(
-          "mx-auto h-auto px-0 py-0 gap-1.5 font-medium uppercase tracking-[0.14em] text-foreground/70 hover:bg-transparent hover:text-foreground",
+          // shrink + whitespace-normal let a two-word header wrap onto two lines
+          // instead of forcing the column (and the table) wider.
+          "mx-auto h-auto min-w-0 shrink px-0 py-0 gap-1.5 whitespace-normal leading-tight font-medium uppercase tracking-[0.1em] text-foreground/70 hover:bg-transparent hover:text-foreground",
           active && "text-foreground",
         )}
       >
@@ -132,41 +134,41 @@ function CourseRow({
         isActive && "bg-primary/30",
       )}
     >
-      <TableCell className="px-4 py-3 text-sm font-medium text-foreground text-center">
+      <TableCell className="px-2 py-3 text-sm font-medium text-foreground text-center whitespace-normal break-words">
         {a.name}
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
         {a.coach}
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <RangePill from={a.ageMin} to={a.ageMax} noLimit={a.noAgeLimit} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <RangePill
           from={a.ratingMin}
           to={a.ratingMax}
           noLimit={a.noRatingLimit}
         />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CountPill value={a.enrolled} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CountPill value={a.capacity} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <DaysPills days={a.days} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
         {a.nextDate}
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
         {a.room || "—"}
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CourseStatusBadge status={a.status} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CourseOccupancyBadge occupancy={a.occupancy} />
       </TableCell>
       <SelectionCell id={a.id} selection={selection} />
@@ -226,7 +228,7 @@ export function CoursesTable({ courses }: CoursesTableProps) {
       <PopoverAnchor virtualRef={virtualRef} />
       <div
         dir="ltr"
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
+        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden [&_[data-slot=table-container]]:overflow-x-clip"
       >
         <div dir="rtl">
           <Table>

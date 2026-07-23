@@ -10,8 +10,8 @@ import {
 } from "@/lib/course-form";
 import { criteriaMismatchReasons, maxBelowMin } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
-import { equipment as staticEquipment, type Equipment } from "@/lib/rooms-data";
-import { exampleRosters } from "@/lib/rosters-data";
+import { type Equipment } from "@/lib/rooms-data";
+import { buildPreparedRosters } from "@/lib/rosters-data";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { addCourse, updateCourse } from "@/lib/firebase/data/courses";
 import {
@@ -55,10 +55,9 @@ export function useAddCourse() {
   // work off real players, not the legacy mock.
   const { data: players } = useCollection<Player>("players");
 
-  // The equipment picker is fed by the live equipment roster (Firestore),
-  // falling back to the static mock only while the collection is empty.
-  const { data: liveEquipment } = useCollection<Equipment>("equipment");
-  const equipmentItems = liveEquipment.length ? liveEquipment : staticEquipment;
+  // The equipment picker is fed by the live equipment roster (Firestore) only —
+  // an empty collection means an empty picker, never mock rows.
+  const { data: equipmentItems } = useCollection<Equipment>("equipment");
 
   // A max bound below its min is an impossible range — block it and flag it.
   const ageRangeInvalid =
@@ -131,14 +130,18 @@ export function useAddCourse() {
   const [pickerStudents, setPickerStudents] = useState<Player[]>([]);
   const [pickerDisabledIds, setPickerDisabledIds] = useState<string[]>([]);
 
+  // The prepared lists are rules over the LIVE roster (rating / age bands), so
+  // they always reflect the players currently in Firestore.
+  const preparedRosters = useMemo(() => buildPreparedRosters(players), [players]);
+
   const studentRosters = useMemo(
     () =>
-      exampleRosters.map((r) => ({
+      preparedRosters.map((r) => ({
         id: r.id,
         name: r.name,
         count: r.players.length,
       })),
-    [],
+    [preparedRosters],
   );
 
   // Opens the source question; the picker opens only after a branch is chosen.
@@ -164,13 +167,13 @@ export function useAddCourse() {
     setSourceChoiceOpen(true);
   }, []);
 
-  // Picking a roster pre-checks its members (matched by name) among the players
-  // not yet enrolled, then opens the picker for review and confirmation.
+  // Picking a roster pre-checks its members among the players not yet enrolled,
+  // then opens the picker for review and confirmation.
   const selectStudentRoster = useCallback(
     (rosterId: string) => {
-      const roster = exampleRosters.find((r) => r.id === rosterId);
-      const names = new Set(roster?.players.map((p) => p.name) ?? []);
-      const members = players.filter((p) => names.has(p.name));
+      const roster = preparedRosters.find((r) => r.id === rosterId);
+      const ids = new Set(roster?.players.map((p) => p.id) ?? []);
+      const members = players.filter((p) => ids.has(p.id));
       setPickerStudents(members);
       // Already-enrolled members stay visible but greyed out; only the new ones
       // are pre-checked.
@@ -185,7 +188,7 @@ export function useAddCourse() {
       setRosterChoiceOpen(false);
       setStudentPickerOpen(true);
     },
-    [players, values.studentIds],
+    [players, preparedRosters, values.studentIds],
   );
 
   const toggleCheckedStudent = useCallback((id: string) => {

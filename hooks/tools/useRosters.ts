@@ -1,22 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  clubPlayers,
-  exampleRosters,
+  buildPreparedRosters,
+  toRosterPlayer,
   type RosterPlayer,
   type SavedRoster,
 } from "@/lib/rosters-data";
+import { useCollection } from "@/lib/firebase/useCollection";
+import type { Player } from "@/lib/players-data";
 
 export type RosterNameDialogMode = "create" | "rename";
 
 /**
- * Drives the rosters tool: browsing saved player lists, opening one to view and
- * edit its members, creating new lists, and adding members from the club. All
- * changes are in-memory for the session (mock data).
+ * Drives the rosters tool: browsing player lists, opening one to view and edit
+ * its members, creating new lists, and adding members from the club. The club
+ * roster and the three prepared lists are read live from Firestore; the user's
+ * own edits are in-memory for the session.
  */
 export function useRosters() {
-  const [lists, setLists] = useState<SavedRoster[]>(exampleRosters);
+  const { data: players, loading } = useCollection<Player>("players");
+
+  /** Every club member, shaped as roster rows for the picker. */
+  const clubPlayers = useMemo<RosterPlayer[]>(
+    () => players.map(toRosterPlayer),
+    [players],
+  );
+
+  // The prepared lists are derived from the live roster; `edited` holds the
+  // user's version once they change anything, and wins from then on.
+  const preparedLists = useMemo(() => buildPreparedRosters(players), [players]);
+  const [edited, setEdited] = useState<SavedRoster[] | null>(null);
+  const lists = edited ?? preparedLists;
+
+  /** Applies a change to the lists, materialising the edited copy on first use. */
+  const setLists = useCallback(
+    (update: (prev: SavedRoster[]) => SavedRoster[]) => {
+      setEdited((prev) => update(prev ?? preparedLists));
+    },
+    [preparedLists],
+  );
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Name dialog — shared by "new list" and "rename list".
@@ -45,7 +69,7 @@ export function useRosters() {
     if (!selectedList) return clubPlayers;
     const present = new Set(selectedList.players.map((p) => p.id));
     return clubPlayers.filter((p) => !present.has(p.id));
-  }, [selectedList]);
+  }, [clubPlayers, selectedList]);
 
   /** Candidates narrowed by the picker's search box. */
   const filteredMembers = useMemo(() => {
@@ -152,6 +176,7 @@ export function useRosters() {
 
   return {
     lists,
+    loading,
     selectedList,
     openList,
     backToLists,

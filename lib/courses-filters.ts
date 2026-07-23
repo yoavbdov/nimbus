@@ -1,8 +1,6 @@
 import {
-  allCourseCoaches,
   allCourseStatuses,
   allCourseOccupancies,
-  allCourseRooms,
   COURSE_DAYS,
   todayHebrewDay,
   type Course,
@@ -74,7 +72,8 @@ export const FIELD_DEFS: FieldDef[] = [
     field: "coach",
     label: "מדריך",
     basic: true,
-    options: allCourseCoaches,
+    // Filled live from Firestore via FieldOptions (see useCoursesPanel).
+    options: [],
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },
@@ -127,7 +126,8 @@ export const FIELD_DEFS: FieldDef[] = [
   {
     field: "room",
     label: "חדר",
-    options: allCourseRooms,
+    // Filled live from Firestore via FieldOptions (see useCoursesPanel).
+    options: [],
     operators: [
       { op: "is", label: "הוא", valueMode: "single-enum" },
       { op: "is_not", label: "הוא לא", valueMode: "single-enum" },

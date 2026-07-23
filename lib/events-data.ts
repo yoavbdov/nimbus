@@ -1,5 +1,4 @@
 import { type CourseDay } from "@/lib/courses-data";
-import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 export type { CourseDay };
 
@@ -49,7 +48,3 @@ export const events: ClubEvent[] = rawEvents.map((e) =>
 export const allEventStatuses: EventStatus[] = ["פעיל", "מתוכנן", "הסתיים", "ללא פעילות"];
 
 export const allEventRecurrences: EventRecurrence[] = ["קבוע", "חד פעמי"];
-
-export const allEventRooms = Array.from(
-  new Set([...events.map((e) => e.room), OUTSIDE_CLUB_ROOM]),
-).sort((a, b) => a.localeCompare(b, "he"));
