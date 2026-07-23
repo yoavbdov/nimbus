@@ -51,6 +51,7 @@ export function TournamentFormModal({
       onBackToSourceChoice={addTournament.backToSourceChoice}
       onSelectPlayerRoster={addTournament.selectPlayerRoster}
       pickerDisabledIds={addTournament.pickerDisabledIds}
+      busyPlayerReasons={addTournament.busyPlayerReasons}
       checkedPlayerIds={addTournament.checkedPlayerIds}
       onToggleCheckedPlayer={addTournament.toggleCheckedPlayer}
       onConfirmPlayers={addTournament.confirmPlayers}

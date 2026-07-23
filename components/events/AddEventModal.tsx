@@ -409,6 +409,8 @@ interface AddEventModalProps {
   onBackToSourceChoice: () => void;
   onSelectPlayerRoster: (rosterId: string) => void;
   pickerDisabledIds: string[];
+  /** playerId → why a schedule clash blocks them from this event. */
+  busyPlayerReasons: Record<string, string>;
   checkedPlayerIds: string[];
   onToggleCheckedPlayer: (id: string) => void;
   onConfirmPlayers: () => void;
@@ -450,6 +452,7 @@ export function AddEventModal({
   onBackToSourceChoice,
   onSelectPlayerRoster,
   pickerDisabledIds,
+  busyPlayerReasons,
   checkedPlayerIds,
   onToggleCheckedPlayer,
   onConfirmPlayers,
@@ -859,6 +862,7 @@ export function AddEventModal({
                             key={p.id}
                             person={p}
                             mismatchReasons={[]}
+                            busyReason={busyPlayerReasons[p.id]}
                             onRemove={() => onRemovePlayer(p.id)}
                             removeLabel={`הסר ${p.name}`}
                             container={container}
@@ -987,6 +991,7 @@ export function AddEventModal({
         people={availablePlayers}
         checkedIds={checkedPlayerIds}
         disabledIds={pickerDisabledIds}
+        unavailableReasons={busyPlayerReasons}
         onToggle={onToggleCheckedPlayer}
         onConfirm={onConfirmPlayers}
         noun={{ plural: "משתתפים", singular: "משתתף" }}

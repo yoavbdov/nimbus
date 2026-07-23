@@ -753,6 +753,8 @@ interface AddTournamentModalProps {
   onBackToSourceChoice: () => void;
   onSelectPlayerRoster: (rosterId: string) => void;
   pickerDisabledIds: string[];
+  /** playerId → why a schedule clash blocks them from this tournament. */
+  busyPlayerReasons: Record<string, string>;
   checkedPlayerIds: string[];
   onToggleCheckedPlayer: (id: string) => void;
   onConfirmPlayers: () => void;
@@ -805,6 +807,7 @@ export function AddTournamentModal({
   onBackToSourceChoice,
   onSelectPlayerRoster,
   pickerDisabledIds,
+  busyPlayerReasons,
   checkedPlayerIds,
   onToggleCheckedPlayer,
   onConfirmPlayers,
@@ -1246,6 +1249,7 @@ export function AddTournamentModal({
                               key={p.id}
                               person={p}
                               mismatchReasons={mismatchReasons(p.id)}
+                              busyReason={busyPlayerReasons[p.id]}
                               onRemove={() => onRemovePlayer(p.id)}
                               removeLabel={`הסר ${p.name}`}
                               container={container}
@@ -1385,6 +1389,7 @@ export function AddTournamentModal({
         people={availablePlayers}
         checkedIds={checkedPlayerIds}
         disabledIds={pickerDisabledIds}
+        unavailableReasons={busyPlayerReasons}
         onToggle={onToggleCheckedPlayer}
         onConfirm={onConfirmPlayers}
         noun={{ plural: "שחקנים", singular: "שחקן" }}

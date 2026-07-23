@@ -555,6 +555,8 @@ interface AddCourseModalProps {
   onBackToSourceChoice: () => void;
   onSelectStudentRoster: (rosterId: string) => void;
   pickerDisabledIds: string[];
+  /** studentId → why a schedule clash blocks them from this course. */
+  busyStudentReasons: Record<string, string>;
   checkedStudentIds: string[];
   onToggleCheckedStudent: (id: string) => void;
   onConfirmStudents: () => void;
@@ -603,6 +605,7 @@ export function AddCourseModal({
   onBackToSourceChoice,
   onSelectStudentRoster,
   pickerDisabledIds,
+  busyStudentReasons,
   checkedStudentIds,
   onToggleCheckedStudent,
   onConfirmStudents,
@@ -967,6 +970,7 @@ export function AddCourseModal({
                               key={p.id}
                               person={p}
                               mismatchReasons={mismatchReasons(p.id)}
+                              busyReason={busyStudentReasons[p.id]}
                               onRemove={() => onRemoveStudent(p.id)}
                               removeLabel={`הסר ${p.name}`}
                               container={container}
@@ -1106,6 +1110,7 @@ export function AddCourseModal({
         people={availableStudents}
         checkedIds={checkedStudentIds}
         disabledIds={pickerDisabledIds}
+        unavailableReasons={busyStudentReasons}
         onToggle={onToggleCheckedStudent}
         onConfirm={onConfirmStudents}
         noun={{ plural: "תלמידים", singular: "תלמיד" }}

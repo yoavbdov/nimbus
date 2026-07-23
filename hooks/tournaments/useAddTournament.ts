@@ -25,6 +25,7 @@ import {
   tournamentSessionsFromForm,
 } from "@/lib/tournament-details";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
+import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -163,6 +164,23 @@ export function useAddTournament() {
     }));
   }, []);
 
+  // ---- The draft's own schedule -------------------------------------------
+  // This tournament's rounds as sessions — the input to both conflict checks
+  // below. Declared before the players section because the picker needs the
+  // player clashes to know which rows to block.
+  const draftSessions = useMemo(
+    () => tournamentSessionsFromForm(values.id || "__draft__", values),
+    [values],
+  );
+
+  // BLOCKING: players already booked in another activity while this tournament
+  // plays. Recomputed on every round edit, so moving the times frees them.
+  const { check: checkPlayerConflicts } = usePlayerConflicts();
+  const busyPlayerReasons = useMemo(
+    () => checkPlayerConflicts(draftSessions),
+    [checkPlayerConflicts, draftSessions],
+  );
+
   // ---- Players ------------------------------------------------------------
   const removePlayer = useCallback((id: string) => {
     setValues((prev) => ({
@@ -235,13 +253,18 @@ export function useAddTournament() {
       setPickerDisabledIds(
         members.filter((p) => values.playerIds.includes(p.id)).map((p) => p.id),
       );
+      // Busy members are blocked in the picker, so they are never pre-checked.
       setCheckedPlayerIds(
-        members.filter((p) => !values.playerIds.includes(p.id)).map((p) => p.id),
+        members
+          .filter(
+            (p) => !values.playerIds.includes(p.id) && !busyPlayerReasons[p.id],
+          )
+          .map((p) => p.id),
       );
       setRosterChoiceOpen(false);
       setPlayerPickerOpen(true);
     },
-    [players, savedRosters, values.playerIds],
+    [players, savedRosters, values.playerIds, busyPlayerReasons],
   );
 
   const toggleCheckedPlayer = useCallback((id: string) => {
@@ -250,13 +273,16 @@ export function useAddTournament() {
     );
   }, []);
 
+  // A busy player can never be committed, even if the times moved while the
+  // picker was open — the block is enforced here, not just in the UI.
   const confirmPlayers = useCallback(() => {
+    const allowed = checkedPlayerIds.filter((id) => !busyPlayerReasons[id]);
     setValues((prev) => ({
       ...prev,
-      playerIds: [...new Set([...prev.playerIds, ...checkedPlayerIds])],
+      playerIds: [...new Set([...prev.playerIds, ...allowed])],
     }));
     setPlayerPickerOpen(false);
-  }, [checkedPlayerIds]);
+  }, [checkedPlayerIds, busyPlayerReasons]);
 
   const enrolledPlayers = useMemo(
     () => players.filter((p) => values.playerIds.includes(p.id)),
@@ -302,13 +328,10 @@ export function useAddTournament() {
   // Schedule clashes: this tournament's slots against every other activity, on a
   // shared room or the same instructor (its judge). Non-blocking.
   const { check: checkConflicts } = useDraftConflicts();
-  const conflicts = useMemo(() => {
-    const draftId = values.id || "__draft__";
-    return checkConflicts(
-      tournamentSessionsFromForm(draftId, values),
-      values.judge,
-    );
-  }, [checkConflicts, values]);
+  const conflicts = useMemo(
+    () => checkConflicts(draftSessions, values.judge),
+    [checkConflicts, draftSessions, values.judge],
+  );
 
   const judgeWarning = values.judge === "";
   // An empty capacity is "no limit", so it can never be exceeded.
@@ -469,6 +492,7 @@ export function useAddTournament() {
     setRosterChoiceOpen,
     pickerPlayers,
     pickerDisabledIds,
+    busyPlayerReasons,
     playerRosters,
     choosePlayersFromAll,
     choosePlayersFromRoster,

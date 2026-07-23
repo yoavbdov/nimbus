@@ -78,11 +78,13 @@ export const seedEquipment: Equipment[] = keyByName(rawSeedEquipment);
 // ── Players (20, every age band) ─────────────────────────────────────────────
 const basePlayers: PlayerBase[] = [
   { id: "player-1",  name: "אורי גולן",   age: 7,  grade: "כיתה ב",  israeliRating: 480,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000001", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  { id: "player-2",  name: "נועם כץ",      age: 9,  grade: "כיתה ד",  israeliRating: 720,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000002", courses: ["שחמט מתחילים"], tournaments: ["אליפות הקיץ"], leagueTeam: null, status: "פעיל" },
+  // No tournaments: אליפות הקיץ's 01.07 round overlaps שחמט מתחילים, and a player
+  // double-booking is blocking in the app. איתי רגב plays it instead.
+  { id: "player-2",  name: "נועם כץ",      age: 9,  grade: "כיתה ד",  israeliRating: 720,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000002", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
   { id: "player-3",  name: "מיה שפירא",    age: 11, grade: "כיתה ו",  israeliRating: 1050, fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000003", courses: ["שחמט מתקדמים"], tournaments: [], leagueTeam: null, status: "פעיל" },
   { id: "player-4",  name: "דניאל ברק",    age: 13, grade: "כיתה ח",  israeliRating: 1340, fideRating: 1300, ratingUpdatedRecently: true,  phone: "050-2000004", courses: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
   { id: "player-5",  name: "יעל אבני",     age: 14, grade: "כיתה ט",  israeliRating: 1180, fideRating: null, ratingUpdatedRecently: false, phone: "050-2000005", courses: ["שחמט מתקדמים"], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
-  { id: "player-6",  name: "איתי רגב",     age: 16, grade: "כיתה יא", israeliRating: 1620, fideRating: 1580, ratingUpdatedRecently: true,  phone: "050-2000006", courses: [], tournaments: [], leagueTeam: "נוער ב'", status: "פעיל" },
+  { id: "player-6",  name: "איתי רגב",     age: 16, grade: "כיתה יא", israeliRating: 1620, fideRating: 1580, ratingUpdatedRecently: true,  phone: "050-2000006", courses: [], tournaments: ["אליפות הקיץ"], leagueTeam: "נוער ב'", status: "פעיל" },
   { id: "player-7",  name: "רוני שמש",     age: 17, grade: "כיתה יב", israeliRating: 1750, fideRating: 1700, ratingUpdatedRecently: true,  phone: "050-2000007", courses: [], tournaments: [], leagueTeam: "נבחרת הנוער", status: "ליגה בלבד" },
   { id: "player-8",  name: "גיא אורן",     age: 19, grade: "בוגר",   israeliRating: 1880, fideRating: 1850, ratingUpdatedRecently: true,  phone: "050-2000008", courses: ["סדנת פתיחות"], tournaments: [], leagueTeam: "נבחרת ב'", status: "פעיל" },
   { id: "player-9",  name: "תמר כהן",      age: 22, grade: "בוגר",   israeliRating: 2010, fideRating: 1980, ratingUpdatedRecently: true,  phone: "050-2000009", courses: [], tournaments: [], leagueTeam: "נבחרת הנשים", status: "ליגה בלבד" },
@@ -429,11 +431,13 @@ const coachCourseRelations: RelationDoc[] = rawSeedCourses.map((c) =>
 // `sessions.roomId`, so each session can use a different room. See the seeded
 // sessions below.
 
-// Curated extras that don't fall out of the roster: the intentional conflicts
-// (see the block below) plus the equipment↔course links.
+// Curated extras that don't fall out of the roster: the intentional (warning)
+// conflicts — see the block below — plus the equipment↔course links.
 const curatedRelations: RelationDoc[] = [
-  // STUDENT conflict — אורי גולן is also in course-3, overlapping course-1.
-  rel("player_course", "player", "אורי גולן", "course", "מועדון אחה״צ"),
+  // NOTE: there is deliberately NO player double-booking here. A player clash is
+  // BLOCKING in the app (a busy child cannot be enroled — see lib/conflicts.ts
+  // `busyPlayers`), so seeding one would seed invalid data. Room / coach /
+  // equipment clashes stay, since those are surfaced as warnings.
   // COACH conflict — אבי לוי judges אליפות הקיץ while running שחמט מתחילים.
   rel("coach_tournament", "coach", "אבי לוי", "tournament", "אליפות הקיץ", { role: "שופט" }),
   // EQUIPMENT conflict — שעוני שח used by two overlapping courses.
@@ -465,7 +469,10 @@ export const seedRelations: RelationDoc[] = Array.from(
  * BUILT CONFLICTS (all on 2026-07-01, referenced by parent since session ids
  * are now derived per parent):
  *  1. ROOM      — course-1 & course-2 both in room-1, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
- *  2. STUDENT   — player-1 is in course-1 (16:00–17:30) and course-3 (16:30–18:00) → overlap 16:30–17:30.
- *  3. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 and course-2, which overlap → double-booked.
- *  4. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–20:00) → overlap 17:00–17:30.
+ *  2. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 and course-2, which overlap → double-booked.
+ *  3. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–20:00) → overlap 17:00–17:30.
+ *
+ * All three are WARNINGS. There is intentionally no PLAYER conflict: that one
+ * blocks enrolment outright, so no player is enroled in two activities that
+ * overlap (see the note by `curatedRelations`).
  */

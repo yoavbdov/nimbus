@@ -19,6 +19,7 @@ import {
   eventSessionsFromForm,
 } from "@/lib/event-details";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
+import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
 
 /**
  * Owns all state for the "add event" modal: the scalar fields, the chosen
@@ -71,6 +72,23 @@ export function useAddEvent() {
   const setFormat = useCallback((format: EventFormValues["format"]) => {
     setValues((prev) => ({ ...prev, format }));
   }, []);
+
+  // ---- The draft's own schedule -------------------------------------------
+  // This event's slot as sessions — the input to both conflict checks below.
+  // Declared before the players section because the picker needs the player
+  // clashes to know which rows to block.
+  const draftSessions = useMemo(
+    () => eventSessionsFromForm(values.id || "__draft__", values),
+    [values],
+  );
+
+  // BLOCKING: players already booked in another activity while this event runs.
+  // Recomputed on every time edit, so moving the event frees them.
+  const { check: checkPlayerConflicts } = usePlayerConflicts();
+  const busyPlayerReasons = useMemo(
+    () => checkPlayerConflicts(draftSessions),
+    [checkPlayerConflicts, draftSessions],
+  );
 
   // ---- Players ------------------------------------------------------------
   const removePlayer = useCallback((id: string) => {
@@ -144,13 +162,18 @@ export function useAddEvent() {
       setPickerDisabledIds(
         members.filter((p) => values.playerIds.includes(p.id)).map((p) => p.id),
       );
+      // Busy members are blocked in the picker, so they are never pre-checked.
       setCheckedPlayerIds(
-        members.filter((p) => !values.playerIds.includes(p.id)).map((p) => p.id),
+        members
+          .filter(
+            (p) => !values.playerIds.includes(p.id) && !busyPlayerReasons[p.id],
+          )
+          .map((p) => p.id),
       );
       setRosterChoiceOpen(false);
       setPlayerPickerOpen(true);
     },
-    [players, savedRosters, values.playerIds],
+    [players, savedRosters, values.playerIds, busyPlayerReasons],
   );
 
   const toggleCheckedPlayer = useCallback((id: string) => {
@@ -159,13 +182,16 @@ export function useAddEvent() {
     );
   }, []);
 
+  // A busy player can never be committed, even if the times moved while the
+  // picker was open — the block is enforced here, not just in the UI.
   const confirmPlayers = useCallback(() => {
+    const allowed = checkedPlayerIds.filter((id) => !busyPlayerReasons[id]);
     setValues((prev) => ({
       ...prev,
-      playerIds: [...new Set([...prev.playerIds, ...checkedPlayerIds])],
+      playerIds: [...new Set([...prev.playerIds, ...allowed])],
     }));
     setPlayerPickerOpen(false);
-  }, [checkedPlayerIds]);
+  }, [checkedPlayerIds, busyPlayerReasons]);
 
   const enrolledPlayers = useMemo(
     () => players.filter((p) => values.playerIds.includes(p.id)),
@@ -211,10 +237,10 @@ export function useAddEvent() {
   // Schedule clashes: an event's slot against every other activity. An event has
   // no instructor, so only room clashes apply. Non-blocking.
   const { check: checkConflicts } = useDraftConflicts();
-  const conflicts = useMemo(() => {
-    const draftId = values.id || "__draft__";
-    return checkConflicts(eventSessionsFromForm(draftId, values), "");
-  }, [checkConflicts, values]);
+  const conflicts = useMemo(
+    () => checkConflicts(draftSessions, ""),
+    [checkConflicts, draftSessions],
+  );
 
   const openModal = useCallback(() => {
     setMode("add");
@@ -344,6 +370,7 @@ export function useAddEvent() {
     setRosterChoiceOpen,
     pickerPlayers,
     pickerDisabledIds,
+    busyPlayerReasons,
     playerRosters,
     choosePlayersFromAll,
     choosePlayersFromRoster,

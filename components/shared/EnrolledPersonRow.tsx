@@ -27,6 +27,12 @@ interface EnrolledPersonRowProps {
   person: Player;
   /** Why this person is outside the activity's criteria; empty = a good fit. */
   mismatchReasons: string[];
+  /**
+   * Set when this person is now double-booked — they were enroled before the
+   * meeting times moved. Shown, never auto-removed: dropping a child from an
+   * activity is the user's call.
+   */
+  busyReason?: string;
   onRemove: () => void;
   removeLabel: string;
   /** The dialog element the mismatch tooltip should portal into. */
@@ -37,11 +43,13 @@ interface EnrolledPersonRowProps {
  * One enrolled player/student in an activity's roster: an initial avatar, name
  * and age/rating meta, plus a remove button. A criteria mismatch surfaces an
  * amber warning triangle whose tooltip spells out every failing bound. The whole
- * row lifts and brightens on hover.
+ * row lifts and brightens on hover. A double-booking (the person is busy in
+ * another activity at this time) tints the row and names the clash.
  */
 export function EnrolledPersonRow({
   person,
   mismatchReasons,
+  busyReason,
   onRemove,
   removeLabel,
   container,
@@ -58,6 +66,7 @@ export function EnrolledPersonRow({
         "group/row flex items-center justify-between gap-2 rounded-xl neu-inset bg-foreground/5 px-2.5 py-2 transition-colors",
         "hover:bg-primary/10 hover:shadow-md",
         mismatch && "bg-amber-500/5 hover:bg-amber-500/10",
+        busyReason && "bg-destructive/5 hover:bg-destructive/10",
       )}
     >
       <div className="flex min-w-0 items-center gap-2.5">
@@ -111,6 +120,11 @@ export function EnrolledPersonRow({
           <span className="shrink-0 rounded-md bg-foreground/8 px-1.5 py-0.5 text-xs text-muted-foreground num">
             גיל {person.age} · {person.israeliRating}
           </span>
+          {busyReason && (
+            <span className="truncate text-[0.7rem] text-destructive">
+              {busyReason}
+            </span>
+          )}
         </div>
       </div>
 

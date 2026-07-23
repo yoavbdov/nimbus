@@ -102,6 +102,12 @@ interface PeoplePickerDialogProps {
   checkedIds: string[];
   /** Already-enrolled people: shown greyed out and not selectable. */
   disabledIds: string[];
+  /**
+   * playerId → why they cannot be picked (a schedule clash with another
+   * activity). Blocking, exactly like `disabledIds`, but the row spells out the
+   * reason instead of "(כבר נוסף)".
+   */
+  unavailableReasons?: Record<string, string>;
   onToggle: (id: string) => void;
   onConfirm: () => void;
   noun: PeopleNoun;
@@ -111,7 +117,8 @@ interface PeoplePickerDialogProps {
  * A dialog table of available people (players/students) with checkboxes; confirm
  * adds all checked at once. Beyond name search it offers age/rating range
  * filters and click-to-sort on the גיל / מד כושר / שם columns, so a large roster
- * can be narrowed down before picking.
+ * can be narrowed down before picking. Rows that cannot be picked — already
+ * enroled, or busy in another activity at that time — are greyed out and inert.
  */
 export function PeoplePickerDialog({
   open,
@@ -119,6 +126,7 @@ export function PeoplePickerDialog({
   people,
   checkedIds,
   disabledIds,
+  unavailableReasons,
   onToggle,
   onConfirm,
   noun,
@@ -249,8 +257,13 @@ export function PeoplePickerDialog({
                   <TableBody>
                     <AnimatePresence initial={false}>
                     {visible.map((p, i) => {
-                      const disabled = disabledIds.includes(p.id);
-                      const checked = disabled || checkedIds.includes(p.id);
+                      // Two ways a row is blocked: already enroled (shown
+                      // ticked) or busy elsewhere at that time (shown unticked,
+                      // with the clashing activity named).
+                      const busyReason = unavailableReasons?.[p.id];
+                      const enrolled = disabledIds.includes(p.id);
+                      const disabled = enrolled || Boolean(busyReason);
+                      const checked = enrolled || checkedIds.includes(p.id);
                       return (
                         <MotionTableRow
                           key={p.id}
@@ -272,12 +285,18 @@ export function PeoplePickerDialog({
                           )}
                         >
                           <TableCell className="px-3 py-2.5 text-center text-sm font-medium text-foreground">
-                            <span className="inline-flex items-center gap-1.5">
+                            <span className="inline-flex flex-col items-center">
                               {p.name}
-                              {disabled && (
-                                <span className="text-[0.7rem] font-normal text-muted-foreground">
-                                  (כבר נוסף)
+                              {busyReason ? (
+                                <span className="text-[0.7rem] font-normal text-destructive">
+                                  {busyReason}
                                 </span>
+                              ) : (
+                                enrolled && (
+                                  <span className="text-[0.7rem] font-normal text-muted-foreground">
+                                    (כבר נוסף)
+                                  </span>
+                                )
                               )}
                             </span>
                           </TableCell>

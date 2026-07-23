@@ -7,6 +7,10 @@
  *   • room conflict:  same room (a real room, never "מחוץ למועדון").
  *   • coach conflict: same instructor — a course's coach or a tournament's
  *     judge (the same human); events have no instructor, so room only.
+ *   • player conflict: the same child in two activities at once. Unlike the two
+ *     above — which are surfaced as warnings — this one BLOCKS enrolment, so it
+ *     has its own entry point ({@link busyPlayers}) feeding the people picker
+ *     rather than the warning list.
  *
  * A session belonging to the SAME activity is never a conflict with itself.
  *
@@ -28,6 +32,19 @@ import { OUTSIDE_CLUB_ROOM } from "@/lib/rooms-data";
 
 /** Which resource two activities are fighting over. */
 export type ConflictKind = "room" | "coach";
+
+/** The activity that already holds a player's time, and when. */
+export interface PlayerBusy {
+  /** The clashing activity's id (= its display name). */
+  parentId: string;
+  title: string;
+  category: EventCategory;
+  /** The earliest clashing date in the window (YYYY-MM-DD). */
+  date: string;
+  /** The overlapping window itself (HH:mm), not the whole meeting. */
+  start: string;
+  end: string;
+}
 
 /** One activity that clashes with the activity in question. */
 export interface ConflictPartner {
@@ -287,4 +304,76 @@ export function draftConflicts(
       recurring: dates.length > 1,
     };
   });
+}
+
+// ── Players: who is already booked during the draft's meetings ──────────────
+
+/**
+ * Every player who is already busy while the draft activity meets, mapped to
+ * the activity holding them. Same shape as {@link draftConflicts} — the draft's
+ * sessions are expanded into concrete dates in [`rangeStart`,`rangeEnd`] and
+ * matched against the persisted ones — but the contested resource is the PLAYER,
+ * so any time overlap counts regardless of room or instructor. A single shared
+ * minute is enough (a 13:00–14:00 event blocks a 13:50–16:00 course).
+ *
+ * `playersOf` gives an activity's enrolled players and `resolveParent` returns
+ * `null` for archived/missing parents, which are skipped. When several
+ * activities hold the same player the earliest clashing date wins, so the label
+ * names the next occasion the double-booking would happen.
+ */
+export function busyPlayers(
+  draftSessions: SessionDoc[],
+  otherSessions: SessionDoc[],
+  playersOf: (parentId: string) => readonly string[],
+  resolveParent: (
+    session: SessionDoc,
+  ) => { title: string; category: EventCategory } | null,
+  rangeStart: string,
+  rangeEnd: string,
+): Map<string, PlayerBusy> {
+  const result = new Map<string, PlayerBusy>();
+
+  for (const draft of draftSessions) {
+    if (!draft.date || !draft.start || !draft.end) continue; // half-filled row
+    const draftDates = new Set(occurrencesInRange(draft, rangeStart, rangeEnd));
+    if (draftDates.size === 0) continue;
+
+    for (const other of otherSessions) {
+      if (other.parentId === draft.parentId) continue; // the draft itself
+      if (!timesOverlap(draft.start, draft.end, other.start, other.end)) continue;
+
+      const enrolled = playersOf(other.parentId);
+      if (enrolled.length === 0) continue;
+
+      const shared = occurrencesInRange(other, rangeStart, rangeEnd).filter((d) =>
+        draftDates.has(d),
+      );
+      if (shared.length === 0) continue;
+
+      const parent = resolveParent(other);
+      if (!parent) continue;
+
+      const date = shared.sort()[0];
+      const window = overlapWindow(draft.start, draft.end, other.start, other.end);
+      for (const playerId of enrolled) {
+        const known = result.get(playerId);
+        if (known && known.date <= date) continue; // an earlier clash already won
+        result.set(playerId, {
+          parentId: other.parentId,
+          title: parent.title,
+          category: parent.category,
+          date,
+          start: window.start,
+          end: window.end,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+/** The short Hebrew note shown under a blocked player's name. */
+export function playerBusyLabel(busy: PlayerBusy): string {
+  return `תפוס ${busy.start}–${busy.end} ב״${busy.title}״`;
 }

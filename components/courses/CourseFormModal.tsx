@@ -47,6 +47,7 @@ export function CourseFormModal({
       onBackToSourceChoice={addCourse.backToSourceChoice}
       onSelectStudentRoster={addCourse.selectStudentRoster}
       pickerDisabledIds={addCourse.pickerDisabledIds}
+      busyStudentReasons={addCourse.busyStudentReasons}
       checkedStudentIds={addCourse.checkedStudentIds}
       onToggleCheckedStudent={addCourse.toggleCheckedStudent}
       onConfirmStudents={addCourse.confirmStudents}

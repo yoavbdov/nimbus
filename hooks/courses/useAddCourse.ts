@@ -19,6 +19,7 @@ import {
   sessionFromMeeting,
 } from "@/lib/firebase/data/sessions";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
+import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
 import { replaceTargetRelations } from "@/lib/firebase/data/relations";
 import { courseRecordFromForm, courseEditPatch } from "@/lib/course-details";
 
@@ -97,6 +98,26 @@ export function useAddCourse() {
       meetings: prev.meetings.filter((m) => m.id !== id),
     }));
   }, []);
+
+  // ---- The draft's own schedule -------------------------------------------
+  // This course's meetings as sessions — the input to both conflict checks
+  // below. Declared before the students section because the picker needs the
+  // player clashes to know which rows to block.
+  const draftSessions = useMemo(
+    () =>
+      values.meetings.map((m, i) =>
+        sessionFromMeeting(values.id || "__draft__", m, i),
+      ),
+    [values.id, values.meetings],
+  );
+
+  // BLOCKING: students already booked in another activity while this course
+  // meets. Recomputed on every meeting edit, so moving the times frees them.
+  const { check: checkPlayerConflicts } = usePlayerConflicts();
+  const busyStudentReasons = useMemo(
+    () => checkPlayerConflicts(draftSessions),
+    [checkPlayerConflicts, draftSessions],
+  );
 
   // ---- Students -----------------------------------------------------------
   const toggleStudent = useCallback((id: string) => {
@@ -180,15 +201,18 @@ export function useAddCourse() {
       setPickerDisabledIds(
         members.filter((p) => values.studentIds.includes(p.id)).map((p) => p.id),
       );
+      // Busy members are blocked in the picker, so they are never pre-checked.
       setCheckedStudentIds(
         members
-          .filter((p) => !values.studentIds.includes(p.id))
+          .filter(
+            (p) => !values.studentIds.includes(p.id) && !busyStudentReasons[p.id],
+          )
           .map((p) => p.id),
       );
       setRosterChoiceOpen(false);
       setStudentPickerOpen(true);
     },
-    [players, savedRosters, values.studentIds],
+    [players, savedRosters, values.studentIds, busyStudentReasons],
   );
 
   const toggleCheckedStudent = useCallback((id: string) => {
@@ -197,13 +221,16 @@ export function useAddCourse() {
     );
   }, []);
 
+  // A busy student can never be committed, even if the times moved while the
+  // picker was open — the block is enforced here, not just in the UI.
   const confirmStudents = useCallback(() => {
+    const allowed = checkedStudentIds.filter((id) => !busyStudentReasons[id]);
     setValues((prev) => ({
       ...prev,
-      studentIds: [...new Set([...prev.studentIds, ...checkedStudentIds])],
+      studentIds: [...new Set([...prev.studentIds, ...allowed])],
     }));
     setStudentPickerOpen(false);
-  }, [checkedStudentIds]);
+  }, [checkedStudentIds, busyStudentReasons]);
 
   const students = useMemo(
     () => players.filter((p) => values.studentIds.includes(p.id)),
@@ -247,13 +274,10 @@ export function useAddCourse() {
   // Schedule clashes: this course's meetings against every other activity, on a
   // shared room or the same coach. Non-blocking — surfaced, never enforced.
   const { check: checkConflicts } = useDraftConflicts();
-  const conflicts = useMemo(() => {
-    const draftId = values.id || "__draft__";
-    const draftSessions = values.meetings.map((m, i) =>
-      sessionFromMeeting(draftId, m, i),
-    );
-    return checkConflicts(draftSessions, values.coach);
-  }, [checkConflicts, values.id, values.meetings, values.coach]);
+  const conflicts = useMemo(
+    () => checkConflicts(draftSessions, values.coach),
+    [checkConflicts, draftSessions, values.coach],
+  );
 
   const coachWarning = values.coach === "";
   const capacityWarning =
@@ -405,6 +429,7 @@ export function useAddCourse() {
     setRosterChoiceOpen,
     pickerStudents,
     pickerDisabledIds,
+    busyStudentReasons,
     studentRosters,
     chooseStudentsFromAll,
     chooseStudentsFromRoster,
