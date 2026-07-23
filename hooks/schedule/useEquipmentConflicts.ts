@@ -61,7 +61,15 @@ export function useEquipmentConflicts() {
         ...events.filter((e) => e.status !== "ארכיון").map((e) => e.id),
       ]);
 
-      const inventory = new Map(equipment.map((e) => [e.id, e.quantity]));
+      // Keyed by NAME, not by doc id. An item's doc id is frozen at creation
+      // while its name is editable (`updateEquipment` patches the field and
+      // cannot move the document), so the two drift apart the moment an item is
+      // renamed. Everything that points AT an item — the form's `equipmentId`,
+      // a relation's `subjectId` — carries the name, so the name is the key
+      // that actually joins. Keying by id silently lost every renamed item:
+      // `equipmentDemands` skips an unknown item as "no longer exists", so the
+      // shortage never surfaced anywhere.
+      const inventory = new Map(equipment.map((e) => [e.name, e.quantity]));
 
       // The activity each session belongs to, so a holder's meetings are cheap.
       const sessionsByParent = new Map<string, SessionDoc[]>();

@@ -38,6 +38,20 @@ function Hours({ start, end }: { start: string; end: string }) {
   );
 }
 
+/**
+ * A signed number, always read left-to-right. Without the `dir`, a negative
+ * value inherits the dialog's RTL context and the browser renders the minus on
+ * the WRONG side ("3-" instead of "-3"), because the sign is a neutral
+ * character resolved from the surrounding direction, not from the digits.
+ */
+function Num({ value }: { value: number }) {
+  return (
+    <span dir="ltr" className="num inline-block">
+      {value}
+    </span>
+  );
+}
+
 /** A section heading inside one warning card. */
 function SubHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -55,19 +69,25 @@ function StockRow({
 }: {
   label: string;
   value: number;
+  /**
+   * `free` colours by the value itself: green while units remain, red once the
+   * count goes negative — an over-subscribed item is the whole point of the
+   * card, so it must not read as a healthy number.
+   */
   tone?: "free" | "missing";
 }) {
+  const short = tone === "missing" || (tone === "free" && value < 0);
   return (
     <div className="flex items-baseline justify-between gap-3">
       <span className="text-foreground/70">{label}</span>
       <span
         className={cn(
-          "num font-semibold",
-          tone === "free" && "text-emerald-600 dark:text-emerald-400",
-          tone === "missing" && "text-destructive",
+          "font-semibold",
+          short && "text-destructive",
+          tone === "free" && !short && "text-emerald-600 dark:text-emerald-400",
         )}
       >
-        {value}
+        <Num value={value} />
       </span>
     </div>
   );
@@ -136,8 +156,13 @@ function ShortageCard({ shortage }: { shortage: EquipmentDemand }) {
           {shortage.equipmentId}
         </span>
         , אך {shortage.at ? "בשעות הפעילות" : "במועדון"} זמינים רק{" "}
-        <span className="num font-medium text-foreground">
-          {shortage.available}
+        <span
+          className={cn(
+            "font-medium",
+            shortage.available < 0 ? "text-destructive" : "text-foreground",
+          )}
+        >
+          <Num value={shortage.available} />
         </span>
         .
       </p>
@@ -148,7 +173,13 @@ function ShortageCard({ shortage }: { shortage: EquipmentDemand }) {
           label={`סה״כ ${shortage.equipmentId} במועדון`}
           value={shortage.total}
         />
-        <StockRow label="בשימוש בשעות הפעילות" value={shortage.heldByOthers} />
+        {/* "לא כולל פעילות זו" is not a detail — the hook drops the edited
+            activity's own allocation from the claims, so without saying so the
+            number reads as if it already contained it. */}
+        <StockRow
+          label="בשימוש בשעות הפעילות (לא כולל פעילות זו)"
+          value={shortage.heldByOthers}
+        />
         <StockRow label="פנויים" value={shortage.available} tone="free" />
         <StockRow label="נדרש לפעילות שלך" value={shortage.requested} />
       </div>
