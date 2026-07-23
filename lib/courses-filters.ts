@@ -199,7 +199,8 @@ function applyFilter(a: Course, f: CourseFilter): boolean {
     case "enrolled":
       return compareNumber(a.enrolled, f.op, Number(f.value));
     case "capacity":
-      return compareNumber(a.capacity, f.op, Number(f.value));
+      // An unlimited capacity compares as 0 — it matches no numeric bound.
+      return compareNumber(a.capacity ?? 0, f.op, Number(f.value));
     case "days":
       return applyDaysFilter(a.days, f);
     case "status": {

@@ -6,9 +6,11 @@ import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { archiveTournament } from "@/lib/firebase/data/tournaments";
-import { tournamentFormValuesFor } from "@/lib/tournament-details";
-import { coaches } from "@/lib/coaches-data";
+import { tournamentFormValuesFromLive } from "@/lib/tournament-details";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
+import type { CoachRecord } from "@/lib/coaches-data";
 import { todayHebrewDay } from "@/lib/courses-data";
 import { toISODate } from "@/lib/calendar";
 import { useScheduleEvents } from "@/hooks/schedule/useScheduleEvents";
@@ -41,6 +43,12 @@ export function useTodayTournaments() {
   const [today] = useState(() => new Date());
   const events = useScheduleEvents(today);
   const { data } = useCollection<Tournament>("tournaments");
+  // The edit modal is prefilled from the stored rounds / relations, exactly as on
+  // the tournaments page — never from values re-derived here.
+  const { data: sessions } = useCollection<SessionDoc>("sessions");
+  const { data: relations } = useCollection<RelationDoc>("relations");
+  // Coaches live too, so the note edited here round-trips the persisted doc.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
   const todayIso = toISODate(today);
 
   const todayList = useMemo(() => {
@@ -73,7 +81,9 @@ export function useTodayTournaments() {
     const tournament =
       activeIndex === null ? undefined : todayList[activeIndex]?.record;
     if (action.id === "details" && tournament) {
-      tournamentEdit.openForEdit(tournamentFormValuesFor(tournament));
+      tournamentEdit.openForEdit(
+        tournamentFormValuesFromLive(tournament, sessions, relations),
+      );
     } else if (action.id === "judge" && tournament) {
       const coach = coaches.find((c) => c.name === tournament.judge);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));

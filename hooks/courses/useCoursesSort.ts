@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { Course, CourseOccupancy } from "@/lib/courses-data";
+import type { Course } from "@/lib/courses-data";
 
 export type SortKey =
   | "name"
@@ -11,7 +11,6 @@ export type SortKey =
   | "days"
   | "nextDate"
   | "status"
-  | "occupancy"
   | "room";
 export type SortDir = "asc" | "desc";
 
@@ -21,12 +20,6 @@ const statusOrder: Record<Course["status"], number> = {
   "הסתיים": 2,
   "ללא פעילות": 3,
   "ארכיון": 4,
-};
-
-const occupancyOrder: Record<CourseOccupancy, number> = {
-  "ריק": 0,
-  "חלקי": 1,
-  "מלא": 2,
 };
 
 function getSortValue(a: Course, key: SortKey): string | number {
@@ -41,16 +34,15 @@ function getSortValue(a: Course, key: SortKey): string | number {
       return a.ratingMin;
     case "enrolled":
       return a.enrolled;
+    // Unlimited sorts last (ascending) — it is the largest capacity there is.
     case "capacity":
-      return a.capacity;
+      return a.capacity || Infinity;
     case "days":
       return a.days.length;
     case "nextDate":
       return a.nextDate;
     case "status":
       return statusOrder[a.status];
-    case "occupancy":
-      return occupancyOrder[a.occupancy];
     case "room":
       return a.room;
   }

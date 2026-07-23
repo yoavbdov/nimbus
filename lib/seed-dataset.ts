@@ -155,11 +155,11 @@ export const seedLeagues: LeagueTeam[] = rawSeedLeagues.map((team) => ({
 // ── Courses (6) — current/future × permanent/round. Today is 2026-06-30. ──────
 // Occupancy (ריק/חלקי/מלא) is derived from enrolled/capacity, so the rows omit it.
 const rawSeedCourses: Omit<SeedCourse, "occupancy">[] = [
-  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, ratingMin: 0,    ratingMax: 800,  enrolled: 8,  capacity: 14, days: ["ראשון", "שלישי"], nextDate: "01.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, ratingMin: 0,    ratingMax: 800,  enrolled: 8,  capacity: 0,  days: ["ראשון", "שלישי"], nextDate: "01.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
   { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, ratingMin: 800,  ratingMax: 1600, enrolled: 12, capacity: 12, days: ["שני", "רביעי"],   nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "סבב" },  // current, round → מלא
   { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, ratingMin: 400,  ratingMax: 1200, enrolled: 9,  capacity: 16, days: ["ראשון"],          nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent → חלקי
   { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, ratingMin: 1400, ratingMax: 2500, enrolled: 5,  capacity: 20, days: ["שלישי"],          nextDate: "14.07.2026", status: "מתוכנן", room: "חדר תחרויות", recurrence: "סבב" },  // future, round → חלקי
-  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 12, days: ["חמישי"],          nextDate: "03.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 0,  days: ["חמישי"],          nextDate: "03.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
   { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  ratingMin: 0,    ratingMax: 400,  enrolled: 0,  capacity: 10, days: ["רביעי"],          nextDate: "22.07.2026", status: "מתוכנן", room: "חדר אימונים", recurrence: "סבב" },  // future, round → ריק
 ];
 
@@ -191,13 +191,15 @@ export const seedCourses: SeedCourse[] = rawSeedCourses.map((c) => ({
 //   • מתוכננת  — every round is still ahead (tournament-2, tournament-6).
 // The concrete dates live in the seeded sessions below; `nextDate` is the next
 // upcoming meeting (or "—" once finished).
+// `capacity: 0` means unlimited (tournaments 2 & 5), so both the capped and the
+// uncapped rendering show up in the table.
 const rawSeedTournaments: SeedTournament[] = [
-  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 32, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // ongoing, round
-  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "27.07.2026", participants: 24, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
-  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "23.07.2026", participants: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // ongoing, permanent (weekly)
-  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6,  days: ["ראשון"],          nextDate: "—",          participants: 28, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // finished, round
-  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 16, ratingMin: 1800, ratingMax: 2800, room: "אולם ראשי",   recurrence: "קבוע" }, // ongoing, permanent (weekly)
-  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "02.08.2026", participants: 48, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
+  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 32, capacity: 40, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // ongoing, round
+  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "27.07.2026", participants: 24, capacity: 0, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
+  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "23.07.2026", participants: 40, capacity: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6,  days: ["ראשון"],          nextDate: "—",          participants: 28, capacity: 30, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // finished, round
+  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 16, capacity: 0, ratingMin: 1800, ratingMax: 2800, room: "אולם ראשי",   recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "02.08.2026", participants: 48, capacity: 60, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
 ];
 
 const tournamentTimes: Record<string, WeeklyTimes> = {

@@ -1,4 +1,3 @@
-import { players } from "@/lib/players-data";
 import type { Tournament } from "@/lib/tournaments-data";
 import {
   daysFromSessions,
@@ -7,71 +6,12 @@ import {
 } from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 import {
-  addWeeks,
   makeRound,
   type EquipmentLineValues,
   type MeetingValues,
   type RoundValues,
   type TournamentFormValues,
 } from "@/lib/tournament-form";
-
-/** A small, stable string hash (djb2-ish) with a seed for independent draws. */
-function hash(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(2, "0");
-}
-
-/** "07.06.2026" → "2026-06-07"; "—"/invalid → "". */
-function isoFromNextDate(nextDate: string): string {
-  const m = nextDate.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-  if (!m) return "";
-  return `${m[3]}-${m[2]}-${m[1]}`;
-}
-
-/** A deterministic afternoon time window for a tournament's rounds. */
-function timeWindow(tournament: Tournament): { start: string; end: string } {
-  const startHour = 14 + (hash(tournament.id, 5381) % 5); // 14:00–18:00
-  const duration = 1 + (hash(tournament.id, 131) % 2); // 1–2 hours
-  return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
-}
-
-
-/**
- * One round per the tournament's round count, all in its room, a week apart
- * starting from the next date.
- *
- * A finished tournament (or any without a scheduled next date) has `nextDate`
- * "—", which yields no ISO date. We fall back to today so the reconstructed
- * rounds are still complete — otherwise the edit form would be permanently
- * invalid (empty round dates) and "עדכון" could never enable.
- */
-function roundsFor(tournament: Tournament): RoundValues[] {
-  const { start, end } = timeWindow(tournament);
-  const firstDate =
-    isoFromNextDate(tournament.nextDate) || new Date().toISOString().slice(0, 10);
-  return Array.from({ length: tournament.rounds }, (_, i) => ({
-    ...makeRound(),
-    id: `round-${tournament.id}-${i}`,
-    room: tournament.room,
-    startTime: start,
-    endTime: end,
-    date: addWeeks(firstDate, i),
-  }));
-}
-
-/** The players already registered to this tournament. */
-function playerIdsFor(tournament: Tournament): string[] {
-  return players
-    .filter((p) => p.tournaments.includes(tournament.name))
-    .map((p) => p.id);
-}
 
 /** "2026-06-07" → "07.06.2026"; invalid → "—". */
 function nextDateFromIso(iso: string): string {
@@ -127,6 +67,8 @@ function tournamentScalarsFromForm(values: TournamentFormValues) {
   return {
     name: id,
     judge: values.judge,
+    // An empty capacity field means "no limit" — persisted as 0.
+    capacity: Number(values.capacity) || 0,
     rounds:
       values.format === "rounds"
         ? values.rounds.length
@@ -188,11 +130,36 @@ function fixedMeetingFromSession(session: SessionDoc): MeetingValues {
   };
 }
 
+/** The tournament's own stored fields, with every list left for the caller to
+ * fill from `sessions` / `relations`. */
+function tournamentScalarValues(tournament: Tournament): TournamentFormValues {
+  return {
+    id: tournament.id,
+    name: tournament.name,
+    judge: tournament.judge,
+    capacity: tournament.capacity ? String(tournament.capacity) : "",
+    // A blank/zero bound is "no limit" — show it as an empty field, not "0".
+    ratingMin: tournament.ratingMin ? String(tournament.ratingMin) : "",
+    ratingMax: tournament.ratingMax ? String(tournament.ratingMax) : "",
+    ageMin: tournament.ageMin ? String(tournament.ageMin) : "",
+    ageMax: tournament.ageMax ? String(tournament.ageMax) : "",
+    noAgeLimit: tournament.noAgeLimit ?? false,
+    noRatingLimit: tournament.noRatingLimit ?? false,
+    notes: tournament.notes ?? "",
+    format: "rounds",
+    roundsCount: "",
+    rounds: [],
+    fixedMeetings: [],
+    playerIds: [],
+    equipment: [],
+  };
+}
+
 /**
  * Builds the "edit tournament" form from LIVE Firestore data: rounds come from
  * the tournament's `sessions`, enrolled players and equipment from its
- * `relations`. This is the tournaments-page path; the mock-derived
- * {@link tournamentFormValuesFor} stays for modules not yet migrated.
+ * `relations`. This is the ONLY way to prefill the edit form — every screen goes
+ * through it, so no two screens can disagree about what a tournament holds.
  */
 export function tournamentFormValuesFromLive(
   tournament: Tournament,
@@ -216,55 +183,23 @@ export function tournamentFormValuesFromLive(
 
   if (recurringSlots.length > 0) {
     return {
-      ...tournamentFormValuesFor(tournament),
-      id: tournament.id,
+      ...tournamentScalarValues(tournament),
       playerIds,
       equipment: equipmentLines,
       format: "fixed",
-      roundsCount: "",
-      rounds: [],
       fixedMeetings: recurringSlots.map(fixedMeetingFromSession),
     };
   }
 
+  // A tournament with no stored slots opens with no rounds — an empty schedule
+  // is the truth, and inventing rounds here is what made screens disagree.
   const rounds = slots.map(roundFromSession);
   return {
-    ...tournamentFormValuesFor(tournament),
-    id: tournament.id,
+    ...tournamentScalarValues(tournament),
     playerIds,
     equipment: equipmentLines,
     format: "rounds",
     roundsCount: rounds.length ? String(rounds.length) : "",
-    rounds: rounds.length ? rounds : tournamentFormValuesFor(tournament).rounds,
-  };
-}
-
-/**
- * Builds the full "edit tournament" form from an existing tournament. The
- * roster only stores a slice of these fields, so the rest (rounds, players,
- * equipment, notes) is derived consistently from the tournament.
- */
-export function tournamentFormValuesFor(
-  tournament: Tournament,
-): TournamentFormValues {
-  const rounds = roundsFor(tournament);
-  return {
-    id: tournament.id,
-    name: tournament.name,
-    judge: tournament.judge,
-    // A blank/zero bound is "no limit" — show it as an empty field, not "0".
-    ratingMin: tournament.ratingMin ? String(tournament.ratingMin) : "",
-    ratingMax: tournament.ratingMax ? String(tournament.ratingMax) : "",
-    ageMin: tournament.ageMin ? String(tournament.ageMin) : "",
-    ageMax: tournament.ageMax ? String(tournament.ageMax) : "",
-    noAgeLimit: tournament.noAgeLimit ?? false,
-    noRatingLimit: tournament.noRatingLimit ?? false,
-    notes: tournament.notes ?? "",
-    format: "rounds",
-    roundsCount: String(rounds.length),
     rounds,
-    fixedMeetings: [],
-    playerIds: playerIdsFor(tournament),
-    equipment: [],
   };
 }

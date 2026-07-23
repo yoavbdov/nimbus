@@ -1,31 +1,22 @@
 import type { CoachRecord } from "@/lib/coaches-data";
 import type { CoachFormValues } from "@/lib/coach-form";
 
-/** A small, stable string hash (djb2-ish) with a seed for independent draws. */
-function hash(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
 /**
- * Build the "edit coach" form values from a roster entry. The email is read
- * from the stored record; for older coaches saved before the field existed we
- * fall back to a stable hash-derived address so the field is never empty.
+ * Build the "edit coach" form values from a roster entry — every field comes
+ * from the stored record. A coach saved before the email field existed shows an
+ * empty box, rather than a fabricated address that would be written back as
+ * real data on the next save.
  */
 export function coachFormValuesFor(coach: CoachRecord): CoachFormValues {
   const [firstName, ...rest] = coach.name.trim().split(" ");
   const lastName = rest.join(" ");
-  const h = hash(coach.name, 5381);
 
   return {
     id: coach.id,
     firstName,
     lastName,
     phone: coach.phone,
-    email: coach.email ?? `coach${1000 + (h % 9000)}@gmail.com`,
+    email: coach.email ?? "",
     notes: coach.notes ?? "",
   };
 }

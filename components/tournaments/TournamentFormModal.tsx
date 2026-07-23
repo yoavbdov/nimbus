@@ -59,6 +59,7 @@ export function TournamentFormModal({
       onRemoveEquipment={addTournament.removeEquipmentLine}
       equipmentItems={addTournament.equipmentItems}
       judgeWarning={addTournament.judgeWarning}
+      capacityWarning={addTournament.capacityWarning}
       conflicts={addTournament.conflicts}
       ageRangeInvalid={addTournament.ageRangeInvalid}
       ratingRangeInvalid={addTournament.ratingRangeInvalid}

@@ -14,7 +14,10 @@ export interface Tournament {
   /** The meeting time on each weekday the tournament runs. */
   times?: WeeklyTimes;
   nextDate: string;
+  /** How many players are actually registered. */
   participants: number;
+  /** Max players. Absent / 0 = unlimited — the tournament is never "מלא". */
+  capacity?: number;
   ratingMin: number;
   ratingMax: number;
   /** Age range the tournament is open to (optional: legacy rows omit it). */

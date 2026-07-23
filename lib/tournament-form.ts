@@ -50,6 +50,8 @@ export interface TournamentFormValues {
   id?: string;
   name: string;
   judge: string;
+  /** Max players. Left empty = unlimited. */
+  capacity: string;
   ratingMin: string;
   ratingMax: string;
   ageMin: string;
@@ -71,6 +73,7 @@ export interface TournamentFormValues {
 export const EMPTY_TOURNAMENT_FORM: TournamentFormValues = {
   name: "",
   judge: "",
+  capacity: "",
   ratingMin: "",
   ratingMax: "",
   ageMin: "",

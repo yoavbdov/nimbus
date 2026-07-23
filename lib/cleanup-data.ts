@@ -1,6 +1,6 @@
 import type { Course } from "@/lib/courses-data";
-import { events } from "@/lib/events-data";
-import { tournaments } from "@/lib/tournaments-data";
+import type { ClubEvent } from "@/lib/events-data";
+import type { Tournament } from "@/lib/tournaments-data";
 
 // ── Cleanup / archive domain ───────────────────────────────────────
 // A single, unified view over the three course sources (חוגים, אירועים,
@@ -56,9 +56,9 @@ export function courseToCompleted(a: Course): CompletedCourse {
   };
 }
 
-const endedEvents: CompletedCourse[] = events
-  .filter((e) => e.status === "הסתיים")
-  .map((e) => ({
+/** Map a live archived event onto the unified archive row shape. */
+export function eventToCompleted(e: ClubEvent): CompletedCourse {
+  return {
     id: e.id,
     kind: "אירוע",
     name: e.name,
@@ -69,11 +69,12 @@ const endedEvents: CompletedCourse[] = events
     timeRange: timeRange(e.id),
     rangeLabel: "—",
     detailLabel: e.recurrence,
-  }));
+  };
+}
 
-const endedTournaments: CompletedCourse[] = tournaments
-  .filter((t) => t.status === "הסתיימה")
-  .map((t) => ({
+/** Map a live archived tournament onto the unified archive row shape. */
+export function tournamentToCompleted(t: Tournament): CompletedCourse {
+  return {
     id: t.id,
     kind: "תחרות",
     name: t.name,
@@ -84,13 +85,5 @@ const endedTournaments: CompletedCourse[] = tournaments
     timeRange: timeRange(t.id),
     rangeLabel: `מד״כ ${t.ratingMin}–${t.ratingMax}`,
     detailLabel: `שופט: ${t.judge} · ${t.rounds} סיבובים · ${t.participants} משתתפים`,
-  }));
-
-/**
- * Ended events + tournaments. These modules are not yet migrated to Firestore,
- * so they stay mock. Archived חוגים are read live and merged in by the hook.
- */
-export const nonCourseCompleted: CompletedCourse[] = [
-  ...endedEvents,
-  ...endedTournaments,
-];
+  };
+}

@@ -1,4 +1,3 @@
-import { players } from "@/lib/players-data";
 import {
   COURSE_DAYS,
   courseOccupancy,
@@ -13,19 +12,6 @@ import {
   type MeetingValues,
   type EquipmentLineValues,
 } from "@/lib/course-form";
-
-/** A small, stable string hash (djb2-ish) with a seed for independent draws. */
-function hash(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(2, "0");
-}
 
 /** "07.06.2026" → "2026-06-07"; "—"/invalid → "". */
 function isoFromNextDate(nextDate: string): string {
@@ -61,62 +47,6 @@ function isoOnWeekday(baseIso: string, dayName: string): string {
     if (hebrewDayOf(iso) === dayName) return iso;
   }
   return baseIso;
-}
-
-/** A deterministic afternoon time window for an course's meetings. */
-function timeWindow(course: Course): { start: string; end: string } {
-  const startHour = 14 + (hash(course.id, 5381) % 5); // 14:00–18:00
-  const duration = 1 + (hash(course.id, 131) % 2); // 1–2 hours
-  return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
-}
-
-
-/** One weekly, open-ended meeting per course day, all in the course's room. Its
- * start date lands on that weekday on/after the course's start. */
-function meetingsFor(course: Course): MeetingValues[] {
-  const { start, end } = timeWindow(course);
-  const base = isoFromNextDate(course.nextDate);
-  return course.days.map((day, i) => ({
-    id: `meeting-${course.id}-${i}`,
-    startDate: isoOnWeekday(base, day),
-    room: course.room,
-    startTime: start,
-    endTime: end,
-    frequency: "weekly",
-    noEndDate: true,
-    endDate: "",
-  }));
-}
-
-/** The students already registered to this course (those whose clubs include it). */
-function studentIdsFor(course: Course): string[] {
-  return players.filter((p) => p.courses.includes(course.name)).map((p) => p.id);
-}
-
-/**
- * Builds the full "edit course" form from an existing course. The roster
- * only stores a slice of these fields, so the rest (meetings, students,
- * equipment, notes, start date) is derived consistently from the course.
- */
-export function courseFormValuesFor(course: Course): CourseFormValues {
-  return {
-    id: course.id,
-    name: course.name,
-    coach: course.coach,
-    capacity: String(course.capacity),
-    // A blank/zero bound is "no limit" — show it as an empty field, not "0".
-    ratingMin: course.ratingMin ? String(course.ratingMin) : "",
-    ratingMax: course.ratingMax ? String(course.ratingMax) : "",
-    ageMin: course.ageMin ? String(course.ageMin) : "",
-    ageMax: course.ageMax ? String(course.ageMax) : "",
-    noAgeLimit: course.noAgeLimit ?? false,
-    noRatingLimit: course.noRatingLimit ?? false,
-    // Show exactly what's stored in Firestore (no fabricated fallback).
-    notes: course.notes ?? "",
-    meetings: meetingsFor(course),
-    studentIds: studentIdsFor(course),
-    equipment: [],
-  };
 }
 
 /** Rebuild a form meeting from a stored recurring session (edit prefill). */
@@ -159,8 +89,8 @@ function meetingsFromCourseShape(course: Course): MeetingValues[] {
 /**
  * Builds the "edit course" form from LIVE Firestore data: meetings come from the
  * course's `sessions`, enrolled students and equipment from its `relations`.
- * This is the courses-page path; the mock-derived {@link courseFormValuesFor}
- * stays for modules not yet migrated.
+ * This is the ONLY way to prefill the edit form — every screen goes through it,
+ * so no two screens can disagree about what a course actually holds.
  */
 export function courseFormValuesFromLive(
   course: Course,
@@ -187,7 +117,7 @@ export function courseFormValuesFromLive(
     id: course.id,
     name: course.name,
     coach: course.coach,
-    capacity: String(course.capacity),
+    capacity: course.capacity ? String(course.capacity) : "",
     // A blank/zero bound is "no limit" — show it as an empty field, not "0".
     ratingMin: course.ratingMin ? String(course.ratingMin) : "",
     ratingMax: course.ratingMax ? String(course.ratingMax) : "",

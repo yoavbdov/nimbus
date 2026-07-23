@@ -5,16 +5,20 @@ import { useAddCoach } from "@/hooks/coaches/useAddCoach";
 import { usePossibleEnrollments } from "@/hooks/courses/usePossibleEnrollments";
 import { useArchiveConfirm } from "@/hooks/useArchiveConfirm";
 import { useCollection } from "@/lib/firebase/useCollection";
+import { useCoursesData } from "@/hooks/courses/useCoursesData";
 import { archiveCourse } from "@/lib/firebase/data/courses";
-import { courseFormValuesFor } from "@/lib/course-details";
-import { coaches } from "@/lib/coaches-data";
+import { courseFormValuesFromLive } from "@/lib/course-details";
+import type { SessionDoc } from "@/lib/sessions-data";
+import type { RelationDoc } from "@/lib/relations-data";
 import { coachFormValuesFor } from "@/lib/coach-details";
+import type { CoachRecord } from "@/lib/coaches-data";
 import type { CourseAction } from "@/lib/course-actions";
-import type { Course } from "@/lib/courses-data";
+import { UNLIMITED_CAPACITY } from "@/lib/courses-data";
 
 export interface RegistrationClass {
   name: string;
   enrolled: number;
+  /** Always a number to chart against — unlimited courses fall back to 99. */
   capacity: number;
 }
 
@@ -28,8 +32,15 @@ export function useRegistrationStatus() {
   // The course pending archive once the confirm dialog is accepted.
   const [archiveId, setArchiveId] = useState<string | null>(null);
 
-  // The registration bars show the live enrolment of every active course.
-  const { data } = useCollection<Course>("courses");
+  // The bars read the SAME derived courses the courses table does (live enrolled
+  // count, status derived from the sessions), so the two can never disagree.
+  const { courses: data } = useCoursesData();
+  // The edit modal is prefilled from the stored sessions / relations, exactly as
+  // on the courses page — never from values re-derived here.
+  const { data: sessions } = useCollection<SessionDoc>("sessions");
+  const { data: relations } = useCollection<RelationDoc>("relations");
+  // Coaches live too, so the note edited here round-trips the persisted doc.
+  const { data: coaches } = useCollection<CoachRecord>("coaches");
   const classes = useMemo<RegistrationClass[]>(
     () =>
       data
@@ -37,7 +48,9 @@ export function useRegistrationStatus() {
         .map((c) => ({
           name: c.name,
           enrolled: c.enrolled,
-          capacity: c.capacity,
+          // A course with no capacity is unlimited, but the bar still needs a
+          // ceiling to draw a share of — 99 stands in for "no limit".
+          capacity: c.capacity || UNLIMITED_CAPACITY,
         })),
     [data],
   );
@@ -46,7 +59,9 @@ export function useRegistrationStatus() {
   function onSelectAction(action: CourseAction) {
     const course = data.find((c) => c.name === activeName);
     if (action.id === "details" && course) {
-      courseEdit.openForEdit(courseFormValuesFor(course));
+      courseEdit.openForEdit(
+        courseFormValuesFromLive(course, sessions, relations),
+      );
     } else if (action.id === "coach" && course) {
       const coach = coaches.find((c) => c.name === course.coach);
       if (coach) coachEdit.openForEdit(coachFormValuesFor(coach));

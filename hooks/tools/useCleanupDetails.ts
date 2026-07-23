@@ -4,13 +4,13 @@ import { useAddCourse } from "@/hooks/courses/useAddCourse";
 import { useAddTournament } from "@/hooks/tournaments/useAddTournament";
 import { useAddEvent } from "@/hooks/events/useAddEvent";
 import { useCollection } from "@/lib/firebase/useCollection";
-import { tournaments } from "@/lib/tournaments-data";
-import { events } from "@/lib/events-data";
 import { courseFormValuesFromLive } from "@/lib/course-details";
-import { tournamentFormValuesFor } from "@/lib/tournament-details";
-import { eventFormValuesFor } from "@/lib/event-details";
+import { tournamentFormValuesFromLive } from "@/lib/tournament-details";
+import { eventFormValuesFromLive } from "@/lib/event-details";
 import type { CompletedCourse } from "@/lib/cleanup-data";
 import type { Course } from "@/lib/courses-data";
+import type { Tournament } from "@/lib/tournaments-data";
+import type { ClubEvent } from "@/lib/events-data";
 import type { SessionDoc } from "@/lib/sessions-data";
 import type { RelationDoc } from "@/lib/relations-data";
 
@@ -24,9 +24,11 @@ export function useCleanupDetails() {
   const courseForm = useAddCourse();
   const tournamentForm = useAddTournament();
   const eventForm = useAddEvent();
-  // Archived חוגים are live in Firestore, so read them (and their meetings +
-  // relations) live rather than from the static mock.
+  // Every archived activity is read live from Firestore, together with its
+  // meetings (`sessions`) and associations (`relations`).
   const { data: courses } = useCollection<Course>("courses");
+  const { data: tournaments } = useCollection<Tournament>("tournaments");
+  const { data: events } = useCollection<ClubEvent>("events");
   const { data: sessions } = useCollection<SessionDoc>("sessions");
   const { data: relations } = useCollection<RelationDoc>("relations");
 
@@ -40,10 +42,15 @@ export function useCleanupDetails() {
     } else if (item.kind === "תחרות") {
       const tournament = tournaments.find((t) => t.id === item.id);
       if (tournament)
-        tournamentForm.openForView(tournamentFormValuesFor(tournament));
+        tournamentForm.openForView(
+          tournamentFormValuesFromLive(tournament, sessions, relations),
+        );
     } else {
       const event = events.find((e) => e.id === item.id);
-      if (event) eventForm.openForView(eventFormValuesFor(event));
+      if (event)
+        eventForm.openForView(
+          eventFormValuesFromLive(event, sessions, relations),
+        );
     }
   }
 

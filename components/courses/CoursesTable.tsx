@@ -15,10 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import {
-  CourseStatusBadge,
-  CourseOccupancyBadge,
-} from "@/components/courses/CourseStatusBadge";
+import { CourseStatusBadge } from "@/components/courses/CourseStatusBadge";
 import { CourseActionsMenuContent } from "@/components/courses/CourseActionsMenu";
 import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
@@ -75,15 +72,23 @@ function SortableHeader({
   active,
   dir,
   onSort,
+  className,
 }: {
   children: React.ReactNode;
   sortKey: SortKey;
   active: boolean;
   dir: SortDir;
   onSort: (key: SortKey) => void;
+  /** Width hint — narrow columns give their slack to the free-text ones. */
+  className?: string;
 }) {
   return (
-    <TableHead className="px-2 py-3 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-foreground/70 text-center whitespace-normal">
+    <TableHead
+      className={cn(
+        "px-2 py-3 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-foreground/70 text-center whitespace-normal",
+        className,
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
@@ -141,6 +146,13 @@ function CourseRow({
         {a.coach}
       </TableCell>
       <TableCell className="px-2 py-3 text-center">
+        <CountPill value={a.enrolled} />
+      </TableCell>
+      <TableCell className="px-2 py-3 text-center">
+        {/* An unlimited capacity is stored as 0, which CountPill renders as "—". */}
+        <CountPill value={a.capacity ?? 0} />
+      </TableCell>
+      <TableCell className="px-2 py-3 text-center">
         <RangePill from={a.ageMin} to={a.ageMax} noLimit={a.noAgeLimit} />
       </TableCell>
       <TableCell className="px-2 py-3 text-center">
@@ -149,12 +161,6 @@ function CourseRow({
           to={a.ratingMax}
           noLimit={a.noRatingLimit}
         />
-      </TableCell>
-      <TableCell className="px-2 py-3 text-center">
-        <CountPill value={a.enrolled} />
-      </TableCell>
-      <TableCell className="px-2 py-3 text-center">
-        <CountPill value={a.capacity} />
       </TableCell>
       <TableCell className="px-2 py-3 text-center">
         <DaysPills days={a.days} />
@@ -167,9 +173,6 @@ function CourseRow({
       </TableCell>
       <TableCell className="px-2 py-3 text-center">
         <CourseStatusBadge status={a.status} />
-      </TableCell>
-      <TableCell className="px-2 py-3 text-center">
-        <CourseOccupancyBadge occupancy={a.occupancy} />
       </TableCell>
       <SelectionCell id={a.id} selection={selection} />
     </MotionTableRow>
@@ -228,7 +231,9 @@ export function CoursesTable({ courses }: CoursesTableProps) {
       <PopoverAnchor virtualRef={virtualRef} />
       <div
         dir="ltr"
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden [&_[data-slot=table-container]]:overflow-x-clip"
+        /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
+           narrow window can still be scrolled instead of clipping the columns. */
+        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
       >
         <div dir="rtl">
           <Table>
@@ -236,15 +241,14 @@ export function CoursesTable({ courses }: CoursesTableProps) {
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם החוג</SortableHeader>
                 <SortableHeader {...headerProps("coach")}>מדריך</SortableHeader>
-                <SortableHeader {...headerProps("age")}>גילאים</SortableHeader>
-                <SortableHeader {...headerProps("rating")}>מד כושר</SortableHeader>
-                <SortableHeader {...headerProps("enrolled")}>רשומים</SortableHeader>
-                <SortableHeader {...headerProps("capacity")}>קיבולת</SortableHeader>
+                <SortableHeader {...headerProps("enrolled")} className="w-16">רשומים</SortableHeader>
+                <SortableHeader {...headerProps("capacity")} className="w-16">קיבולת</SortableHeader>
+                <SortableHeader {...headerProps("age")} className="w-24">גילאים</SortableHeader>
+                <SortableHeader {...headerProps("rating")} className="w-28">מד כושר</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
-                <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
+                <SortableHeader {...headerProps("nextDate")} className="w-24">המועד הבא</SortableHeader>
                 <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
-                <SortableHeader {...headerProps("occupancy")}>תפוסה</SortableHeader>
                 <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>

@@ -11,15 +11,29 @@ export type CourseStatus =
 /** How full a course is — derived from enrolled vs. capacity, never set by hand. */
 export type CourseOccupancy = "ריק" | "חלקי" | "מלא";
 
-/** ריק when no one is enrolled, מלא at/over capacity, חלקי in between. */
+/**
+ * ריק when no one is enrolled, מלא at/over capacity, חלקי in between.
+ * A missing capacity means "unlimited" — such an activity is never מלא.
+ */
 export function courseOccupancy(
   enrolled: number,
-  capacity: number,
+  capacity: number | undefined,
 ): CourseOccupancy {
   if (enrolled <= 0) return "ריק";
-  if (enrolled >= capacity) return "מלא";
+  if (hasCapacity(capacity) && enrolled >= capacity) return "מלא";
   return "חלקי";
 }
+
+/** A capacity is only a real limit when it is a positive number. */
+function hasCapacity(capacity: number | undefined): capacity is number {
+  return typeof capacity === "number" && capacity > 0;
+}
+
+/**
+ * The capacity to chart against when none is set. Unlimited activities have no
+ * ceiling, so the dashboard bar needs an arbitrary one to draw a share of.
+ */
+export const UNLIMITED_CAPACITY = 99;
 
 export const COURSE_DAYS = [
   "ראשון",
@@ -59,7 +73,8 @@ export interface Course {
   noAgeLimit?: boolean;
   noRatingLimit?: boolean;
   enrolled: number;
-  capacity: number;
+  /** Max students. Absent / 0 = unlimited — the course is never "מלא". */
+  capacity?: number;
   days: CourseDay[];
   /** The meeting time on each weekday the course runs (optional legacy data). */
   times?: WeeklyTimes;

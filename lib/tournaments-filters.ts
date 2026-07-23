@@ -15,6 +15,7 @@ export type FilterField =
   | "rounds"
   | "days"
   | "participants"
+  | "capacity"
   | "ratingMin"
   | "ratingMax"
   | "room";
@@ -102,6 +103,7 @@ export const FIELD_DEFS: FieldDef[] = [
     ],
   },
   { field: "participants", label: "משתתפים", basic: true, operators: numericOps },
+  { field: "capacity", label: "קיבולת", operators: numericOps },
   { field: "ratingMin", label: "דירוג מינימלי", operators: numericOps },
   { field: "ratingMax", label: "דירוג מקסימלי", operators: numericOps },
   {
@@ -175,6 +177,9 @@ function applyFilter(t: Tournament, f: TournamentFilter): boolean {
       return applyDaysFilter(t.days, f);
     case "participants":
       return compareNumber(t.participants, f.op, Number(f.value));
+    // An unlimited capacity compares as 0 — it matches no numeric bound.
+    case "capacity":
+      return compareNumber(t.capacity ?? 0, f.op, Number(f.value));
     case "ratingMin":
       return compareNumber(t.ratingMin, f.op, Number(f.value));
     case "ratingMax":

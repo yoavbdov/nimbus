@@ -9,6 +9,7 @@ export type SortKey =
   | "days"
   | "nextDate"
   | "participants"
+  | "capacity"
   | "age"
   | "rating"
   | "room";
@@ -38,6 +39,9 @@ function getSortValue(t: Tournament, key: SortKey): string | number {
       return t.nextDate;
     case "participants":
       return t.participants;
+    // Unlimited sorts last (ascending) — it is the largest capacity there is.
+    case "capacity":
+      return t.capacity || Infinity;
     case "age":
       return t.ageMin ?? 0;
     case "rating":

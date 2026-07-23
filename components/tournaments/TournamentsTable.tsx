@@ -71,22 +71,32 @@ function SortableHeader({
   active,
   dir,
   onSort,
+  className,
 }: {
   children: React.ReactNode;
   sortKey: SortKey;
   active: boolean;
   dir: SortDir;
   onSort: (key: SortKey) => void;
+  /** Width hint — narrow columns give their slack to the free-text ones. */
+  className?: string;
 }) {
   return (
-    <TableHead className="px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-foreground/70 text-center">
+    <TableHead
+      className={cn(
+        "px-2 py-3 text-[0.7rem] font-medium uppercase tracking-[0.1em] text-foreground/70 text-center whitespace-normal",
+        className,
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => onSort(sortKey)}
         className={cn(
-          "mx-auto h-auto px-0 py-0 gap-1.5 font-medium uppercase tracking-[0.14em] text-foreground/70 hover:bg-transparent hover:text-foreground",
+          // shrink + whitespace-normal let a two-word header wrap onto two lines
+          // instead of forcing the column (and the table) wider.
+          "mx-auto h-auto min-w-0 shrink px-0 py-0 gap-1.5 whitespace-normal leading-tight font-medium uppercase tracking-[0.1em] text-foreground/70 hover:bg-transparent hover:text-foreground",
           active && "text-foreground",
         )}
       >
@@ -128,42 +138,46 @@ function TournamentRow({
         isActive && "bg-primary/30",
       )}
     >
-      <TableCell className="px-4 py-3 text-sm font-medium text-foreground text-center">
+      <TableCell className="px-2 py-3 text-sm font-medium text-foreground text-center whitespace-normal break-words">
         {t.name}
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
         {t.judge}
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CountPill value={t.rounds} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <CountPill value={t.participants} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
+        {/* An unlimited capacity is stored as 0, which CountPill renders as "—". */}
+        <CountPill value={t.capacity ?? 0} />
+      </TableCell>
+      <TableCell className="px-2 py-3 text-center">
         <RangePill
           from={t.ageMin ?? 0}
           to={t.ageMax ?? 0}
           noLimit={t.noAgeLimit || (t.ageMin == null && t.ageMax == null)}
         />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <RangePill
           from={t.ratingMin}
           to={t.ratingMax}
           noLimit={t.noRatingLimit}
         />
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <DaysPills days={t.days} />
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
         {t.nextDate}
       </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-foreground/85 text-center">
+      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
         {t.room || "—"}
       </TableCell>
-      <TableCell className="px-4 py-3 text-center">
+      <TableCell className="px-2 py-3 text-center">
         <TournamentStatusBadge status={t.status} />
       </TableCell>
       <SelectionCell id={t.id} selection={selection} />
@@ -223,7 +237,9 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
       <PopoverAnchor virtualRef={virtualRef} />
       <div
         dir="ltr"
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
+        /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
+           narrow window can still be scrolled instead of clipping the columns. */
+        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
       >
         <div dir="rtl">
           <Table>
@@ -231,12 +247,13 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם תחרות</SortableHeader>
                 <SortableHeader {...headerProps("judge")}>שופט</SortableHeader>
-                <SortableHeader {...headerProps("rounds")}>סיבובים</SortableHeader>
-                <SortableHeader {...headerProps("participants")}>משתתפים</SortableHeader>
-                <SortableHeader {...headerProps("age")}>גילאים</SortableHeader>
-                <SortableHeader {...headerProps("rating")}>טווח דירוג</SortableHeader>
+                <SortableHeader {...headerProps("rounds")} className="w-16">סיבובים</SortableHeader>
+                <SortableHeader {...headerProps("participants")} className="w-16">רשומים</SortableHeader>
+                <SortableHeader {...headerProps("capacity")} className="w-16">קיבולת</SortableHeader>
+                <SortableHeader {...headerProps("age")} className="w-24">גילאים</SortableHeader>
+                <SortableHeader {...headerProps("rating")} className="w-28">מד כושר</SortableHeader>
                 <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
-                <SortableHeader {...headerProps("nextDate")}>המועד הבא</SortableHeader>
+                <SortableHeader {...headerProps("nextDate")} className="w-24">המועד הבא</SortableHeader>
                 <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
                 <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
                 <SelectionHead selection={selection} />

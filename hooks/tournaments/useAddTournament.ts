@@ -311,6 +311,10 @@ export function useAddTournament() {
   }, [checkConflicts, values]);
 
   const judgeWarning = values.judge === "";
+  // An empty capacity is "no limit", so it can never be exceeded.
+  const capacityWarning =
+    values.capacity !== "" &&
+    values.playerIds.length > Number(values.capacity);
   const mismatchReasons = useCallback(
     (playerId: string) => {
       const player = players.find((p) => p.id === playerId);
@@ -478,6 +482,7 @@ export function useAddTournament() {
     removeEquipmentLine,
     equipmentItems,
     judgeWarning,
+    capacityWarning,
     conflicts,
     ageRangeInvalid,
     ratingRangeInvalid,

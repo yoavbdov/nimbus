@@ -11,34 +11,6 @@ import {
   type EventFormValues,
 } from "@/lib/event-form";
 
-/** A small, stable string hash (djb2-ish) with a seed for independent draws. */
-function hash(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(2, "0");
-}
-
-/** "07.06.2026" → "2026-06-07"; "—"/invalid → "". */
-function isoFromNextDate(nextDate: string): string {
-  const m = nextDate.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-  if (!m) return "";
-  return `${m[3]}-${m[2]}-${m[1]}`;
-}
-
-/** A deterministic afternoon/evening time window for an event. */
-function timeWindow(event: ClubEvent): { start: string; end: string } {
-  const startHour = 16 + (hash(event.id, 5381) % 4); // 16:00–19:00
-  const duration = 1 + (hash(event.id, 131) % 3); // 1–3 hours
-  return { start: `${pad(startHour)}:00`, end: `${pad(startHour + duration)}:00` };
-}
-
-
 /** "2026-06-07" → "07.06.2026"; invalid → "—". */
 function nextDateFromIso(iso: string): string {
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -120,11 +92,23 @@ export function eventEditPatch(values: EventFormValues): Partial<ClubEvent> {
   return eventScalarsFromForm(values);
 }
 
+/** The event's own stored fields, with the schedule left for the caller to fill
+ * from its `sessions`. */
+function eventScalarValues(event: ClubEvent): EventFormValues {
+  return {
+    ...EMPTY_EVENT_FORM,
+    id: event.id,
+    name: event.name,
+    notes: event.notes ?? "",
+    format: event.recurrence === "חד פעמי" ? "oneoff" : "recurring",
+  };
+}
+
 /**
  * Builds the "edit event" form from LIVE Firestore data: the slot times come
  * from the event's `sessions`, enrolled players and equipment from its
- * `relations`. This is the events-page path; the mock-derived
- * {@link eventFormValuesFor} stays for modules not yet migrated.
+ * `relations`. This is the ONLY way to prefill the edit form — every screen goes
+ * through it, so no two screens can disagree about what an event holds.
  */
 export function eventFormValuesFromLive(
   event: ClubEvent,
@@ -143,14 +127,15 @@ export function eventFormValuesFromLive(
       quantity: r.quantity != null ? String(r.quantity) : "1",
     }));
 
-  const base = eventFormValuesFor(event);
+  const base = eventScalarValues(event);
+  // An event with no stored slot opens with an empty schedule — that is the
+  // truth, and inventing times here is what made screens disagree.
   if (!slot) {
-    return { ...base, id: event.id, playerIds, equipment: equipmentLines };
+    return { ...base, playerIds, equipment: equipmentLines };
   }
   const recurring = Boolean(slot.frequency);
   return {
     ...base,
-    id: event.id,
     playerIds,
     equipment: equipmentLines,
     format: recurring ? "recurring" : "oneoff",
@@ -169,29 +154,3 @@ export function eventFormValuesFromLive(
   };
 }
 
-/**
- * Builds the full "edit event" form from an existing event. The roster only
- * stores a slice of these fields, so the rest (times, notes, equipment) is
- * derived consistently from the event.
- */
-export function eventFormValuesFor(event: ClubEvent): EventFormValues {
-  const { start, end } = timeWindow(event);
-  const date = isoFromNextDate(event.nextDate);
-  const oneoff = event.recurrence === "חד פעמי";
-
-  return {
-    ...EMPTY_EVENT_FORM,
-    id: event.id,
-    name: event.name,
-    notes: event.notes ?? "",
-    format: oneoff ? "oneoff" : "recurring",
-    oneoffRoom: oneoff ? event.room : "",
-    oneoffDate: oneoff ? date : "",
-    oneoffStartTime: oneoff ? start : "",
-    oneoffEndTime: oneoff ? end : "",
-    recurringRoom: oneoff ? "" : event.room,
-    recurringStartTime: oneoff ? "" : start,
-    recurringEndTime: oneoff ? "" : end,
-    recurringStartDate: oneoff ? "" : date,
-  };
-}

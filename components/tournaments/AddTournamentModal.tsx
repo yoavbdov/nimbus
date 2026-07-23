@@ -761,6 +761,7 @@ interface AddTournamentModalProps {
   onRemoveEquipment: (id: string) => void;
   equipmentItems: Equipment[];
   judgeWarning: boolean;
+  capacityWarning: boolean;
   conflicts: DraftConflict[];
   ageRangeInvalid: boolean;
   ratingRangeInvalid: boolean;
@@ -812,6 +813,7 @@ export function AddTournamentModal({
   onRemoveEquipment,
   equipmentItems,
   judgeWarning,
+  capacityWarning,
   conflicts,
   ageRangeInvalid,
   ratingRangeInvalid,
@@ -925,7 +927,7 @@ export function AddTournamentModal({
                 >
                   {tab === "details" && (
                     <>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-[1fr_1fr_3.5rem] gap-3">
                         <Field>
                           <FieldLabel required>שם התחרות</FieldLabel>
                           <Input
@@ -951,12 +953,28 @@ export function AddTournamentModal({
                             dangerOption={NO_JUDGE}
                           />
                         </Field>
+
+                        <Field>
+                          {/* Left empty, the tournament has no participant cap. */}
+                          <FieldLabel>קיבולת</FieldLabel>
+                          <Input
+                            inputMode="numeric"
+                            value={values.capacity}
+                            onChange={(e) =>
+                              onFieldChange(
+                                "capacity",
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                            className={cn(fieldClass, "px-2 text-center num")}
+                          />
+                        </Field>
                       </div>
 
                       {/* Fixed-height slot so the judge warning doesn't grow the
                         modal. Mirrors the row's columns so it sits under the
                         judge field. */}
-                      <div className="-mt-2.5 grid h-4 grid-cols-2 gap-3">
+                      <div className="-mt-2.5 grid h-4 grid-cols-[1fr_1fr_3.5rem] gap-3">
                         <div />
                         {judgeWarning && (
                           <div className="ps-3">
@@ -1233,6 +1251,15 @@ export function AddTournamentModal({
                               container={container}
                             />
                           ))}
+                        </motion.div>
+                      )}
+
+                      {capacityWarning && (
+                        <motion.div variants={itemVariants}>
+                          <WarningNote>
+                            מספר השחקנים ({players.length}) חורג מהקיבולת (
+                            {values.capacity}).
+                          </WarningNote>
                         </motion.div>
                       )}
                     </>
