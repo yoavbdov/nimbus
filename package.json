@@ -8,8 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
+    "seed:basics": "tsx scripts/seed.ts --basics",
     "seed:empty": "tsx scripts/seed.ts --empty",
     "seed:client": "tsx scripts/seed-client.ts",
+    "seed:client:basics": "tsx scripts/seed-client.ts --basics",
     "seed:client:empty": "tsx scripts/seed-client.ts --empty"
   },
   "dependencies": {

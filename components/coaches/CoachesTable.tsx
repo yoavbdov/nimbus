@@ -16,7 +16,10 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
 import { CoachStatusBadge } from "@/components/coaches/CoachStatusBadge";
 import { CoachActionsMenuContent } from "@/components/coaches/CoachActionsMenu";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import {
+  SelectionHead,
+  SelectionCell,
+} from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { coachActions, type CoachAction } from "@/lib/coach-actions";
 import { useTableSelection } from "@/hooks/useTableSelection";
@@ -27,8 +30,7 @@ import { cn } from "@/lib/utils";
 import type { Coach } from "@/lib/coaches-data";
 
 function CountPill({ value }: { value: number }) {
-  if (value === 0)
-    return <span className="text-foreground/40 num">—</span>;
+  if (value === 0) return <span className="text-foreground/40 num">—</span>;
   return (
     <Badge
       variant="secondary"
@@ -162,7 +164,7 @@ export function CoachesTable({
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו מדריכים תואמים
+          לא נמצאו מדריכים
         </AlertTitle>
       </Alert>
     );
@@ -188,9 +190,15 @@ export function CoachesTable({
               <TableRow className="hover:bg-transparent">
                 <SortableHeader {...headerProps("name")}>שם מלא</SortableHeader>
                 <SortableHeader {...headerProps("phone")}>טלפון</SortableHeader>
-                <SortableHeader {...headerProps("clubs")}>חוגים פעילים</SortableHeader>
-                <SortableHeader {...headerProps("competitions")}>תחרויות פעילות</SortableHeader>
-                <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
+                <SortableHeader {...headerProps("clubs")}>
+                  חוגים פעילים
+                </SortableHeader>
+                <SortableHeader {...headerProps("competitions")}>
+                  תחרויות פעילות
+                </SortableHeader>
+                <SortableHeader {...headerProps("status")}>
+                  סטטוס
+                </SortableHeader>
                 <SelectionHead selection={selection} />
               </TableRow>
             </TableHeader>

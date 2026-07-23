@@ -19,7 +19,10 @@ import { EventFormModal } from "@/components/events/EventFormModal";
 import { DeleteEventModal } from "@/components/events/DeleteEventModal";
 import { RowActionsMenuContent } from "@/components/shared/RowActionsMenu";
 import { eventActions } from "@/lib/row-actions";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import {
+  SelectionHead,
+  SelectionCell,
+} from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { useTableSelection } from "@/hooks/useTableSelection";
@@ -172,7 +175,7 @@ export function EventsTable({ events }: EventsTableProps) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו אירועים תואמים
+          לא נמצאו אירועים
         </AlertTitle>
       </Alert>
     );
@@ -187,69 +190,80 @@ export function EventsTable({ events }: EventsTableProps) {
 
   return (
     <>
-    <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
-      <PopoverAnchor virtualRef={virtualRef} />
-      <div
-        dir="ltr"
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
-      >
-        <div dir="rtl">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
-              <TableRow className="hover:bg-transparent">
-                <SortableHeader {...headerProps("name")}>שם אירוע</SortableHeader>
-                <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
-                <SortableHeader {...headerProps("recurrence")}>קבוע/חד פעמי</SortableHeader>
-                <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
-                <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
-                <SelectionHead selection={selection} />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map((e, i) => (
-                <EventRow
-                  key={e.id}
-                  event={e}
-                  index={i}
-                  isActive={activeId === e.id}
-                  onOpen={handleRowClick}
-                  selection={selection}
-                />
-              ))}
-            </TableBody>
-          </Table>
+      <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
+        <PopoverAnchor virtualRef={virtualRef} />
+        <div
+          dir="ltr"
+          className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto overflow-x-hidden"
+        >
+          <div dir="rtl">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
+                <TableRow className="hover:bg-transparent">
+                  <SortableHeader {...headerProps("name")}>
+                    שם אירוע
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
+                  <SortableHeader {...headerProps("recurrence")}>
+                    קבוע/חד פעמי
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("days")}>
+                    ימי פעילות
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("status")}>
+                    סטטוס
+                  </SortableHeader>
+                  <SelectionHead selection={selection} />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((e, i) => (
+                  <EventRow
+                    key={e.id}
+                    event={e}
+                    index={i}
+                    isActive={activeId === e.id}
+                    onOpen={handleRowClick}
+                    selection={selection}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
-      {bulkMode ? (
-        <BulkActionsMenuContent
-          actions={eventActions}
-          count={selection.selectedCount}
-          onSelect={onBulkSelect}
-        />
-      ) : (
-        <RowActionsMenuContent actions={eventActions} onSelect={onRowAction} />
-      )}
-    </Popover>
-    <EventFormModal addEvent={eventEdit} />
-    <DeleteEventModal
-      open={deleteEvent.open}
-      onOpenChange={deleteEvent.handleOpenChange}
-      eventNames={deleteEvent.names}
-      expectedPhrase={deleteEvent.expectedPhrase}
-      confirmText={deleteEvent.confirmText}
-      onConfirmTextChange={deleteEvent.setConfirmText}
-      valid={deleteEvent.valid}
-      onConfirm={deleteEvent.confirm}
-    />
-    <ArchiveConfirmDialog
-      open={archive.open}
-      count={archive.count}
-      noun="אירועים"
-      names={archive.names}
-      warnFinal
-      onCancel={archive.cancel}
-      onConfirm={archive.confirm}
-    />
+        {bulkMode ? (
+          <BulkActionsMenuContent
+            actions={eventActions}
+            count={selection.selectedCount}
+            onSelect={onBulkSelect}
+          />
+        ) : (
+          <RowActionsMenuContent
+            actions={eventActions}
+            onSelect={onRowAction}
+          />
+        )}
+      </Popover>
+      <EventFormModal addEvent={eventEdit} />
+      <DeleteEventModal
+        open={deleteEvent.open}
+        onOpenChange={deleteEvent.handleOpenChange}
+        eventNames={deleteEvent.names}
+        expectedPhrase={deleteEvent.expectedPhrase}
+        confirmText={deleteEvent.confirmText}
+        onConfirmTextChange={deleteEvent.setConfirmText}
+        valid={deleteEvent.valid}
+        onConfirm={deleteEvent.confirm}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="אירועים"
+        names={archive.names}
+        warnFinal
+        onCancel={archive.cancel}
+        onConfirm={archive.confirm}
+      />
     </>
   );
 }

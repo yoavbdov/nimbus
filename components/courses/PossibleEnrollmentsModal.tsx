@@ -71,7 +71,7 @@ export function PossibleEnrollmentsModal({
         {candidates.length === 0 ? (
           <Alert className="border-0 bg-transparent py-10 [&>svg]:hidden">
             <AlertTitle className="text-center text-sm font-normal text-foreground/60">
-              לא נמצאו תלמידים מתאימים
+              לא נמצאו תלמידים
             </AlertTitle>
           </Alert>
         ) : (

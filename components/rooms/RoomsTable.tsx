@@ -13,8 +13,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverAnchor } from "@/components/ui/popover";
-import { RowActionsMenuContent, type RowAction } from "@/components/shared/RowActionsMenu";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import {
+  RowActionsMenuContent,
+  type RowAction,
+} from "@/components/shared/RowActionsMenu";
+import {
+  SelectionHead,
+  SelectionCell,
+} from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { useRowActionsMenu } from "@/hooks/useRowActionsMenu";
 import { useTableSelection } from "@/hooks/useTableSelection";
@@ -75,7 +81,7 @@ export function RoomsTable({ rooms, onAction, onBulkAction }: RoomsTableProps) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו חדרים תואמים
+          לא נמצאו חדרים
         </AlertTitle>
       </Alert>
     );
@@ -135,7 +141,10 @@ export function RoomsTable({ rooms, onAction, onBulkAction }: RoomsTableProps) {
           onSelect={onBulkSelect}
         />
       ) : (
-        <RowActionsMenuContent actions={roomActions} onSelect={handleSelectAction} />
+        <RowActionsMenuContent
+          actions={roomActions}
+          onSelect={handleSelectAction}
+        />
       )}
     </Popover>
   );

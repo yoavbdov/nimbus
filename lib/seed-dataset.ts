@@ -137,6 +137,26 @@ const rawSeedEquipment: Equipment[] = [
 ];
 export const seedEquipment: Equipment[] = keyByName(rawSeedEquipment);
 
+// ── "Basics" variant (npm run seed:basics) ───────────────────────────────────
+// A starting point with resources only: the same 20 players, plus 5 coaches /
+// 5 rooms / 5 equipment types — and NO courses, tournaments, events, leagues,
+// attendance, sessions or relations, so nothing is scheduled and no conflict
+// exists. Built on top of the curated records above so ids stay identical
+// between the variants.
+export const basicsCoaches: CoachRecord[] = seedCoaches.slice(0, 5);
+
+export const basicsRooms: Room[] = keyByName([
+  ...rawSeedRooms,
+  { id: "room-4", name: "חדר עיון", capacity: 12 },
+  { id: "room-5", name: "אולם קטן", capacity: 24 },
+]);
+
+export const basicsEquipment: Equipment[] = keyByName([
+  ...rawSeedEquipment,
+  { id: "equipment-4", name: "לוחות ויניל", quantity: 25, notes: "—" },
+  { id: "equipment-5", name: "ספרי פתיחות", quantity: 15, notes: "—" },
+]);
+
 // ── Players (20, every age band) ─────────────────────────────────────────────
 const basePlayers: PlayerBase[] = [
   { id: "player-1",  name: "אורי גולן",   age: 7,  grade: "כיתה ב",  israeliRating: 480,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000001", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },

@@ -90,7 +90,7 @@ export function RatingUpdateTable({
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו שחקנים תואמים
+          לא נמצאו שחקנים
         </AlertTitle>
       </Alert>
     );

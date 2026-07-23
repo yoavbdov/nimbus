@@ -6,8 +6,8 @@
  *
  * Run with:  npm run seed:client
  *
- * Pass --empty (npm run seed:client:empty) to wipe the club down to empty
- * collections instead of writing the demo data.
+ * Variants (see scripts/seed-mode.ts): --basics writes resources only,
+ * --empty wipes the club down to empty collections.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -38,7 +38,11 @@ import {
   seedRelations,
   seedSessions,
   seedRatingTiers,
+  basicsCoaches,
+  basicsRooms,
+  basicsEquipment,
 } from "../lib/seed-dataset";
+import { pickFor, seedMode } from "./seed-mode";
 
 // ── Load .env.local into process.env (tsx does not do this automatically) ────
 function loadEnvLocal(): void {
@@ -99,25 +103,23 @@ async function seedCollection<T extends WithId>(
 
 // ── Run ─────────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
-  const empty = process.argv.includes("--empty");
-  console.log(
-    `Seeding club "${DEMO_CLUB_ID}" via Client SDK${empty ? " (empty — clearing only)" : ""}…`,
-  );
+  const mode = seedMode();
+  console.log(`Seeding club "${DEMO_CLUB_ID}" via Client SDK [${mode}]…`);
 
   await setDoc(doc(db, clubPath(DEMO_CLUB_ID)), {
     name: "מועדון הדגמה",
     createdAt: new Date().toISOString(),
   });
 
-  // `--empty` reuses the very same path: each collection is cleared, then the
-  // (empty) list is written back.
-  const pick = <T extends WithId>(items: T[]): T[] => (empty ? [] : items);
+  // Every mode reuses the very same path: each collection is cleared, then the
+  // list chosen for the mode is written back (possibly empty).
+  const pick = pickFor(mode);
 
-  await seedCollection(COLLECTIONS.players, pick(seedPlayers));
+  await seedCollection(COLLECTIONS.players, pick(seedPlayers, seedPlayers));
   await seedCollection(COLLECTIONS.courses, pick(seedCourses));
-  await seedCollection(COLLECTIONS.coaches, pick(seedCoaches));
-  await seedCollection(COLLECTIONS.rooms, pick(seedRooms));
-  await seedCollection(COLLECTIONS.equipment, pick(seedEquipment));
+  await seedCollection(COLLECTIONS.coaches, pick(seedCoaches, basicsCoaches));
+  await seedCollection(COLLECTIONS.rooms, pick(seedRooms, basicsRooms));
+  await seedCollection(COLLECTIONS.equipment, pick(seedEquipment, basicsEquipment));
   await seedCollection(COLLECTIONS.attendance, pick(seedAttendance));
   await seedCollection(COLLECTIONS.leagues, pick(seedLeagues));
   await seedCollection(COLLECTIONS.tournaments, pick(seedTournaments));
@@ -125,7 +127,7 @@ async function main(): Promise<void> {
   await seedCollection(COLLECTIONS.rosters, pick(seedRosters));
   await seedCollection(COLLECTIONS.relations, pick(seedRelations));
   await seedCollection(COLLECTIONS.sessions, pick(seedSessions));
-  await seedCollection(COLLECTIONS.ratingTiers, pick(seedRatingTiers));
+  await seedCollection(COLLECTIONS.ratingTiers, pick(seedRatingTiers, seedRatingTiers));
 
   console.log("Done.");
 }

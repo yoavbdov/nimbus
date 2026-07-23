@@ -21,7 +21,10 @@ import { PossibleEnrollmentsModal } from "@/components/courses/PossibleEnrollmen
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
 import { CourseFormModal } from "@/components/courses/CourseFormModal";
 import { DeleteCourseModal } from "@/components/courses/DeleteCourseModal";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import {
+  SelectionHead,
+  SelectionCell,
+} from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { courseActions } from "@/lib/course-actions";
@@ -36,8 +39,7 @@ import type { Course } from "@/lib/courses-data";
 const bulkActions = courseActions.filter((a) => a.id !== "enrollments");
 
 function CountPill({ value }: { value: number }) {
-  if (value === 0)
-    return <span className="text-foreground/40 num">—</span>;
+  if (value === 0) return <span className="text-foreground/40 num">—</span>;
   return (
     <Badge
       variant="secondary"
@@ -165,7 +167,10 @@ function CourseRow({
       <TableCell className="px-2 py-3 text-center">
         <DaysPills days={a.days} />
       </TableCell>
-      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
+      <TableCell
+        className="px-2 py-3 text-sm text-foreground/85 text-center num"
+        dir="ltr"
+      >
         {a.nextDate}
       </TableCell>
       <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
@@ -212,7 +217,7 @@ export function CoursesTable({ courses }: CoursesTableProps) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו חוגים תואמים
+          לא נמצאו חוגים
         </AlertTitle>
       </Alert>
     );
@@ -227,92 +232,110 @@ export function CoursesTable({ courses }: CoursesTableProps) {
 
   return (
     <>
-    <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
-      <PopoverAnchor virtualRef={virtualRef} />
-      <div
-        dir="ltr"
-        /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
+      <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
+        <PopoverAnchor virtualRef={virtualRef} />
+        <div
+          dir="ltr"
+          /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
            narrow window can still be scrolled instead of clipping the columns. */
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
-      >
-        <div dir="rtl">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-foreground/15">
-              <TableRow className="hover:bg-transparent">
-                <SortableHeader {...headerProps("name")}>שם החוג</SortableHeader>
-                <SortableHeader {...headerProps("coach")}>מדריך</SortableHeader>
-                <SortableHeader {...headerProps("enrolled")} className="w-16">רשומים</SortableHeader>
-                <SortableHeader {...headerProps("capacity")} className="w-16">קיבולת</SortableHeader>
-                <SortableHeader {...headerProps("age")} className="w-24">גילאים</SortableHeader>
-                <SortableHeader {...headerProps("rating")} className="w-28">מד כושר</SortableHeader>
-                <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
-                <SortableHeader {...headerProps("nextDate")} className="w-24">המועד הבא</SortableHeader>
-                <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
-                <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
-                <SelectionHead selection={selection} />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map((a, i) => (
-                <CourseRow
-                  key={a.id}
-                  course={a}
-                  index={i}
-                  isActive={activeId === a.id}
-                  onOpen={handleRowClick}
-                  selection={selection}
-                />
-              ))}
-            </TableBody>
-          </Table>
+          className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
+        >
+          <div dir="rtl">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-foreground/15">
+                <TableRow className="hover:bg-transparent">
+                  <SortableHeader {...headerProps("name")}>
+                    שם החוג
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("coach")}>
+                    מדריך
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("enrolled")} className="w-16">
+                    רשומים
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("capacity")} className="w-16">
+                    קיבולת
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("age")} className="w-24">
+                    גילאים
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("rating")} className="w-28">
+                    מד כושר
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("days")}>
+                    ימי פעילות
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("nextDate")} className="w-24">
+                    המועד הבא
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
+                  <SortableHeader {...headerProps("status")}>
+                    סטטוס
+                  </SortableHeader>
+                  <SelectionHead selection={selection} />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((a, i) => (
+                  <CourseRow
+                    key={a.id}
+                    course={a}
+                    index={i}
+                    isActive={activeId === a.id}
+                    onOpen={handleRowClick}
+                    selection={selection}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
-      {bulkMode ? (
-        <BulkActionsMenuContent
-          actions={bulkActions}
-          count={selection.selectedCount}
-          onSelect={onBulkSelect}
-        />
-      ) : (
-        <CourseActionsMenuContent onSelect={onRowAction} />
-      )}
-    </Popover>
-    <PossibleEnrollmentsModal
-      open={enrollments.open}
-      onOpenChange={enrollments.onOpenChange}
-      course={enrollments.course}
-      candidates={enrollments.candidates}
-      onExport={() => {}}
-    />
-    <AddCoachModal
-      open={coachEdit.open}
-      mode={coachEdit.mode}
-      onOpenChange={coachEdit.handleOpenChange}
-      values={coachEdit.values}
-      onFieldChange={coachEdit.updateField}
-      valid={coachEdit.valid}
-      onConfirm={coachEdit.confirm}
-    />
-    <CourseFormModal addCourse={courseEdit} />
-    <DeleteCourseModal
-      open={deleteCourse.open}
-      onOpenChange={deleteCourse.handleOpenChange}
-      courseNames={deleteCourse.names}
-      expectedPhrase={deleteCourse.expectedPhrase}
-      confirmText={deleteCourse.confirmText}
-      onConfirmTextChange={deleteCourse.setConfirmText}
-      valid={deleteCourse.valid}
-      onConfirm={deleteCourse.confirm}
-    />
-    <ArchiveConfirmDialog
-      open={archive.open}
-      count={archive.count}
-      noun="חוגים"
-      names={archive.names}
-      warnFinal
-      onCancel={archive.cancel}
-      onConfirm={archive.confirm}
-    />
+        {bulkMode ? (
+          <BulkActionsMenuContent
+            actions={bulkActions}
+            count={selection.selectedCount}
+            onSelect={onBulkSelect}
+          />
+        ) : (
+          <CourseActionsMenuContent onSelect={onRowAction} />
+        )}
+      </Popover>
+      <PossibleEnrollmentsModal
+        open={enrollments.open}
+        onOpenChange={enrollments.onOpenChange}
+        course={enrollments.course}
+        candidates={enrollments.candidates}
+        onExport={() => {}}
+      />
+      <AddCoachModal
+        open={coachEdit.open}
+        mode={coachEdit.mode}
+        onOpenChange={coachEdit.handleOpenChange}
+        values={coachEdit.values}
+        onFieldChange={coachEdit.updateField}
+        valid={coachEdit.valid}
+        onConfirm={coachEdit.confirm}
+      />
+      <CourseFormModal addCourse={courseEdit} />
+      <DeleteCourseModal
+        open={deleteCourse.open}
+        onOpenChange={deleteCourse.handleOpenChange}
+        courseNames={deleteCourse.names}
+        expectedPhrase={deleteCourse.expectedPhrase}
+        confirmText={deleteCourse.confirmText}
+        onConfirmTextChange={deleteCourse.setConfirmText}
+        valid={deleteCourse.valid}
+        onConfirm={deleteCourse.confirm}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="חוגים"
+        names={archive.names}
+        warnFinal
+        onCancel={archive.cancel}
+        onConfirm={archive.confirm}
+      />
     </>
   );
 }

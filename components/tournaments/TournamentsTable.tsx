@@ -21,7 +21,10 @@ import { TournamentFormModal } from "@/components/tournaments/TournamentFormModa
 import { DeleteTournamentModal } from "@/components/tournaments/DeleteTournamentModal";
 import { PossibleEnrollmentsModal } from "@/components/tournaments/PossibleEnrollmentsModal";
 import { AddCoachModal } from "@/components/coaches/AddCoachModal";
-import { SelectionHead, SelectionCell } from "@/components/shared/SelectionColumn";
+import {
+  SelectionHead,
+  SelectionCell,
+} from "@/components/shared/SelectionColumn";
 import { BulkActionsMenuContent } from "@/components/shared/BulkActionsMenu";
 import { ArchiveConfirmDialog } from "@/components/shared/ArchiveConfirmDialog";
 import { tournamentActions } from "@/lib/tournament-actions";
@@ -171,7 +174,10 @@ function TournamentRow({
       <TableCell className="px-2 py-3 text-center">
         <DaysPills days={t.days} />
       </TableCell>
-      <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center num" dir="ltr">
+      <TableCell
+        className="px-2 py-3 text-sm text-foreground/85 text-center num"
+        dir="ltr"
+      >
         {t.nextDate}
       </TableCell>
       <TableCell className="px-2 py-3 text-sm text-foreground/85 text-center whitespace-normal break-words">
@@ -218,7 +224,7 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
     return (
       <Alert className="border-0 bg-transparent py-12 [&>svg]:hidden">
         <AlertTitle className="text-center text-sm text-foreground/60 font-normal">
-          לא נמצאו תחרויות תואמות
+          לא נמצאו תחרויות
         </AlertTitle>
       </Alert>
     );
@@ -233,93 +239,116 @@ export function TournamentsTable({ tournaments }: TournamentsTableProps) {
 
   return (
     <>
-    <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
-      <PopoverAnchor virtualRef={virtualRef} />
-      <div
-        dir="ltr"
-        /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
+      <Popover open={menuOpen} onOpenChange={handleMenuOpenChange}>
+        <PopoverAnchor virtualRef={virtualRef} />
+        <div
+          dir="ltr"
+          /* Horizontal overflow is left to the Table's own `overflow-x-auto`, so a
            narrow window can still be scrolled instead of clipping the columns. */
-        className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
-      >
-        <div dir="rtl">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
-              <TableRow className="hover:bg-transparent">
-                <SortableHeader {...headerProps("name")}>שם תחרות</SortableHeader>
-                <SortableHeader {...headerProps("judge")}>שופט</SortableHeader>
-                <SortableHeader {...headerProps("rounds")} className="w-16">סיבובים</SortableHeader>
-                <SortableHeader {...headerProps("participants")} className="w-16">רשומים</SortableHeader>
-                <SortableHeader {...headerProps("capacity")} className="w-16">קיבולת</SortableHeader>
-                <SortableHeader {...headerProps("age")} className="w-24">גילאים</SortableHeader>
-                <SortableHeader {...headerProps("rating")} className="w-28">מד כושר</SortableHeader>
-                <SortableHeader {...headerProps("days")}>ימי פעילות</SortableHeader>
-                <SortableHeader {...headerProps("nextDate")} className="w-24">המועד הבא</SortableHeader>
-                <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
-                <SortableHeader {...headerProps("status")}>סטטוס</SortableHeader>
-                <SelectionHead selection={selection} />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map((t, i) => (
-                <TournamentRow
-                  key={t.id}
-                  tournament={t}
-                  index={i}
-                  isActive={activeId === t.id}
-                  onOpen={handleRowClick}
-                  selection={selection}
-                />
-              ))}
-            </TableBody>
-          </Table>
+          className="players-scroll max-h-[calc(100dvh-22rem)] overflow-y-auto"
+        >
+          <div dir="rtl">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-background/40 backdrop-blur-md [&_tr]:border-b-2 [&_tr]:border-border">
+                <TableRow className="hover:bg-transparent">
+                  <SortableHeader {...headerProps("name")}>
+                    שם תחרות
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("judge")}>
+                    שופט
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("rounds")} className="w-16">
+                    סיבובים
+                  </SortableHeader>
+                  <SortableHeader
+                    {...headerProps("participants")}
+                    className="w-16"
+                  >
+                    רשומים
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("capacity")} className="w-16">
+                    קיבולת
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("age")} className="w-24">
+                    גילאים
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("rating")} className="w-28">
+                    מד כושר
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("days")}>
+                    ימי פעילות
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("nextDate")} className="w-24">
+                    המועד הבא
+                  </SortableHeader>
+                  <SortableHeader {...headerProps("room")}>חדר</SortableHeader>
+                  <SortableHeader {...headerProps("status")}>
+                    סטטוס
+                  </SortableHeader>
+                  <SelectionHead selection={selection} />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((t, i) => (
+                  <TournamentRow
+                    key={t.id}
+                    tournament={t}
+                    index={i}
+                    isActive={activeId === t.id}
+                    onOpen={handleRowClick}
+                    selection={selection}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
-      {bulkMode ? (
-        <BulkActionsMenuContent
-          actions={bulkActions}
-          count={selection.selectedCount}
-          onSelect={onBulkSelect}
-        />
-      ) : (
-        <TournamentActionsMenuContent onSelect={onRowAction} />
-      )}
-    </Popover>
-    <TournamentFormModal addTournament={tournamentEdit} />
-    <DeleteTournamentModal
-      open={deleteTournament.open}
-      onOpenChange={deleteTournament.handleOpenChange}
-      tournamentNames={deleteTournament.names}
-      expectedPhrase={deleteTournament.expectedPhrase}
-      confirmText={deleteTournament.confirmText}
-      onConfirmTextChange={deleteTournament.setConfirmText}
-      valid={deleteTournament.valid}
-      onConfirm={deleteTournament.confirm}
-    />
-    <PossibleEnrollmentsModal
-      open={enrollments.open}
-      onOpenChange={enrollments.onOpenChange}
-      tournament={enrollments.tournament}
-      candidates={enrollments.candidates}
-      onExport={() => {}}
-    />
-    <AddCoachModal
-      open={coachEdit.open}
-      mode={coachEdit.mode}
-      onOpenChange={coachEdit.handleOpenChange}
-      values={coachEdit.values}
-      onFieldChange={coachEdit.updateField}
-      valid={coachEdit.valid}
-      onConfirm={coachEdit.confirm}
-    />
-    <ArchiveConfirmDialog
-      open={archive.open}
-      count={archive.count}
-      noun="תחרויות"
-      names={archive.names}
-      warnFinal
-      onCancel={archive.cancel}
-      onConfirm={archive.confirm}
-    />
+        {bulkMode ? (
+          <BulkActionsMenuContent
+            actions={bulkActions}
+            count={selection.selectedCount}
+            onSelect={onBulkSelect}
+          />
+        ) : (
+          <TournamentActionsMenuContent onSelect={onRowAction} />
+        )}
+      </Popover>
+      <TournamentFormModal addTournament={tournamentEdit} />
+      <DeleteTournamentModal
+        open={deleteTournament.open}
+        onOpenChange={deleteTournament.handleOpenChange}
+        tournamentNames={deleteTournament.names}
+        expectedPhrase={deleteTournament.expectedPhrase}
+        confirmText={deleteTournament.confirmText}
+        onConfirmTextChange={deleteTournament.setConfirmText}
+        valid={deleteTournament.valid}
+        onConfirm={deleteTournament.confirm}
+      />
+      <PossibleEnrollmentsModal
+        open={enrollments.open}
+        onOpenChange={enrollments.onOpenChange}
+        tournament={enrollments.tournament}
+        candidates={enrollments.candidates}
+        onExport={() => {}}
+      />
+      <AddCoachModal
+        open={coachEdit.open}
+        mode={coachEdit.mode}
+        onOpenChange={coachEdit.handleOpenChange}
+        values={coachEdit.values}
+        onFieldChange={coachEdit.updateField}
+        valid={coachEdit.valid}
+        onConfirm={coachEdit.confirm}
+      />
+      <ArchiveConfirmDialog
+        open={archive.open}
+        count={archive.count}
+        noun="תחרויות"
+        names={archive.names}
+        warnFinal
+        onCancel={archive.cancel}
+        onConfirm={archive.confirm}
+      />
     </>
   );
 }
