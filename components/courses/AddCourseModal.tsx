@@ -44,8 +44,9 @@ import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { NoLimitToggle } from "@/components/shared/NoLimitToggle";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
-import { ConflictWarning } from "@/components/schedule/ConflictWarning";
+import { ActivityWarningsBar } from "@/components/schedule/ActivityWarningsBar";
 import type { DraftConflict } from "@/lib/conflicts";
+import type { EquipmentDemand } from "@/lib/equipment-conflicts";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -58,7 +59,6 @@ import { OUTSIDE_CLUB_ROOM, type Room, type Equipment } from "@/lib/rooms-data";
 import {
   FREQUENCY_OPTIONS,
   availableEquipmentOptions,
-  equipmentAvailableNow,
   equipmentByName,
   meetingEndDateValid,
   type CourseFormValues,
@@ -445,6 +445,7 @@ function EquipmentRow({
   container,
   options,
   items,
+  available,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
@@ -452,10 +453,12 @@ function EquipmentRow({
   container: HTMLElement | null;
   options: string[];
   items: Equipment[];
+  /** Units free for this activity at its tightest moment; null until an item is picked. */
+  available: number | null;
 }) {
   const selected = equipmentByName(line.equipmentId, items);
-  const available = selected ? equipmentAvailableNow(selected) : null;
   const overQuota =
+    selected != null &&
     available != null &&
     line.quantity !== "" &&
     Number(line.quantity) > available;
@@ -499,13 +502,14 @@ function EquipmentRow({
           <Trash2 className="size-4" />
         </Button>
       </div>
-      {available != null && (
-        <p className="text-xs text-muted-foreground num">
-          פנוי כעת: {available}
+      {selected != null && available != null && (
+        <p className="text-xs text-muted-foreground">
+          פנוי בשעות הפעילות: <span className="num">{available}</span> מתוך{" "}
+          <span className="num">{selected.quantity}</span>
         </p>
       )}
       {overQuota && (
-        <WarningNote>הכמות חורגת מהמלאי הפנוי ({available}).</WarningNote>
+        <WarningNote>הכמות חורגת מהזמין בשעות הפעילות ({available}).</WarningNote>
       )}
     </motion.div>
   );
@@ -567,6 +571,10 @@ interface AddCourseModalProps {
   coachWarning: boolean;
   capacityWarning: boolean;
   conflicts: DraftConflict[];
+  /** Items the club is short of while this activity runs. A warning only. */
+  equipmentShortages: EquipmentDemand[];
+  /** equipmentId → units free for this activity at its tightest moment. */
+  equipmentAvailability: Record<string, number>;
   ageRangeInvalid: boolean;
   ratingRangeInvalid: boolean;
   mismatchReasons: (playerId: string) => string[];
@@ -616,6 +624,8 @@ export function AddCourseModal({
   coachWarning,
   capacityWarning,
   conflicts,
+  equipmentShortages,
+  equipmentAvailability,
   ageRangeInvalid,
   ratingRangeInvalid,
   mismatchReasons,
@@ -642,7 +652,7 @@ export function AddCourseModal({
       <DialogContent
         ref={setContainer}
         dir="rtl"
-        className="top-[6vh] flex max-h-[88vh] max-w-lg translate-y-0 flex-col"
+        className="top-[3vh] flex max-h-[94vh] max-w-lg translate-y-0 flex-col"
       >
         <DialogHeader>
           <DialogTitle>
@@ -664,7 +674,12 @@ export function AddCourseModal({
           </DialogDescription>
         </DialogHeader>
 
-        {!readOnly && <ConflictWarning conflicts={conflicts} />}
+        {!readOnly && (
+          <ActivityWarningsBar
+            conflicts={conflicts}
+            shortages={equipmentShortages}
+          />
+        )}
 
         <Tabs
           value={tab}
@@ -996,6 +1011,9 @@ export function AddCourseModal({
                         <EquipmentRow
                           key={line.id}
                           line={line}
+                          available={
+                            equipmentAvailability[line.equipmentId] ?? null
+                          }
                           onChange={(patch) =>
                             onUpdateEquipment(line.id, patch)
                           }

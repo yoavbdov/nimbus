@@ -26,6 +26,7 @@ import {
 } from "@/lib/tournament-details";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
+import { useEquipmentConflicts } from "@/hooks/schedule/useEquipmentConflicts";
 
 /**
  * Owns all state for the "add tournament" modal: the scalar fields, the round
@@ -333,6 +334,14 @@ export function useAddTournament() {
     [checkConflicts, draftSessions, values.judge],
   );
 
+  // Equipment the club doesn't have enough of while this tournament plays,
+  // counted against everything else holding it at the same moment. A warning.
+  const { check: checkEquipment } = useEquipmentConflicts();
+  const equipment = useMemo(
+    () => checkEquipment(values.equipment, draftSessions, values.id ?? ""),
+    [checkEquipment, values.equipment, draftSessions, values.id],
+  );
+
   const judgeWarning = values.judge === "";
   // An empty capacity is "no limit", so it can never be exceeded.
   const capacityWarning =
@@ -508,6 +517,8 @@ export function useAddTournament() {
     judgeWarning,
     capacityWarning,
     conflicts,
+    equipmentShortages: equipment.shortages,
+    equipmentAvailability: equipment.availability,
     ageRangeInvalid,
     ratingRangeInvalid,
     mismatchReasons,

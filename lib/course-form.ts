@@ -165,16 +165,11 @@ export function meetingNeedsEndDate(meeting: MeetingValues): boolean {
   return meeting.frequency !== "once" && !meeting.noEndDate;
 }
 
-/**
- * A stable, made-up "free right now" count for one equipment item (display
- * only). Driven by the item's LIVE stock (`quantity`) so it reflects Firestore.
- */
-export function equipmentAvailableNow(item: Equipment): number {
-  // Deterministic pseudo-availability: somewhere between ~40% and full stock.
-  const seed = item.id.split("").reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
-  const span = Math.max(1, Math.floor(item.quantity * 0.6));
-  return item.quantity - (Math.abs(seed) % span);
-}
+// NOTE: there is deliberately no `equipmentAvailableNow(item)` here any more. How
+// many units are free is not a property of the item — it depends on WHEN the
+// activity meets and who else holds the item then. That is computed for real by
+// `equipmentDemands` in lib/equipment-conflicts.ts and threaded into the form as
+// the `available` prop per equipment line.
 
 export function equipmentByName(
   name: string,

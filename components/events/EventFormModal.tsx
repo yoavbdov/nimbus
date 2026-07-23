@@ -46,6 +46,8 @@ export function EventFormModal({
       onSelectPlayerRoster={addEvent.selectPlayerRoster}
       pickerDisabledIds={addEvent.pickerDisabledIds}
       busyPlayerReasons={addEvent.busyPlayerReasons}
+      equipmentShortages={addEvent.equipmentShortages}
+      equipmentAvailability={addEvent.equipmentAvailability}
       checkedPlayerIds={addEvent.checkedPlayerIds}
       onToggleCheckedPlayer={addEvent.toggleCheckedPlayer}
       onConfirmPlayers={addEvent.confirmPlayers}

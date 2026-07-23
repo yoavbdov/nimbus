@@ -20,6 +20,7 @@ import {
 } from "@/lib/firebase/data/sessions";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
+import { useEquipmentConflicts } from "@/hooks/schedule/useEquipmentConflicts";
 import { replaceTargetRelations } from "@/lib/firebase/data/relations";
 import { courseRecordFromForm, courseEditPatch } from "@/lib/course-details";
 
@@ -279,6 +280,14 @@ export function useAddCourse() {
     [checkConflicts, draftSessions, values.coach],
   );
 
+  // Equipment the club doesn't have enough of while this course meets, counted
+  // against everything else holding it at the same moment. A warning, not a block.
+  const { check: checkEquipment } = useEquipmentConflicts();
+  const equipment = useMemo(
+    () => checkEquipment(values.equipment, draftSessions, values.id ?? ""),
+    [checkEquipment, values.equipment, draftSessions, values.id],
+  );
+
   const coachWarning = values.coach === "";
   const capacityWarning =
     values.capacity !== "" && students.length > Number(values.capacity);
@@ -445,6 +454,8 @@ export function useAddCourse() {
     coachWarning,
     capacityWarning,
     conflicts,
+    equipmentShortages: equipment.shortages,
+    equipmentAvailability: equipment.availability,
     ageRangeInvalid,
     ratingRangeInvalid,
     mismatchReasons,

@@ -20,6 +20,7 @@ import {
 } from "@/lib/event-details";
 import { useDraftConflicts } from "@/hooks/schedule/useDraftConflicts";
 import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
+import { useEquipmentConflicts } from "@/hooks/schedule/useEquipmentConflicts";
 
 /**
  * Owns all state for the "add event" modal: the scalar fields, the chosen
@@ -242,6 +243,14 @@ export function useAddEvent() {
     [checkConflicts, draftSessions],
   );
 
+  // Equipment the club doesn't have enough of while this event runs, counted
+  // against everything else holding it at the same moment. A warning.
+  const { check: checkEquipment } = useEquipmentConflicts();
+  const equipment = useMemo(
+    () => checkEquipment(values.equipment, draftSessions, values.id ?? ""),
+    [checkEquipment, values.equipment, draftSessions, values.id],
+  );
+
   const openModal = useCallback(() => {
     setMode("add");
     setValues(EMPTY_EVENT_FORM);
@@ -384,5 +393,7 @@ export function useAddEvent() {
     removeEquipmentLine,
     equipmentItems,
     conflicts,
+    equipmentShortages: equipment.shortages,
+    equipmentAvailability: equipment.availability,
   };
 }

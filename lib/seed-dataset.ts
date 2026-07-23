@@ -19,7 +19,13 @@
  */
 import { deriveDetails } from "@/lib/player-details";
 import type { PlayerBase } from "@/lib/players-data";
-import { courseOccupancy, type Course, type WeeklyTimes } from "@/lib/courses-data";
+import {
+  courseOccupancy,
+  type Course,
+  type CourseDay,
+  type WeeklyTimes,
+} from "@/lib/courses-data";
+import { occurrencesInRange } from "@/lib/schedule-events";
 import type { CoachRecord } from "@/lib/coaches-data";
 import type { Room, Equipment } from "@/lib/rooms-data";
 import type { LeagueTeam } from "@/lib/leagues-data";
@@ -46,6 +52,62 @@ function nameByIdOf<T extends { id: string; name: string }>(
 function keyByName<T extends { name: string }>(items: T[]): T[] {
   return items.map((i) => ({ ...i, id: i.name }));
 }
+
+// ── Dates: every one of them is derived from TODAY ────────────────────────────
+// NOTHING here may be a literal date. The app's conflict engines work on a
+// rolling window (today → +12 months, see hooks/schedule/*), so a seed written
+// with fixed dates silently rots: its meetings drift into the past and the
+// built conflicts stop being reachable. Instead every fixture is expressed as
+// "the Nth occurrence of a weekday, counted from the next one after today",
+// which keeps the conflicts live and the timing states (הסתיימה / פעילה /
+// מתוכננת) true whenever `npm run seed` happens to be run.
+const TODAY = new Date();
+
+const HEBREW_DAY_BY_JS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+/** "YYYY-MM-DD" for a Date, read in local time so the day never shifts. */
+function isoOf(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** ISO date `offset` days from today (negative goes back). */
+function daysFromToday(offset: number): string {
+  const date = new Date(TODAY);
+  date.setDate(TODAY.getDate() + offset);
+  return isoOf(date);
+}
+
+/**
+ * ISO date of one occurrence of a Hebrew weekday. `weekOffset` 0 is the first
+ * occurrence STRICTLY after today, negative walks back a week at a time and
+ * positive walks forward — so `("רביעי", -3)` is three Wednesdays ago and
+ * `("רביעי", 2)` is two Wednesdays after the next one.
+ */
+function weekdayOccurrence(day: string, weekOffset: number): string {
+  const target = HEBREW_DAY_BY_JS.indexOf(day);
+  // `|| 7` keeps it strictly after today, so a fixture is never "today" — which
+  // would sit ambiguously on the edge of the engines' window.
+  const daysAhead = (target - TODAY.getDay() + 7) % 7 || 7;
+  const date = new Date(TODAY);
+  date.setDate(TODAY.getDate() + daysAhead + weekOffset * 7);
+  return isoOf(date);
+}
+
+/** "2026-07-29" → "29.07.2026", the form the tables display. */
+function displayDate(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return `${day}.${month}.${year}`;
+}
+
+/**
+ * The weekday the built conflicts all land on, and a second day used for the
+ * deliberately clash-free control meeting. Both are relative, so the cluster
+ * moves with the calendar.
+ */
+const CONFLICT_DAY = "רביעי";
+const CONTROL_DAY = "שישי";
 
 // ── Coaches (6) ──────────────────────────────────────────────────────────────
 const rawSeedCoaches: CoachRecord[] = [
@@ -78,8 +140,8 @@ export const seedEquipment: Equipment[] = keyByName(rawSeedEquipment);
 // ── Players (20, every age band) ─────────────────────────────────────────────
 const basePlayers: PlayerBase[] = [
   { id: "player-1",  name: "אורי גולן",   age: 7,  grade: "כיתה ב",  israeliRating: 480,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000001", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
-  // No tournaments: אליפות הקיץ's 01.07 round overlaps שחמט מתחילים, and a player
-  // double-booking is blocking in the app. איתי רגב plays it instead.
+  // No tournaments: אליפות הקיץ's CONFLICT_DAY round overlaps שחמט מתחילים, and a
+  // player double-booking is blocking in the app. איתי רגב plays it instead.
   { id: "player-2",  name: "נועם כץ",      age: 9,  grade: "כיתה ד",  israeliRating: 720,  fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000002", courses: ["שחמט מתחילים"], tournaments: [], leagueTeam: null, status: "פעיל" },
   { id: "player-3",  name: "מיה שפירא",    age: 11, grade: "כיתה ו",  israeliRating: 1050, fideRating: null, ratingUpdatedRecently: true,  phone: "050-2000003", courses: ["שחמט מתקדמים"], tournaments: [], leagueTeam: null, status: "פעיל" },
   { id: "player-4",  name: "דניאל ברק",    age: 13, grade: "כיתה ח",  israeliRating: 1340, fideRating: 1300, ratingUpdatedRecently: true,  phone: "050-2000004", courses: ["מועדון אחה״צ"], tournaments: [], leagueTeam: null, status: "פעיל" },
@@ -125,7 +187,10 @@ export const seedPlayers = basePlayers.map((player) => ({
   phone: player.phone,
   status: player.status,
   ...deriveDetails(player),
-  ratingUpdatedAt: player.ratingUpdatedRecently ? "20.06.2026" : "02.03.2026",
+  // "Recently" means about a month ago; a stale rating about five months ago.
+  ratingUpdatedAt: displayDate(
+    daysFromToday(player.ratingUpdatedRecently ? -33 : -150),
+  ),
 }));
 
 // ── League teams (2 per category: בוגרים / נוער / נשים) ───────────────────────
@@ -154,89 +219,63 @@ export const seedLeagues: LeagueTeam[] = rawSeedLeagues.map((team) => ({
   })),
 }));
 
-// ── Courses (6) — current/future × permanent/round. Today is 2026-06-30. ──────
-// Occupancy (ריק/חלקי/מלא) is derived from enrolled/capacity, so the rows omit it.
-const rawSeedCourses: Omit<SeedCourse, "occupancy">[] = [
-  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, ratingMin: 0,    ratingMax: 800,  enrolled: 8,  capacity: 0,  days: ["ראשון", "שלישי"], nextDate: "01.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
-  { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, ratingMin: 800,  ratingMax: 1600, enrolled: 12, capacity: 12, days: ["שני", "רביעי"],   nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "סבב" },  // current, round → מלא
-  { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, ratingMin: 400,  ratingMax: 1200, enrolled: 9,  capacity: 16, days: ["ראשון"],          nextDate: "01.07.2026", status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent → חלקי
-  { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, ratingMin: 1400, ratingMax: 2500, enrolled: 5,  capacity: 20, days: ["שלישי"],          nextDate: "14.07.2026", status: "מתוכנן", room: "חדר תחרויות", recurrence: "סבב" },  // future, round → חלקי
-  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 0,  days: ["חמישי"],          nextDate: "03.07.2026", status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
-  { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  ratingMin: 0,    ratingMax: 400,  enrolled: 0,  capacity: 10, days: ["רביעי"],          nextDate: "22.07.2026", status: "מתוכנן", room: "חדר אימונים", recurrence: "סבב" },  // future, round → ריק
+// ── Courses (6) — current/future × permanent/round ───────────────────────────
+// Occupancy (ריק/חלקי/מלא) is derived from enrolled/capacity, so the rows omit
+// it — and `days` / `times` / `nextDate` are derived from the seeded sessions
+// further down, so a course's declared schedule can never drift from the
+// meetings that actually drive conflict detection.
+type RawCourse = Omit<SeedCourse, "occupancy" | "days" | "times" | "nextDate">;
+const rawSeedCourses: RawCourse[] = [
+  { id: "course-1", name: "שחמט מתחילים", coach: "אבי לוי",     ageMin: 6,  ageMax: 10, ratingMin: 0,    ratingMax: 800,  enrolled: 8,  capacity: 0,  status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, ratingMin: 800,  ratingMax: 1600, enrolled: 12, capacity: 12, status: "פעיל",   room: "אולם ראשי",   recurrence: "סבב" },  // current, round → מלא
+  { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, ratingMin: 400,  ratingMax: 1200, enrolled: 9,  capacity: 16, status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, ratingMin: 1400, ratingMax: 2500, enrolled: 5,  capacity: 20, status: "מתוכנן", room: "חדר תחרויות", recurrence: "סבב" },  // future, round → חלקי
+  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 0,  status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  ratingMin: 0,    ratingMax: 400,  enrolled: 0,  capacity: 10, status: "מתוכנן", room: "חדר אימונים", recurrence: "סבב" },  // future, round → ריק
 ];
 
-// Meeting time per weekday for each course (the "today" tables show the slot
-// matching the current weekday).
-const courseTimes: Record<string, WeeklyTimes> = {
-  "course-1": { "ראשון": { start: "16:00", end: "17:30" }, "שלישי": { start: "17:00", end: "18:30" } },
-  "course-2": { "שני": { start: "16:30", end: "18:00" }, "רביעי": { start: "16:30", end: "18:00" } },
-  "course-3": { "ראשון": { start: "15:00", end: "16:30" } },
-  "course-4": { "שלישי": { start: "18:00", end: "19:30" } },
-  "course-5": { "חמישי": { start: "17:00", end: "18:30" } },
-  "course-6": { "רביעי": { start: "16:00", end: "17:00" } },
-};
+const courseNameById = nameByIdOf(rawSeedCourses);
 
-const courseNameById = nameByIdOf(rawSeedCourses as { id: string; name: string }[]);
-export const seedCourses: SeedCourse[] = rawSeedCourses.map((c) => ({
-  ...c,
-  id: c.name,
-  occupancy: courseOccupancy(c.enrolled, c.capacity),
-  times: courseTimes[c.id],
-  notes: "",
-}));
-
-// ── Tournaments (6) — same current/future × permanent/round spread. ──────────
-// Timing (relative to today, 2026-07-21) is spread across the three states:
+// ── Tournaments (6) — same current/future × permanent/round spread ───────────
+// Timing is spread across the three states, and since the round dates are all
+// computed from today (see the sessions below) each state stays true forever:
 //   • הסתיימה  — every round is in the past (tournament-4).
-//   • פעילה    — rounds span today; already started, still running
+//   • פעילה    — rounds straddle today; started, still running
 //                (tournament-1 round series, plus the two weekly leagues 3 & 5).
 //   • מתוכננת  — every round is still ahead (tournament-2, tournament-6).
-// The concrete dates live in the seeded sessions below; `nextDate` is the next
-// upcoming meeting (or "—" once finished).
+// `days` / `times` / `nextDate` are derived from those sessions, never written.
 // `capacity: 0` means unlimited (tournaments 2 & 5), so both the capped and the
 // uncapped rendering show up in the table.
-const rawSeedTournaments: SeedTournament[] = [
-  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 32, capacity: 40, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // ongoing, round
-  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5,  days: ["שני"],            nextDate: "27.07.2026", participants: 24, capacity: 0, ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
-  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9,  days: ["חמישי"],          nextDate: "23.07.2026", participants: 40, capacity: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // ongoing, permanent (weekly)
-  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6,  days: ["ראשון"],          nextDate: "—",          participants: 28, capacity: 30, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // finished, round
-  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8,  days: ["שלישי"],          nextDate: "21.07.2026", participants: 16, capacity: 0, ratingMin: 1800, ratingMax: 2800, room: "אולם ראשי",   recurrence: "קבוע" }, // ongoing, permanent (weekly)
-  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9,  days: ["ראשון", "רביעי"], nextDate: "02.08.2026", participants: 48, capacity: 60, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
+type RawTournament = Omit<SeedTournament, "days" | "times" | "nextDate">;
+const rawSeedTournaments: RawTournament[] = [
+  { id: "tournament-1", name: "אליפות הקיץ",        judge: "אבי לוי",    status: "פעילה",   rounds: 7, participants: 32, capacity: 40, ratingMin: 1000, ratingMax: 2400, room: "חדר תחרויות", recurrence: "סבב" },  // ongoing, round
+  { id: "tournament-2", name: "גביע הנוער",         judge: "דנה אביב",   status: "מתוכננת", rounds: 5, participants: 24, capacity: 0,  ratingMin: 800,  ratingMax: 1600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
+  { id: "tournament-3", name: "ליגת הבזק השבועית",  judge: "רון פרידמן", status: "פעילה",   rounds: 9, participants: 40, capacity: 40, ratingMin: 1000, ratingMax: 2200, room: "חדר תחרויות", recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-4", name: "אליפות האביב",       judge: "מירב כהן",   status: "הסתיימה", rounds: 6, participants: 28, capacity: 30, ratingMin: 600,  ratingMax: 1500, room: "אולם ראשי",   recurrence: "סבב" },  // finished, round
+  { id: "tournament-5", name: "טורניר המאסטרים",    judge: "נדב אורן",   status: "פעילה",   rounds: 8, participants: 16, capacity: 0,  ratingMin: 1800, ratingMax: 2800, room: "אולם ראשי",   recurrence: "קבוע" }, // ongoing, permanent (weekly)
+  { id: "tournament-6", name: "גביע סוף העונה",     judge: "שירה גל",    status: "מתוכננת", rounds: 9, participants: 48, capacity: 60, ratingMin: 1200, ratingMax: 2600, room: "אולם ראשי",   recurrence: "סבב" },  // not started, round
 ];
-
-const tournamentTimes: Record<string, WeeklyTimes> = {
-  "tournament-1": { "שלישי": { start: "17:00", end: "20:00" } },
-  "tournament-2": { "שני": { start: "17:00", end: "20:00" } },
-  "tournament-3": { "חמישי": { start: "18:00", end: "21:00" } },
-  "tournament-4": { "ראשון": { start: "16:00", end: "19:00" } },
-  "tournament-5": { "שלישי": { start: "18:30", end: "21:00" } },
-  "tournament-6": { "ראשון": { start: "16:00", end: "19:00" }, "רביעי": { start: "16:00", end: "19:00" } },
-};
 
 const tournamentNameById = nameByIdOf(rawSeedTournaments);
-export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => ({
-  ...t,
-  id: t.name,
-  times: tournamentTimes[t.id],
-  notes: "",
-}));
 
-// ── Events (1 one-off, next week) ────────────────────────────────────────────
-// A one-off opening evening: a single session on Sunday (see sessions below),
-// so its one activity day is ראשון.
-const rawSeedEvents: ClubEvent[] = [
-  { id: "event-1", name: "ערב פתיחת מועדון קיץ", days: ["ראשון"], nextDate: "05.07.2026", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
+// ── Events (1 one-off, still ahead) ─────────────────────────────────────────
+// A one-off opening evening: a single session (see the sessions below), from
+// which its activity day and `nextDate` are derived.
+type RawEvent = Omit<ClubEvent, "days" | "nextDate">;
+const rawSeedEvents: RawEvent[] = [
+  { id: "event-1", name: "ערב פתיחת מועדון קיץ", status: "מתוכנן", recurrence: "חד פעמי", room: "אולם ראשי", notes: "" },
 ];
 const eventNameById = nameByIdOf(rawSeedEvents);
-export const seedEvents: ClubEvent[] = keyByName(rawSeedEvents);
 
 // ── Attendance (2 classes, left unmarked — to be filled in the app) ──────────
+// Both classes mirror the two CONFLICT_DAY courses, so their meeting dates are
+// the same upcoming weekdays those courses meet on — never literal dates.
 const rawSeedAttendance: AttendanceClass[] = [
   {
     id: "attendance-1", name: "שחמט מתחילים", coach: "אבי לוי",
     sessions: [
-      { id: "attsession-1", date: "01.07.2026", label: "מפגש 1" },
-      { id: "attsession-2", date: "08.07.2026", label: "מפגש 2" },
+      { id: "attsession-1", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 0)), label: "מפגש 1" },
+      { id: "attsession-2", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 1)), label: "מפגש 2" },
     ],
     students: [
       { id: "player-1", name: "אורי גולן", rating: 480 },
@@ -245,7 +284,7 @@ const rawSeedAttendance: AttendanceClass[] = [
   },
   {
     id: "attendance-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי",
-    sessions: [{ id: "attsession-3", date: "01.07.2026", label: "מפגש 1" }],
+    sessions: [{ id: "attsession-3", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 0)), label: "מפגש 1" }],
     students: [
       { id: "player-3", name: "מיה שפירא", rating: 1050 },
       { id: "player-5", name: "יעל אבני", rating: 1180 },
@@ -268,52 +307,72 @@ export const seedAttendance: AttendanceClass[] = rawSeedAttendance.map((cls) => 
 // (a dated one-off); a permanent one gets a single open-ended weekly recurrence.
 type RawSession = Omit<SessionDoc, "id">;
 
-/** A weekly series of `count` one-off round sessions from `startISO` (step 7d). */
+/**
+ * A weekly series of `count` dated one-off rounds on `day`, the first landing on
+ * `fromWeek` (see {@link weekdayOccurrence}: 0 = the next such weekday, negative
+ * = already past). This is how a tournament's timing state is expressed —
+ * finished series sit entirely in the past, ongoing ones straddle today.
+ */
 function roundSeries(
   parentId: string,
-  startISO: string,
+  day: string,
+  fromWeek: number,
   count: number,
   time: { start: string; end: string },
   roomId: string,
 ): RawSession[] {
-  const [y, m, d] = startISO.split("-").map(Number);
-  const base = new Date(y, m - 1, d);
-  return Array.from({ length: count }, (_, i) => {
-    const dt = new Date(base);
-    dt.setDate(base.getDate() + i * 7);
-    const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-    return { parentType: "tournament" as const, parentId, date: iso, start: time.start, end: time.end, roomId };
-  });
+  return Array.from({ length: count }, (_, i) => ({
+    parentType: "tournament" as const,
+    parentId,
+    date: weekdayOccurrence(day, fromWeek + i),
+    start: time.start,
+    end: time.end,
+    roomId,
+  }));
 }
 
-// The built conflicts all land on 2026-07-01 (see the block at the bottom); the
-// course/event fixtures below are kept intact so those conflicts still fire.
+// Course meetings. A course session is always an open-ended weekly recurrence
+// (see the mapping below), so `date` fixes the weekday AND when the series
+// started — never when it ends. That start matters: the app derives an
+// activity's status from its sessions (lib/activity-timing.ts), and a course
+// counts as פעיל only once its first occurrence is behind us. So a RUNNING
+// course is anchored in the past (`STARTED_WEEKS_AGO`) while a planned one is
+// anchored ahead; either way it recurs on the same weekday forever, which is
+// what keeps the built conflicts reachable. See the block at the bottom.
+const STARTED_WEEKS_AGO = -4;
 const fixtureSessions: RawSession[] = [
-  { parentType: "course",     parentId: "course-1",     date: "2026-07-01", start: "16:00", end: "17:30", roomId: "room-1" },
-  { parentType: "course",     parentId: "course-2",     date: "2026-07-01", start: "17:00", end: "18:30", roomId: "room-1" },
-  { parentType: "course",     parentId: "course-3",     date: "2026-07-01", start: "16:30", end: "18:00", roomId: "room-2" },
-  { parentType: "course",     parentId: "course-1",     date: "2026-07-03", start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
-  // event-1 is a one-off opening evening: a SINGLE session on Sunday.
-  { parentType: "event",      parentId: "event-1",      date: "2026-07-05", start: "18:00", end: "20:00", roomId: "room-1" }, // Sunday, אולם ראשי
+  // פעיל, and the three that the room / coach / equipment conflicts hang off.
+  { parentType: "course",     parentId: "course-1",     date: weekdayOccurrence(CONFLICT_DAY, STARTED_WEEKS_AGO), start: "16:00", end: "17:30", roomId: "room-1" },
+  { parentType: "course",     parentId: "course-2",     date: weekdayOccurrence(CONFLICT_DAY, STARTED_WEEKS_AGO), start: "17:00", end: "18:30", roomId: "room-1" },
+  { parentType: "course",     parentId: "course-3",     date: weekdayOccurrence(CONFLICT_DAY, STARTED_WEEKS_AGO), start: "16:30", end: "18:00", roomId: "room-2" },
+  { parentType: "course",     parentId: "course-1",     date: weekdayOccurrence(CONTROL_DAY,  STARTED_WEEKS_AGO), start: "16:00", end: "17:30", roomId: "room-1" }, // control, no conflict
+  { parentType: "course",     parentId: "course-5",     date: weekdayOccurrence("חמישי",      STARTED_WEEKS_AGO), start: "17:00", end: "18:30", roomId: "room-1" },
+  // מתוכנן — first meeting still ahead. Both sit on days/rooms deliberately
+  // clear of every other fixture, so they add no unintended clashes.
+  { parentType: "course",     parentId: "course-4",     date: weekdayOccurrence("שלישי", 2),      start: "16:00", end: "17:30", roomId: "room-3" },
+  { parentType: "course",     parentId: "course-6",     date: weekdayOccurrence(CONFLICT_DAY, 3), start: "14:00", end: "15:00", roomId: "room-2" },
+  // event-1 is a one-off opening evening: a SINGLE session, still ahead.
+  { parentType: "event",      parentId: "event-1",      date: weekdayOccurrence("ראשון", 0),      start: "18:00", end: "20:00", roomId: "room-1" }, // אולם ראשי
 ];
 
-// Tournament schedule, spread across timing states around today (2026-07-21).
+// Tournament schedule, spread across the three timing states around today.
 const tournamentSessions: RawSession[] = [
-  // FINISHED — אליפות האביב: 6 Sunday rounds, all before today.
-  ...roundSeries("tournament-4", "2026-06-07", 6, { start: "16:00", end: "19:00" }, "room-1"),
-  // ONGOING (round) — אליפות הקיץ: the 07-01 round drives the COACH conflict
-  // (אבי לוי runs course-1 16:00–17:30 while judging here 17:00–20:00); the
-  // remaining Tuesday rounds span today, so it shows as in-progress.
-  { parentType: "tournament", parentId: "tournament-1", date: "2026-07-01", start: "17:00", end: "20:00", roomId: "room-3" },
-  ...roundSeries("tournament-1", "2026-07-07", 6, { start: "17:00", end: "20:00" }, "room-3"),
-  // NOT STARTED — גביע הנוער: 5 Monday rounds, all ahead.
-  ...roundSeries("tournament-2", "2026-07-27", 5, { start: "17:00", end: "20:00" }, "room-1"),
-  // NOT STARTED — גביע סוף העונה: Sunday + Wednesday rounds, all ahead.
-  ...roundSeries("tournament-6", "2026-08-02", 5, { start: "16:00", end: "19:00" }, "room-1"),
-  ...roundSeries("tournament-6", "2026-08-05", 4, { start: "16:00", end: "19:00" }, "room-1"),
-  // ONGOING (permanent, weekly) — a single open-ended weekly recurrence each.
-  { parentType: "tournament", parentId: "tournament-3", date: "2026-06-04", start: "18:00", end: "21:00", roomId: "room-3", frequency: "weekly", noEndDate: true, endDate: "", day: "חמישי" },
-  { parentType: "tournament", parentId: "tournament-5", date: "2026-06-16", start: "18:30", end: "21:00", roomId: "room-1", frequency: "weekly", noEndDate: true, endDate: "", day: "שלישי" },
+  // הסתיימה — אליפות האביב: 6 Sunday rounds, every one already past.
+  ...roundSeries("tournament-4", "ראשון", -7, 6, { start: "16:00", end: "19:00" }, "room-1"),
+  // פעילה (rounds) — אליפות הקיץ: 7 weekly rounds straddling today, so it reads
+  // as in-progress. Week 0 lands on CONFLICT_DAY, which is what drives the COACH
+  // conflict (אבי לוי runs course-1 16:00–17:30 while judging here 17:00–20:00)
+  // and the EQUIPMENT one (its 16 clocks joining the two courses' 14 + 12).
+  ...roundSeries("tournament-1", CONFLICT_DAY, -3, 7, { start: "17:00", end: "20:00" }, "room-3"),
+  // מתוכננת — גביע הנוער: 5 Monday rounds, all ahead.
+  ...roundSeries("tournament-2", "שני", 1, 5, { start: "17:00", end: "20:00" }, "room-1"),
+  // מתוכננת — גביע סוף העונה: Sunday + Wednesday rounds, all ahead.
+  ...roundSeries("tournament-6", "ראשון", 2, 5, { start: "16:00", end: "19:00" }, "room-1"),
+  ...roundSeries("tournament-6", CONFLICT_DAY, 2, 4, { start: "16:00", end: "19:00" }, "room-1"),
+  // פעילה (permanent, weekly) — a single open-ended weekly recurrence each, so
+  // they stay ongoing forever. Their start date is in the past on purpose.
+  { parentType: "tournament", parentId: "tournament-3", date: weekdayOccurrence("חמישי", -7), start: "18:00", end: "21:00", roomId: "room-3", frequency: "weekly", noEndDate: true, endDate: "", day: "חמישי" },
+  { parentType: "tournament", parentId: "tournament-5", date: weekdayOccurrence("שלישי", -5), start: "18:30", end: "21:00", roomId: "room-1", frequency: "weekly", noEndDate: true, endDate: "", day: "שלישי" },
 ];
 
 const rawSeedSessions: RawSession[] = [...fixtureSessions, ...tournamentSessions];
@@ -324,8 +383,6 @@ const parentNameById: Record<SessionDoc["parentType"], Record<string, string>> =
   tournament: tournamentNameById,
   event: eventNameById,
 };
-
-const HEBREW_DAY_BY_JS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 // Session ids follow the SAME deterministic scheme the app uses when it writes
 // them (lib/firebase/data/sessions.ts): every session — course, tournament or
@@ -360,6 +417,71 @@ export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => {
       : {}),
   };
 });
+
+// ── Schedule projected back onto the activities ──────────────────────────────
+// `days`, `times` and `nextDate` are READ OFF the sessions above rather than
+// typed by hand, so an activity's advertised schedule is always exactly the
+// meetings that conflict detection runs on — and, since those meetings are
+// relative to today, none of it can go stale.
+const RANGE_START = isoOf(TODAY);
+const RANGE_END = daysFromToday(365);
+
+/** Every weekday an activity meets on, ordered as the week runs. */
+function daysOf(parentId: string): CourseDay[] {
+  const days = new Set<string>();
+  for (const session of seedSessions) {
+    if (session.parentId !== parentId) continue;
+    days.add(session.day ?? HEBREW_DAY_BY_JS[new Date(session.date).getDay()]);
+  }
+  return HEBREW_DAY_BY_JS.filter((day) => days.has(day)) as CourseDay[];
+}
+
+/** The meeting window on each weekday the activity runs. */
+function timesOf(parentId: string): WeeklyTimes {
+  const times: WeeklyTimes = {};
+  for (const session of seedSessions) {
+    if (session.parentId !== parentId) continue;
+    const day = (session.day ??
+      HEBREW_DAY_BY_JS[new Date(session.date).getDay()]) as CourseDay;
+    times[day] ??= { start: session.start, end: session.end };
+  }
+  return times;
+}
+
+/** The next meeting from today on, or "—" once every one of them is past. */
+function nextDateOf(parentId: string): string {
+  const upcoming = seedSessions
+    .filter((session) => session.parentId === parentId)
+    .flatMap((session) => occurrencesInRange(session, RANGE_START, RANGE_END))
+    .sort();
+  return upcoming.length > 0 ? displayDate(upcoming[0]) : "—";
+}
+
+export const seedCourses: SeedCourse[] = rawSeedCourses.map((course) => ({
+  ...course,
+  id: course.name,
+  occupancy: courseOccupancy(course.enrolled, course.capacity),
+  days: daysOf(course.name),
+  times: timesOf(course.name),
+  nextDate: nextDateOf(course.name),
+  notes: "",
+}));
+
+export const seedTournaments: SeedTournament[] = rawSeedTournaments.map((t) => ({
+  ...t,
+  id: t.name,
+  days: daysOf(t.name),
+  times: timesOf(t.name),
+  nextDate: nextDateOf(t.name),
+  notes: "",
+}));
+
+export const seedEvents: ClubEvent[] = rawSeedEvents.map((event) => ({
+  ...event,
+  id: event.name,
+  days: daysOf(event.name),
+  nextDate: nextDateOf(event.name),
+}));
 
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
 export const seedRatingTiers = defaultRatingTiers;
@@ -466,11 +588,17 @@ export const seedRelations: RelationDoc[] = Array.from(
 );
 
 /*
- * BUILT CONFLICTS (all on 2026-07-01, referenced by parent since session ids
- * are now derived per parent):
- *  1. ROOM      — course-1 & course-2 both in room-1, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
- *  2. EQUIPMENT — equipment-1 (שעוני שח) used by course-1 and course-2, which overlap → double-booked.
- *  3. COACH     — coach-1 runs course-1 (16:00–17:30) and judges tournament-1 (17:00–20:00) → overlap 17:00–17:30.
+ * BUILT CONFLICTS. They all land on the next CONFLICT_DAY (a Wednesday) and
+ * recur weekly from there, so they are reachable from the app's rolling window
+ * whenever the seed is run — there is no fixed date to go stale. Referenced by
+ * parent, since session ids are derived per parent:
+ *
+ *  1. ROOM      — course-1 & course-2 both in אולם ראשי, 16:00–17:30 vs 17:00–18:30 → overlap 17:00–17:30.
+ *  2. COACH     — אבי לוי runs course-1 (16:00–17:30) and judges tournament-1 (17:00–20:00) → overlap 17:00–17:30.
+ *  3. EQUIPMENT — שעוני שח: course-1 (14) + course-2 (12) + tournament-1 (16) = 42 of 30 during that
+ *                 same 17:00–17:30 window. Note NO PAIR of them breaks 30 (14+12=26, 14+16=30) — it
+ *                 takes all three at once, which is why detection sweeps for the peak instant rather
+ *                 than comparing activities pairwise.
  *
  * All three are WARNINGS. There is intentionally no PLAYER conflict: that one
  * blocks enrolment outright, so no player is enroled in two activities that

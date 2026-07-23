@@ -42,8 +42,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { PeoplePickerDialog } from "@/components/shared/PeoplePickerDialog";
 import { EnrolledPersonRow } from "@/components/shared/EnrolledPersonRow";
 import { UnsavedCloseBar } from "@/components/shared/UnsavedCloseBar";
-import { ConflictWarning } from "@/components/schedule/ConflictWarning";
+import { ActivityWarningsBar } from "@/components/schedule/ActivityWarningsBar";
 import type { DraftConflict } from "@/lib/conflicts";
+import type { EquipmentDemand } from "@/lib/equipment-conflicts";
 import {
   AddSourceChoiceDialog,
   RosterChoiceDialog,
@@ -58,7 +59,6 @@ import {
 import { useCollection } from "@/lib/firebase/useCollection";
 import {
   availableEquipmentOptions,
-  equipmentAvailableNow,
   equipmentByName,
 } from "@/lib/course-form";
 import {
@@ -255,6 +255,7 @@ function EquipmentRow({
   container,
   options,
   items,
+  available,
 }: {
   line: EquipmentLineValues;
   onChange: (patch: Partial<EquipmentLineValues>) => void;
@@ -262,10 +263,12 @@ function EquipmentRow({
   container: HTMLElement | null;
   options: string[];
   items: Equipment[];
+  /** Units free for this activity at its tightest moment; null until an item is picked. */
+  available: number | null;
 }) {
   const selected = equipmentByName(line.equipmentId, items);
-  const available = selected ? equipmentAvailableNow(selected) : null;
   const overQuota =
+    selected != null &&
     available != null &&
     line.quantity !== "" &&
     Number(line.quantity) > available;
@@ -309,14 +312,15 @@ function EquipmentRow({
           <Trash2 className="size-4" />
         </Button>
       </div>
-      {available != null && (
-        <p className="text-xs text-muted-foreground num">
-          פנוי כעת: {available}
+      {selected != null && available != null && (
+        <p className="text-xs text-muted-foreground">
+          פנוי בשעות הפעילות: <span className="num">{available}</span> מתוך{" "}
+          <span className="num">{selected.quantity}</span>
         </p>
       )}
       {overQuota && (
         <p className="text-xs text-amber-600 dark:text-amber-400">
-          הכמות חורגת מהמלאי הפנוי ({available}).
+          הכמות חורגת מהזמין בשעות הפעילות ({available}).
         </p>
       )}
     </motion.div>
@@ -419,6 +423,10 @@ interface AddEventModalProps {
   onRemoveEquipment: (id: string) => void;
   equipmentItems: Equipment[];
   conflicts: DraftConflict[];
+  /** Items the club is short of while this activity runs. A warning only. */
+  equipmentShortages: EquipmentDemand[];
+  /** equipmentId → units free for this activity at its tightest moment. */
+  equipmentAvailability: Record<string, number>;
 }
 
 export function AddEventModal({
@@ -461,6 +469,8 @@ export function AddEventModal({
   onRemoveEquipment,
   equipmentItems,
   conflicts,
+  equipmentShortages,
+  equipmentAvailability,
 }: AddEventModalProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
@@ -479,7 +489,7 @@ export function AddEventModal({
       <DialogContent
         ref={setContainer}
         dir="rtl"
-        className="top-[6vh] flex max-h-[88vh] max-w-lg translate-y-0 flex-col"
+        className="top-[3vh] flex max-h-[94vh] max-w-lg translate-y-0 flex-col"
       >
         <DialogHeader>
           <DialogTitle>
@@ -501,7 +511,12 @@ export function AddEventModal({
           </DialogDescription>
         </DialogHeader>
 
-        {!readOnly && <ConflictWarning conflicts={conflicts} />}
+        {!readOnly && (
+          <ActivityWarningsBar
+            conflicts={conflicts}
+            shortages={equipmentShortages}
+          />
+        )}
 
         <Tabs
           value={tab}
@@ -879,6 +894,7 @@ export function AddEventModal({
                       <EquipmentRow
                         key={line.id}
                         line={line}
+                        available={equipmentAvailability[line.equipmentId] ?? null}
                         onChange={(patch) => onUpdateEquipment(line.id, patch)}
                         onRemove={() => onRemoveEquipment(line.id)}
                         container={container}

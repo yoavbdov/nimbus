@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
-    "seed:client": "tsx scripts/seed-client.ts"
+    "seed:empty": "tsx scripts/seed.ts --empty",
+    "seed:client": "tsx scripts/seed-client.ts",
+    "seed:client:empty": "tsx scripts/seed-client.ts --empty"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

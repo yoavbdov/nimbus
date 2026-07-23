@@ -12,6 +12,9 @@
  *
  * Idempotent: every seeded collection is cleared before it is rewritten, so
  * re-running produces the same state.
+ *
+ * Pass --empty (npm run seed:empty) to wipe the club down to empty collections
+ * instead of writing the demo data.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -84,26 +87,33 @@ async function seedCollection<T extends WithId>(
 
 // ── Run ─────────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
-  console.log(`Seeding club "${DEMO_CLUB_ID}"…`);
+  const empty = process.argv.includes("--empty");
+  console.log(
+    `Seeding club "${DEMO_CLUB_ID}"${empty ? " (empty — clearing only)" : ""}…`,
+  );
 
   await db.doc(clubPath(DEMO_CLUB_ID)).set({
     name: "מועדון הדגמה",
     createdAt: new Date().toISOString(),
   });
 
-  await seedCollection(COLLECTIONS.players, seedPlayers);
-  await seedCollection(COLLECTIONS.courses, seedCourses);
-  await seedCollection(COLLECTIONS.coaches, seedCoaches);
-  await seedCollection(COLLECTIONS.rooms, seedRooms);
-  await seedCollection(COLLECTIONS.equipment, seedEquipment);
-  await seedCollection(COLLECTIONS.attendance, seedAttendance);
-  await seedCollection(COLLECTIONS.leagues, seedLeagues);
-  await seedCollection(COLLECTIONS.tournaments, seedTournaments);
-  await seedCollection(COLLECTIONS.events, seedEvents);
-  await seedCollection(COLLECTIONS.rosters, seedRosters);
-  await seedCollection(COLLECTIONS.relations, seedRelations);
-  await seedCollection(COLLECTIONS.sessions, seedSessions);
-  await seedCollection(COLLECTIONS.ratingTiers, seedRatingTiers);
+  // `--empty` reuses the very same path: each collection is cleared, then the
+  // (empty) list is written back.
+  const pick = <T extends WithId>(items: T[]): T[] => (empty ? [] : items);
+
+  await seedCollection(COLLECTIONS.players, pick(seedPlayers));
+  await seedCollection(COLLECTIONS.courses, pick(seedCourses));
+  await seedCollection(COLLECTIONS.coaches, pick(seedCoaches));
+  await seedCollection(COLLECTIONS.rooms, pick(seedRooms));
+  await seedCollection(COLLECTIONS.equipment, pick(seedEquipment));
+  await seedCollection(COLLECTIONS.attendance, pick(seedAttendance));
+  await seedCollection(COLLECTIONS.leagues, pick(seedLeagues));
+  await seedCollection(COLLECTIONS.tournaments, pick(seedTournaments));
+  await seedCollection(COLLECTIONS.events, pick(seedEvents));
+  await seedCollection(COLLECTIONS.rosters, pick(seedRosters));
+  await seedCollection(COLLECTIONS.relations, pick(seedRelations));
+  await seedCollection(COLLECTIONS.sessions, pick(seedSessions));
+  await seedCollection(COLLECTIONS.ratingTiers, pick(seedRatingTiers));
 
   console.log("Done.");
 }

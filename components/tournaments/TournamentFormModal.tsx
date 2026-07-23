@@ -52,6 +52,8 @@ export function TournamentFormModal({
       onSelectPlayerRoster={addTournament.selectPlayerRoster}
       pickerDisabledIds={addTournament.pickerDisabledIds}
       busyPlayerReasons={addTournament.busyPlayerReasons}
+      equipmentShortages={addTournament.equipmentShortages}
+      equipmentAvailability={addTournament.equipmentAvailability}
       checkedPlayerIds={addTournament.checkedPlayerIds}
       onToggleCheckedPlayer={addTournament.toggleCheckedPlayer}
       onConfirmPlayers={addTournament.confirmPlayers}

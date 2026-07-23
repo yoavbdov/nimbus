@@ -48,6 +48,8 @@ export function CourseFormModal({
       onSelectStudentRoster={addCourse.selectStudentRoster}
       pickerDisabledIds={addCourse.pickerDisabledIds}
       busyStudentReasons={addCourse.busyStudentReasons}
+      equipmentShortages={addCourse.equipmentShortages}
+      equipmentAvailability={addCourse.equipmentAvailability}
       checkedStudentIds={addCourse.checkedStudentIds}
       onToggleCheckedStudent={addCourse.toggleCheckedStudent}
       onConfirmStudents={addCourse.confirmStudents}
