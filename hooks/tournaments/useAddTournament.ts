@@ -14,7 +14,7 @@ import {
 import { criteriaMismatchReasons, maxBelowMin } from "@/lib/criteria";
 import { type Player } from "@/lib/players-data";
 import { type Equipment } from "@/lib/rooms-data";
-import { buildPreparedRosters } from "@/lib/rosters-data";
+import { useSavedRosters } from "@/hooks/rosters/useSavedRosters";
 import { useCollection } from "@/lib/firebase/useCollection";
 import { addTournament, updateTournament } from "@/lib/firebase/data/tournaments";
 import { replaceParentSessions } from "@/lib/firebase/data/sessions";
@@ -186,18 +186,18 @@ export function useAddTournament() {
   const [pickerPlayers, setPickerPlayers] = useState<Player[]>([]);
   const [pickerDisabledIds, setPickerDisabledIds] = useState<string[]>([]);
 
-  // The prepared lists are rules over the LIVE roster (rating / age bands), so
-  // they always reflect the players currently in Firestore.
-  const preparedRosters = useMemo(() => buildPreparedRosters(players), [players]);
+  // The saved player lists, read live from Firestore — the same lists the
+  // rosters tool manages, so a list edited there is offered here immediately.
+  const { rosters: savedRosters } = useSavedRosters();
 
   const playerRosters = useMemo(
     () =>
-      preparedRosters.map((r) => ({
+      savedRosters.map((r) => ({
         id: r.id,
         name: r.name,
         count: r.players.length,
       })),
-    [preparedRosters],
+    [savedRosters],
   );
 
   // Opens the source question; the picker opens only after a branch is chosen.
@@ -226,7 +226,7 @@ export function useAddTournament() {
   // Picking a roster pre-checks its members among the players not yet enrolled, then opens the picker for review and confirmation.
   const selectPlayerRoster = useCallback(
     (rosterId: string) => {
-      const roster = preparedRosters.find((r) => r.id === rosterId);
+      const roster = savedRosters.find((r) => r.id === rosterId);
       const ids = new Set(roster?.players.map((p) => p.id) ?? []);
       const members = players.filter((p) => ids.has(p.id));
       setPickerPlayers(members);
@@ -241,7 +241,7 @@ export function useAddTournament() {
       setRosterChoiceOpen(false);
       setPlayerPickerOpen(true);
     },
-    [players, preparedRosters, values.playerIds],
+    [players, savedRosters, values.playerIds],
   );
 
   const toggleCheckedPlayer = useCallback((id: string) => {

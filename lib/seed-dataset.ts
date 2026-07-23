@@ -362,6 +362,22 @@ export const seedSessions: SessionDoc[] = rawSeedSessions.map((s) => {
 // ── Rating tiers (dashboard config — label + rating range, counts are derived) ─
 export const seedRatingTiers = defaultRatingTiers;
 
+// ── Rosters (saved player lists) ─────────────────────────────────────────────
+// Three starter lists, keyed by name like every other doc. Their members are
+// picked here by a rating / age rule purely to fill them with something sensible
+// — once seeded they are ordinary editable lists, and membership lives in
+// `relations` (built below), not on the roster doc.
+const rosterSeedRules: { name: string; matches: (p: PlayerBase) => boolean }[] = [
+  { name: "מד כושר עד 800", matches: (p) => p.israeliRating <= 800 },
+  { name: "מד כושר מעל 1800", matches: (p) => p.israeliRating > 1800 },
+  { name: "גיל עד 18", matches: (p) => p.age <= 18 },
+];
+
+export const seedRosters = rosterSeedRules.map(({ name }) => ({
+  id: name,
+  name,
+}));
+
 // ── Relations (junction — the single source of truth for who is linked to what)
 // Built by name (docs are keyed by name), so no id→name mapping is needed here.
 // Deterministic ids match the app's scheme in lib/firebase/data/relations.ts,
@@ -397,6 +413,13 @@ const playerRelations: RelationDoc[] = basePlayers.flatMap((p) => {
   return out;
 });
 
+// player ↔ roster — the starter lists' members, from the rules above.
+const rosterRelations: RelationDoc[] = rosterSeedRules.flatMap((list) =>
+  basePlayers
+    .filter(list.matches)
+    .map((p) => rel("player_roster", "player", p.name, "roster", list.name)),
+);
+
 // coach ↔ course — each course names its instructing coach.
 const coachCourseRelations: RelationDoc[] = rawSeedCourses.map((c) =>
   rel("coach_course", "coach", c.coach, "course", c.name, { role: "מדריך ראשי" }),
@@ -427,7 +450,12 @@ const curatedRelations: RelationDoc[] = [
 // Dedupe by document id (a derived link may coincide with a curated one).
 export const seedRelations: RelationDoc[] = Array.from(
   new Map(
-    [...playerRelations, ...coachCourseRelations, ...curatedRelations].map(
+    [
+      ...playerRelations,
+      ...rosterRelations,
+      ...coachCourseRelations,
+      ...curatedRelations,
+    ].map(
       (r) => [r.id, r],
     ),
   ).values(),

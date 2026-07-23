@@ -1,91 +1,94 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import {
-  buildPreparedRosters,
-  toRosterPlayer,
-  type RosterPlayer,
-  type SavedRoster,
-} from "@/lib/rosters-data";
+import { useMemo, useState } from "react";
+import { useSavedRosters } from "@/hooks/rosters/useSavedRosters";
 import { useCollection } from "@/lib/firebase/useCollection";
+import {
+  addRoster,
+  deleteRoster,
+  renameRoster,
+  setRosterMembers,
+} from "@/lib/firebase/data/rosters";
 import type { Player } from "@/lib/players-data";
 
+export type RosterModalMode = "create" | "edit";
 export type RosterNameDialogMode = "create" | "rename";
 
+/** The roster being filled in / edited. Nothing here is in Firestore yet. */
+interface RosterDraft {
+  mode: RosterModalMode;
+  /** The document being edited; null while creating (no doc exists yet). */
+  rosterId: string | null;
+  name: string;
+  memberIds: string[];
+}
+
 /**
- * Drives the rosters tool: browsing player lists, opening one to view and edit
- * its members, creating new lists, and adding members from the club. The club
- * roster and the three prepared lists are read live from Firestore; the user's
- * own edits are in-memory for the session.
+ * Drives the rosters tool: browsing the saved player lists, opening one in a
+ * modal to view and edit its members, creating new lists, and adding members
+ * from the club.
+ *
+ * Creating and editing run through the SAME draft: the modal edits `draft` in
+ * memory and only writes to Firestore when the user confirms, so a new list
+ * doesn't appear until it is finished and cancelling an edit changes nothing.
+ * Members are exposed as full `Player` records, because the modal shows and
+ * picks them with the very same components the "add students to a course" flow
+ * uses (EnrolledPersonRow + PeoplePickerDialog).
  */
 export function useRosters() {
-  const { data: players, loading } = useCollection<Player>("players");
+  const { rosters: lists, loading } = useSavedRosters();
+  const { data: players } = useCollection<Player>("players");
 
-  /** Every club member, shaped as roster rows for the picker. */
-  const clubPlayers = useMemo<RosterPlayer[]>(
-    () => players.map(toRosterPlayer),
-    [players],
-  );
+  const [draft, setDraft] = useState<RosterDraft | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // The prepared lists are derived from the live roster; `edited` holds the
-  // user's version once they change anything, and wins from then on.
-  const preparedLists = useMemo(() => buildPreparedRosters(players), [players]);
-  const [edited, setEdited] = useState<SavedRoster[] | null>(null);
-  const lists = edited ?? preparedLists;
-
-  /** Applies a change to the lists, materialising the edited copy on first use. */
-  const setLists = useCallback(
-    (update: (prev: SavedRoster[]) => SavedRoster[]) => {
-      setEdited((prev) => update(prev ?? preparedLists));
-    },
-    [preparedLists],
-  );
-
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  // Name dialog — shared by "new list" and "rename list".
+  // Name dialog — "create" names a new list before its modal opens, "rename"
+  // retitles the open draft.
   const [nameDialogMode, setNameDialogMode] =
     useState<RosterNameDialogMode | null>(null);
   const [draftName, setDraftName] = useState("");
 
-  // Add-members picker.
+  // Add-members picker (its search / filters / sorting live in the dialog).
   const [pickerOpen, setPickerOpen] = useState(false);
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
-  const [memberQuery, setMemberQuery] = useState("");
 
-  // Pending confirmations.
-  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
+  // Pending confirmation for deleting a whole list from the index.
   const [pendingListDeletion, setPendingListDeletion] = useState<string | null>(
     null,
   );
 
-  const selectedList = useMemo(
-    () => lists.find((l) => l.id === selectedId) ?? null,
-    [lists, selectedId],
-  );
+  /** The draft's members as live player records, strongest first. */
+  const members = useMemo<Player[]>(() => {
+    if (!draft) return [];
+    const ids = new Set(draft.memberIds);
+    return players
+      .filter((p) => ids.has(p.id))
+      .sort((a, b) => b.israeliRating - a.israeliRating);
+  }, [players, draft]);
 
-  /** Club members not already in the open list — the picker's candidates. */
-  const availableMembers = useMemo(() => {
-    if (!selectedList) return clubPlayers;
-    const present = new Set(selectedList.players.map((p) => p.id));
-    return clubPlayers.filter((p) => !present.has(p.id));
-  }, [clubPlayers, selectedList]);
+  /** Club members not already in the draft — the picker's candidates. */
+  const availablePlayers = useMemo<Player[]>(() => {
+    if (!draft) return players;
+    const present = new Set(draft.memberIds);
+    return players.filter((p) => !present.has(p.id));
+  }, [players, draft]);
 
-  /** Candidates narrowed by the picker's search box. */
-  const filteredMembers = useMemo(() => {
-    const q = memberQuery.trim().toLowerCase();
-    if (!q) return availableMembers;
-    return availableMembers.filter((p) => p.name.toLowerCase().includes(q));
-  }, [availableMembers, memberQuery]);
-
-  const pendingMember = selectedList?.players.find(
-    (p) => p.id === pendingMemberId,
-  );
   const pendingDeletionList = lists.find((l) => l.id === pendingListDeletion);
 
-  // ── Navigation ────────────────────────────────────────────────────
-  const openList = (id: string) => setSelectedId(id);
-  const backToLists = () => setSelectedId(null);
+  // ── Opening / closing the roster modal ────────────────────────────
+  const openList = (id: string) => {
+    const list = lists.find((l) => l.id === id);
+    if (!list) return;
+    setDraft({
+      mode: "edit",
+      rosterId: list.id,
+      name: list.name,
+      memberIds: list.players.map((p) => p.id),
+    });
+  };
+
+  /** Closes the modal and throws the draft away — nothing was written. */
+  const cancelDraft = () => setDraft(null);
 
   // ── Create / rename via the shared name dialog ────────────────────
   const startCreateList = () => {
@@ -93,8 +96,8 @@ export function useRosters() {
     setNameDialogMode("create");
   };
   const startRenameList = () => {
-    if (!selectedList) return;
-    setDraftName(selectedList.name);
+    if (!draft) return;
+    setDraftName(draft.name);
     setNameDialogMode("rename");
   };
   const closeNameDialog = () => setNameDialogMode(null);
@@ -102,31 +105,20 @@ export function useRosters() {
   const confirmNameDialog = () => {
     const name = draftName.trim();
     if (!name) return;
+    setNameDialogMode(null);
 
     if (nameDialogMode === "create") {
-      const id = `roster-${Date.now()}`;
-      setLists((prev) => [{ id, name, players: [] }, ...prev]);
-      setSelectedId(id);
-      setNameDialogMode(null);
-      // Jump straight into adding members for the fresh list.
-      setCheckedIds([]);
-      setMemberQuery("");
-      setPickerOpen(true);
+      // Naming is step one; the list itself is created only once the user
+      // confirms the modal that opens next.
+      setDraft({ mode: "create", rosterId: null, name, memberIds: [] });
       return;
     }
-
-    if (nameDialogMode === "rename" && selectedId) {
-      setLists((prev) =>
-        prev.map((l) => (l.id === selectedId ? { ...l, name } : l)),
-      );
-    }
-    setNameDialogMode(null);
+    setDraft((prev) => (prev ? { ...prev, name } : prev));
   };
 
-  // ── Add members ───────────────────────────────────────────────────
+  // ── Members (draft-only until the modal is confirmed) ─────────────
   const openPicker = () => {
     setCheckedIds([]);
-    setMemberQuery("");
     setPickerOpen(true);
   };
   const togglePicked = (id: string) =>
@@ -134,52 +126,55 @@ export function useRosters() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   const confirmAddMembers = () => {
-    if (!selectedId || checkedIds.length === 0) return;
-    const additions: RosterPlayer[] = clubPlayers.filter((p) =>
-      checkedIds.includes(p.id),
-    );
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedId
-          ? { ...l, players: [...l.players, ...additions] }
-          : l,
-      ),
+    setDraft((prev) =>
+      prev ? { ...prev, memberIds: [...prev.memberIds, ...checkedIds] } : prev,
     );
     setPickerOpen(false);
     setCheckedIds([]);
   };
-
-  // ── Remove a member (with confirmation) ───────────────────────────
-  const requestRemoveMember = (id: string) => setPendingMemberId(id);
-  const cancelRemoveMember = () => setPendingMemberId(null);
-  const confirmRemoveMember = () => {
-    if (!selectedId || !pendingMemberId) return;
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedId
-          ? { ...l, players: l.players.filter((p) => p.id !== pendingMemberId) }
-          : l,
-      ),
+  const removeMember = (id: string) =>
+    setDraft((prev) =>
+      prev
+        ? { ...prev, memberIds: prev.memberIds.filter((m) => m !== id) }
+        : prev,
     );
-    setPendingMemberId(null);
+
+  // ── Commit the draft ──────────────────────────────────────────────
+  /** Writes the draft: creates the list, or renames / re-members an existing one. */
+  const saveDraft = async () => {
+    if (!draft || saving) return;
+    setSaving(true);
+    try {
+      const rosterId =
+        draft.rosterId == null
+          ? await addRoster(draft.name)
+          : await renameRoster(draft.rosterId, draft.name);
+      await setRosterMembers(rosterId, draft.memberIds);
+      setDraft(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ── Delete a whole list (with confirmation) ───────────────────────
   const requestDeleteList = (id: string) => setPendingListDeletion(id);
   const cancelDeleteList = () => setPendingListDeletion(null);
-  const confirmDeleteList = () => {
+  const confirmDeleteList = async () => {
     if (!pendingListDeletion) return;
-    setLists((prev) => prev.filter((l) => l.id !== pendingListDeletion));
-    if (selectedId === pendingListDeletion) setSelectedId(null);
+    const id = pendingListDeletion;
     setPendingListDeletion(null);
+    await deleteRoster(id);
   };
 
   return {
     lists,
     loading,
-    selectedList,
+    draft,
+    members,
     openList,
-    backToLists,
+    cancelDraft,
+    saveDraft,
+    saving,
 
     nameDialogMode,
     draftName,
@@ -189,21 +184,14 @@ export function useRosters() {
     closeNameDialog,
     confirmNameDialog,
 
-    availableMembers,
-    filteredMembers,
-    memberQuery,
-    setMemberQuery,
+    availablePlayers,
     pickerOpen,
     setPickerOpen,
     checkedIds,
     openPicker,
     togglePicked,
     confirmAddMembers,
-
-    pendingMember,
-    requestRemoveMember,
-    cancelRemoveMember,
-    confirmRemoveMember,
+    removeMember,
 
     pendingDeletionList,
     requestDeleteList,

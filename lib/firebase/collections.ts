@@ -11,6 +11,7 @@
  *     ├─ leagues/{teamId}
  *     ├─ tournaments/{tournamentId}
  *     ├─ events/{eventId}
+ *     ├─ rosters/{rosterId}      ← saved player lists (members live in relations)
  *     ├─ relations/{relationId}   ← junction: every many-to-many link
  *     └─ sessions/{sessionId}     ← every scheduled time slot
  *
@@ -41,6 +42,7 @@ export const COLLECTIONS = {
   leagues: "leagues",
   tournaments: "tournaments",
   events: "events",
+  rosters: "rosters",
   relations: "relations",
   sessions: "sessions",
   ratingTiers: "ratingTiers",

@@ -15,7 +15,8 @@ export type RelationTargetType =
   | "tournament"
   | "league"
   | "event"
-  | "session";
+  | "session"
+  | "roster";
 
 // NOTE: there is deliberately no `room_*` kind. A room is not an activity-level
 // association — different sessions of the same activity can use different rooms
@@ -28,6 +29,9 @@ export type RelationKind =
   | "player_tournament"
   | "player_event"
   | "player_league"
+  // player ↔ roster — membership of a saved player list. The roster doc holds
+  // only its name; who is in it is a relation like every other link.
+  | "player_roster"
   | "coach_course"
   | "coach_tournament"
   // equipment ↔ activity — physical gear a course / tournament / event uses,

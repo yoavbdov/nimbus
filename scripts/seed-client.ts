@@ -31,6 +31,7 @@ import {
   seedLeagues,
   seedTournaments,
   seedEvents,
+  seedRosters,
   seedRelations,
   seedSessions,
   seedRatingTiers,
@@ -111,6 +112,7 @@ async function main(): Promise<void> {
   await seedCollection(COLLECTIONS.leagues, seedLeagues);
   await seedCollection(COLLECTIONS.tournaments, seedTournaments);
   await seedCollection(COLLECTIONS.events, seedEvents);
+  await seedCollection(COLLECTIONS.rosters, seedRosters);
   await seedCollection(COLLECTIONS.relations, seedRelations);
   await seedCollection(COLLECTIONS.sessions, seedSessions);
   await seedCollection(COLLECTIONS.ratingTiers, seedRatingTiers);

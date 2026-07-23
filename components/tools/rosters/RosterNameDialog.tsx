@@ -51,7 +51,6 @@ export function RosterNameDialog({
             onKeyDown={(e) => {
               if (e.key === "Enter" && value.trim()) onConfirm();
             }}
-            placeholder="לדוגמה: קבוצת מתחילים"
             className="h-9 rounded-xl neu-inset border-0 bg-foreground/8!"
           />
         </div>
