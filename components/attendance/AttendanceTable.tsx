@@ -28,14 +28,19 @@ const MotionTableRow = motion.create(TableRow);
 
 interface AttendanceTableProps {
   roster: AttendanceRow[];
+  /** When true the marks and comments are display-only (archived course). */
+  readOnly?: boolean;
   onCycle: (studentId: string) => void;
   onComment: (studentId: string, value: string) => void;
+  onCommentBlur: (studentId: string) => void;
 }
 
 export function AttendanceTable({
   roster,
+  readOnly = false,
   onCycle,
   onComment,
+  onCommentBlur,
 }: AttendanceTableProps) {
   const selection = useRowSelection(roster.map((r) => r.id));
 
@@ -82,13 +87,16 @@ export function AttendanceTable({
                 <TableCell className="px-4 py-2.5 text-center">
                   <AttendanceMarkButton
                     mark={row.mark}
+                    disabled={readOnly}
                     onClick={() => onCycle(row.id)}
                   />
                 </TableCell>
                 <TableCell className="px-4 py-2.5">
                   <Input
                     value={row.comment}
+                    readOnly={readOnly}
                     onChange={(e) => onComment(row.id, e.target.value)}
+                    onBlur={() => onCommentBlur(row.id)}
                     placeholder="הערה (אופציונלי)"
                     className="h-8 rounded-lg border-0 neu-inset bg-transparent text-sm text-right"
                   />

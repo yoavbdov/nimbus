@@ -52,6 +52,13 @@ export interface RelationDoc {
   status?: string;
   /** How many units are allocated — set on `equipment_*` links only. */
   quantity?: number;
+  /**
+   * ISO date the subject joined the target — stamped on `player_course` links
+   * when a student is enrolled. Attendance uses it to keep a newly-added student
+   * off sessions that predate them (they were not yet a member back then). A
+   * link with no `joinedOn` is treated as "member from the start".
+   */
+  joinedOn?: string;
 }
 
 export const relations: RelationDoc[] = [

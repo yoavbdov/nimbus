@@ -31,7 +31,7 @@ import type { Room, Equipment } from "@/lib/rooms-data";
 import type { LeagueTeam } from "@/lib/leagues-data";
 import type { Tournament } from "@/lib/tournaments-data";
 import type { ClubEvent } from "@/lib/events-data";
-import type { AttendanceClass } from "@/lib/attendance-data";
+import { sessionKey, type AttendanceSessionDoc } from "@/lib/attendance-model";
 import type { RelationDoc } from "@/lib/relations-data";
 import type { SessionDoc } from "@/lib/sessions-data";
 import { defaultRatingTiers } from "@/lib/rating-tiers-data";
@@ -108,6 +108,12 @@ function displayDate(iso: string): string {
  */
 const CONFLICT_DAY = "רביעי";
 const CONTROL_DAY = "שישי";
+
+// How far back a RUNNING course's weekly meetings started. Shared by the course
+// sessions (below) and the seeded attendance, so the marks always land on dates
+// the attendance model actually generates (it expands each meeting from its
+// anchor up to today).
+const STARTED_WEEKS_AGO = -4;
 
 // ── Coaches (6) ──────────────────────────────────────────────────────────────
 const rawSeedCoaches: CoachRecord[] = [
@@ -250,7 +256,7 @@ const rawSeedCourses: RawCourse[] = [
   { id: "course-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי", ageMin: 11, ageMax: 16, ratingMin: 800,  ratingMax: 1600, enrolled: 12, capacity: 12, status: "פעיל",   room: "אולם ראשי",   recurrence: "סבב" },  // current, round → מלא
   { id: "course-3", name: "מועדון אחה״צ", coach: "מירב כהן",    ageMin: 8,  ageMax: 14, ratingMin: 400,  ratingMax: 1200, enrolled: 9,  capacity: 16, status: "פעיל",   room: "חדר אימונים", recurrence: "קבוע" }, // current, permanent → חלקי
   { id: "course-4", name: "שחמט בוגרים",  coach: "רון פרידמן",  ageMin: 18, ageMax: 99, ratingMin: 1400, ratingMax: 2500, enrolled: 5,  capacity: 20, status: "מתוכנן", room: "חדר תחרויות", recurrence: "סבב" },  // future, round → חלקי
-  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 0,  status: "פעיל",   room: "אולם ראשי",   recurrence: "קבוע" }, // current, permanent → חלקי
+  { id: "course-5", name: "סדנת פתיחות",  coach: "שירה גל",     ageMin: 14, ageMax: 99, ratingMin: 1200, ratingMax: 2400, enrolled: 6,  capacity: 0,  status: "ארכיון", room: "אולם ראשי",   recurrence: "קבוע" }, // archived → attendance shown read-only
   { id: "course-6", name: "חוג גן",       coach: "דנה אביב",    ageMin: 4,  ageMax: 7,  ratingMin: 0,    ratingMax: 400,  enrolled: 0,  capacity: 10, status: "מתוכנן", room: "חדר אימונים", recurrence: "סבב" },  // future, round → ריק
 ];
 
@@ -287,40 +293,75 @@ const rawSeedEvents: RawEvent[] = [
 ];
 const eventNameById = nameByIdOf(rawSeedEvents);
 
-// ── Attendance (2 classes, left unmarked — to be filled in the app) ──────────
-// Both classes mirror the two CONFLICT_DAY courses, so their meeting dates are
-// the same upcoming weekdays those courses meet on — never literal dates.
-const rawSeedAttendance: AttendanceClass[] = [
-  {
-    id: "attendance-1", name: "שחמט מתחילים", coach: "אבי לוי",
-    sessions: [
-      { id: "attsession-1", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 0)), label: "מפגש 1" },
-      { id: "attsession-2", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 1)), label: "מפגש 2" },
-    ],
-    students: [
-      { id: "player-1", name: "אורי גולן", rating: 480 },
-      { id: "player-2", name: "נועם כץ", rating: 720 },
-    ],
-  },
-  {
-    id: "attendance-2", name: "שחמט מתקדמים", coach: "יוסי בן עמי",
-    sessions: [{ id: "attsession-3", date: displayDate(weekdayOccurrence(CONFLICT_DAY, 0)), label: "מפגש 1" }],
-    students: [
-      { id: "player-3", name: "מיה שפירא", rating: 1050 },
-      { id: "player-5", name: "יעל אבני", rating: 1180 },
-    ],
-  },
-];
+// ── Attendance (one document PER SESSION) ────────────────────────────────────
+// Each doc is `attendance/{courseName__date}` holding that meeting's roster as
+// entries[studentName] = { status, comment? } — keyed exactly like the app
+// writes them (lib/firebase/data/attendance.ts). Dates are the ISO occurrences
+// the courses actually meet on (weekly from STARTED_WEEKS_AGO up to today), so
+// every record lands on a session the attendance model generates.
+//
+// The fixtures below deliberately show off the model:
+//   • שחמט מתחילים — עומר טל is recorded on the two earliest meetings but is NOT
+//     a current member (no player_course link), i.e. a student who LEFT: his
+//     history stays on the old sessions yet he is gone from the newer ones. The
+//     most recent meeting has no entry for נועם כץ → that מועד reads חסר.
+//   • סדנת פתיחות — an ARCHIVED course, so its attendance opens read-only.
 
-// Point each attendance student at the player's name-based document id.
-export const seedAttendance: AttendanceClass[] = rawSeedAttendance.map((cls) => ({
-  ...cls,
-  id: cls.name,
-  students: cls.students.map((s) => ({
-    ...s,
-    id: playerNameById[s.id] ?? s.id,
-  })),
-}));
+// The four past Wednesday (CONFLICT_DAY) meetings of the beginner/advanced
+// courses, and the two past Thursday meetings the archived workshop ran on —
+// counted forward from when each series started, so they are real occurrences.
+const W = [0, 1, 2, 3].map((i) => weekdayOccurrence(CONFLICT_DAY, STARTED_WEEKS_AGO + i));
+const T = [0, 1].map((i) => weekdayOccurrence("חמישי", STARTED_WEEKS_AGO + i));
+
+/** Build one per-session attendance document. */
+function attendanceSession(
+  courseId: string,
+  date: string,
+  entries: AttendanceSessionDoc["entries"],
+): AttendanceSessionDoc {
+  return { id: sessionKey(courseId, date), courseId, date, entries };
+}
+
+export const seedAttendance: AttendanceSessionDoc[] = [
+  // שחמט מתחילים — עומר טל attends the first two, then is gone (he left).
+  attendanceSession("שחמט מתחילים", W[0], {
+    "אורי גולן": { status: "present" },
+    "נועם כץ": { status: "present" },
+    "עומר טל": { status: "present" },
+  }),
+  attendanceSession("שחמט מתחילים", W[1], {
+    "אורי גולן": { status: "present" },
+    "נועם כץ": { status: "absent", comment: "הודיע שיאחר" },
+    "עומר טל": { status: "present" },
+  }),
+  attendanceSession("שחמט מתחילים", W[2], {
+    "אורי גולן": { status: "present" },
+    "נועם כץ": { status: "present" },
+  }),
+  attendanceSession("שחמט מתחילים", W[3], {
+    "אורי גולן": { status: "present" }, // נועם כץ has no entry → מועד חסר
+  }),
+
+  // שחמט מתקדמים — two meetings filled, the rest still open.
+  attendanceSession("שחמט מתקדמים", W[0], {
+    "מיה שפירא": { status: "present" },
+    "יעל אבני": { status: "present" },
+  }),
+  attendanceSession("שחמט מתקדמים", W[1], {
+    "מיה שפירא": { status: "present" },
+    "יעל אבני": { status: "absent" },
+  }),
+
+  // סדנת פתיחות — archived, so the app opens it read-only.
+  attendanceSession("סדנת פתיחות", T[0], {
+    "גיא אורן": { status: "present" },
+    "שירה גל": { status: "present" },
+  }),
+  attendanceSession("סדנת פתיחות", T[1], {
+    "גיא אורן": { status: "present" },
+    "שירה גל": { status: "absent" },
+  }),
+];
 
 // ── Sessions (scheduling slots — the conflict source of truth) ───────────────
 // Times "HH:mm". A round-based tournament gets one concrete session per round
@@ -359,7 +400,6 @@ function roundSeries(
 // course is anchored in the past (`STARTED_WEEKS_AGO`) while a planned one is
 // anchored ahead; either way it recurs on the same weekday forever, which is
 // what keeps the built conflicts reachable. See the block at the bottom.
-const STARTED_WEEKS_AGO = -4;
 const fixtureSessions: RawSession[] = [
   // פעיל, and the three that the room / coach / equipment conflicts hang off.
   { parentType: "course",     parentId: "course-1",     date: weekdayOccurrence(CONFLICT_DAY, STARTED_WEEKS_AGO), start: "16:00", end: "17:30", roomId: "room-1" },
@@ -532,7 +572,7 @@ function rel(
   subjectId: string,
   targetType: RelationDoc["targetType"],
   targetId: string,
-  extra?: { role?: string; status?: string; quantity?: number },
+  extra?: { role?: string; status?: string; quantity?: number; joinedOn?: string },
 ): RelationDoc {
   return {
     id: `${subjectId}__${kind}__${targetId}`.replace(/\//g, "／"),
@@ -545,11 +585,22 @@ function rel(
   };
 }
 
+// Best practice: every enrolment carries a join date. Seeded students joined ~2
+// months ago — comfortably before any course's first meeting (STARTED_WEEKS_AGO
+// is four weeks back) — so they appear on all of their course's past attendance
+// sessions. Students enrolled later in the app get their own (later) join date,
+// which is what keeps a newcomer off sessions that predate them.
+const SEED_JOINED_ON = daysFromToday(-60);
+
 // player ↔ course / tournament / league — derived from the roster associations.
 const playerRelations: RelationDoc[] = basePlayers.flatMap((p) => {
   const out: RelationDoc[] = [];
   for (const course of p.courses)
-    out.push(rel("player_course", "player", p.name, "course", course));
+    out.push(
+      rel("player_course", "player", p.name, "course", course, {
+        joinedOn: SEED_JOINED_ON,
+      }),
+    );
   for (const t of p.tournaments)
     out.push(rel("player_tournament", "player", p.name, "tournament", t));
   if (p.leagueTeam)

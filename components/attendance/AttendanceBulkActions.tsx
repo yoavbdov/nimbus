@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 interface AttendanceBulkActionsProps {
   counts: { present: number; absent: number; unset: number; total: number };
+  /** When true (archived course) the fill buttons are disabled. */
+  readOnly?: boolean;
   onMarkAllPresent: () => void;
   onMarkAllAbsent: () => void;
 }
@@ -31,6 +33,7 @@ function CountStat({
 
 export function AttendanceBulkActions({
   counts,
+  readOnly = false,
   onMarkAllPresent,
   onMarkAllAbsent,
 }: AttendanceBulkActionsProps) {
@@ -58,8 +61,9 @@ export function AttendanceBulkActions({
         <Button
           type="button"
           variant="ghost"
+          disabled={readOnly}
           onClick={onMarkAllPresent}
-          className="w-full h-10 gap-2 rounded-xl text-sm font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95"
+          className="w-full h-10 gap-2 rounded-xl text-sm font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
         >
           <CheckCheck className="size-4" />
           כולם נכחו
@@ -67,8 +71,9 @@ export function AttendanceBulkActions({
         <Button
           type="button"
           variant="ghost"
+          disabled={readOnly}
           onClick={onMarkAllAbsent}
-          className="w-full h-10 gap-2 rounded-xl text-sm font-medium bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30 hover:bg-rose-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95"
+          className="w-full h-10 gap-2 rounded-xl text-sm font-medium bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30 hover:bg-rose-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
         >
           <XOctagon className="size-4" />
           כולם לא נכחו

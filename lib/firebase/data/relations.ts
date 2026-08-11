@@ -127,6 +127,8 @@ export interface RelationSubject {
   status?: string;
   /** Allocated units — used by `equipment_*` links. */
   quantity?: number;
+  /** ISO join date — used by `player_course` links (see {@link RelationDoc.joinedOn}). */
+  joinedOn?: string;
 }
 
 /**
@@ -151,11 +153,18 @@ export async function replaceTargetRelations(
     ),
   );
   const desired = new Set(subjects.map((s) => s.subjectId));
+  // A join date belongs to the moment a link was FIRST made, so an existing
+  // link keeps its own `joinedOn` through later edits; only brand-new links take
+  // the value the caller passes in.
+  const existingJoinedOn = new Map<string, string>();
   const batch = writeBatch(db);
   snapshot.docs.forEach((d) => {
-    if (!desired.has((d.data() as RelationDoc).subjectId)) batch.delete(d.ref);
+    const rel = d.data() as RelationDoc;
+    if (rel.joinedOn) existingJoinedOn.set(rel.subjectId, rel.joinedOn);
+    if (!desired.has(rel.subjectId)) batch.delete(d.ref);
   });
-  subjects.forEach(({ subjectId, role, status, quantity }) => {
+  subjects.forEach(({ subjectId, role, status, quantity, joinedOn }) => {
+    const keptJoinedOn = existingJoinedOn.get(subjectId) ?? joinedOn;
     const rel: Omit<RelationDoc, "id"> = {
       kind,
       subjectType,
@@ -165,6 +174,7 @@ export async function replaceTargetRelations(
       ...(role != null ? { role } : {}),
       ...(status != null ? { status } : {}),
       ...(quantity != null ? { quantity } : {}),
+      ...(keptJoinedOn != null ? { joinedOn: keptJoinedOn } : {}),
     };
     batch.set(doc(relationsRef(clubId), relationId(kind, subjectId, targetId)), rel);
   });

@@ -29,20 +29,27 @@ const config: Record<
 
 interface AttendanceMarkButtonProps {
   mark: AttendanceMark;
+  disabled?: boolean;
   onClick: () => void;
 }
 
 /** Tri-state click target: לא הוזן → נוכח → לא נוכח → לא הוזן. */
-export function AttendanceMarkButton({ mark, onClick }: AttendanceMarkButtonProps) {
+export function AttendanceMarkButton({
+  mark,
+  disabled = false,
+  onClick,
+}: AttendanceMarkButtonProps) {
   const { label, icon: Icon, className } = config[mark];
   return (
     <Button
       type="button"
       variant="ghost"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       className={cn(
         "h-8 w-28 mx-auto gap-1.5 rounded-xl text-xs font-medium transition-all duration-150 hover:scale-105 active:scale-95",
+        disabled && "pointer-events-none opacity-70 hover:scale-100",
         className,
       )}
     >

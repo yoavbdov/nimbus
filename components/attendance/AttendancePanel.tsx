@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AttendanceActions } from "@/components/attendance/AttendanceActions";
@@ -22,10 +22,15 @@ export function AttendancePanel() {
     counts,
     classMissingCount,
     sessionMissingById,
+    readOnly,
+    showArchived,
+    setShowArchived,
+    archivedCount,
     selectClass,
     selectSession,
     cycleMark,
     setComment,
+    commitComment,
     markAll,
   } = useAttendancePanel();
 
@@ -55,6 +60,9 @@ export function AttendancePanel() {
             classes={classes}
             activeId={classId}
             missingCount={classMissingCount}
+            showArchived={showArchived}
+            archivedCount={archivedCount}
+            onToggleArchived={() => setShowArchived(!showArchived)}
             onSelect={selectClass}
           />
 
@@ -66,8 +74,16 @@ export function AttendancePanel() {
           />
 
           <div className="space-y-4">
+            {readOnly && (
+              <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-foreground/5 ring-1 ring-foreground/12 text-sm text-foreground/70">
+                <Lock className="size-4 shrink-0" />
+                חוג בארכיון — הנוכחות מוצגת לקריאה בלבד
+              </div>
+            )}
+
             <AttendanceBulkActions
               counts={counts}
+              readOnly={readOnly}
               onMarkAllPresent={() => markAll("present")}
               onMarkAllAbsent={() => markAll("absent")}
             />
@@ -90,8 +106,10 @@ export function AttendancePanel() {
                 >
                   <AttendanceTable
                     roster={roster}
+                    readOnly={readOnly}
                     onCycle={cycleMark}
                     onComment={setComment}
+                    onCommentBlur={commitComment}
                   />
                 </motion.div>
               </AnimatePresence>

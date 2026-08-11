@@ -23,6 +23,7 @@ import { usePlayerConflicts } from "@/hooks/schedule/usePlayerConflicts";
 import { useEquipmentConflicts } from "@/hooks/schedule/useEquipmentConflicts";
 import { replaceTargetRelations } from "@/lib/firebase/data/relations";
 import { courseRecordFromForm, courseEditPatch } from "@/lib/course-details";
+import { toISODate } from "@/lib/calendar";
 
 /**
  * Owns all state for the "add course" modal: the scalar fields plus the three
@@ -384,7 +385,14 @@ export function useAddCourse() {
           "player",
           "course",
           courseId,
-          values.studentIds.map((subjectId) => ({ subjectId })),
+          // Stamp today's join date on each link; already-enrolled students keep
+          // their original date (see replaceTargetRelations), so only students
+          // added in this edit get the new one — which is what keeps them off
+          // attendance sessions that predate them.
+          values.studentIds.map((subjectId) => ({
+            subjectId,
+            joinedOn: toISODate(new Date()),
+          })),
         ),
         replaceTargetRelations(
           "equipment_course",

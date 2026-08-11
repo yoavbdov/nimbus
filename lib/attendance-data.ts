@@ -33,6 +33,8 @@ export interface AttendanceClass {
   coach: string;
   sessions: AttendanceSession[];
   students: AttendanceStudent[];
+  /** True when the course is archived — shown only on demand, and read-only. */
+  archived?: boolean;
 }
 
 /** marks[classId][sessionId][studentId] = AttendanceMark */
